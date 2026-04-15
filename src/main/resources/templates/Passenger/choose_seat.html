@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Premium Transit - Chọn ghế &amp; Nhập thông tin</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"/>
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                    colors: {
+                        "surface-container":"#ededf5","surface-variant":"#e2e2ea","surface-container-high":"#e8e7f0",
+                        "outline-variant":"#c3c6d4","on-surface":"#1a1b21","secondary-container":"#fe5825",
+                        "surface-container-low":"#f3f3fb","surface-dim":"#d9d9e1","on-primary":"#ffffff",
+                        "primary-container":"#0d47a1","secondary":"#b02e00","primary":"#003178",
+                        "surface-container-highest":"#e2e2ea","on-surface-variant":"#434652",
+                        "primary-fixed":"#d9e2ff","surface-container-lowest":"#ffffff",
+                        "background":"#faf8ff","surface-tint":"#2b5bb5",
+                        "error":"#ba1a1a","error-container":"#ffdad6",
+                        "secondary-fixed":"#ffdbd1","on-secondary-container":"#541100"
+                    },
+                    fontFamily: { headline:["Plus Jakarta Sans"], body:["Inter"] }
+                }}
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; display:inline-block; line-height:1; }
+        body { font-family:'Inter',sans-serif; }
+        h1,h2,h3,.brand-font { font-family:'Plus Jakarta Sans',sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+
+<!-- ===== NAV ===== -->
+<header class="bg-white/80 backdrop-blur-xl sticky top-0 z-50 shadow-[0_12px_32px_rgba(26,27,33,0.06)]">
+    <div class="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
+        <a th:href="@{/}" class="text-2xl font-black italic text-blue-900 brand-font">Premium Transit</a>
+        <nav class="hidden md:flex items-center space-x-8 font-semibold tracking-tight" style="font-family:'Plus Jakarta Sans',sans-serif;">
+            <a th:href="@{/my-trips}" class="text-slate-500 hover:text-blue-800 transition-colors">Chuyến đi của tôi</a>
+            <a th:href="@{/promotions}" class="text-slate-500 hover:text-blue-800 transition-colors">Khuyến mãi</a>
+            <a th:href="@{/help}" class="text-slate-500 hover:text-blue-800 transition-colors">Trợ giúp</a>
+        </nav>
+        <div class="flex items-center space-x-4">
+            <button class="p-2 hover:bg-slate-50 rounded-lg transition-all">
+                <span class="material-symbols-outlined text-blue-900">notifications</span>
+            </button>
+            <button class="p-2 hover:bg-slate-50 rounded-lg transition-all">
+                <span class="material-symbols-outlined text-blue-900">account_circle</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 md:px-8 py-8">
+
+    <!-- ===== STEPPER ===== -->
+    <div class="mb-12 flex items-center justify-start space-x-4">
+        <div class="flex items-center text-primary font-semibold">
+            <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center mr-2 text-sm">1</span>
+            <span class="text-sm">Tìm kiếm</span>
+        </div>
+        <div class="h-px w-8 bg-outline-variant"></div>
+        <div class="flex items-center text-primary font-extrabold">
+            <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center mr-2 text-sm">2</span>
+            <span class="text-sm">Ghế &amp; Thông tin</span>
+        </div>
+        <div class="h-px w-8 bg-outline-variant"></div>
+        <div class="flex items-center text-on-surface-variant opacity-50">
+            <span class="w-8 h-8 rounded-full border-2 border-outline-variant flex items-center justify-center mr-2 text-sm">3</span>
+            <span class="text-sm">Thanh toán</span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        <!-- ===== LEFT: Seat + Passenger ===== -->
+        <div class="lg:col-span-8 space-y-12">
+
+            <!-- SEAT SELECTION -->
+            <section>
+                <div class="mb-6">
+                    <h2 class="text-3xl font-extrabold tracking-tight mb-2">Chọn không gian hành trình</h2>
+                    <p class="text-on-surface-variant">Chọn vị trí ngồi yêu thích trong khoang xe hai tầng cao cấp.</p>
+                </div>
+                <!-- Legend -->
+                <div class="flex flex-wrap gap-6 mb-8 p-4 bg-surface-container-low rounded-xl">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-6 h-6 bg-surface-container-highest rounded-md"></div>
+                        <span class="text-sm font-medium">Còn trống</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-6 h-6 bg-secondary rounded-md"></div>
+                        <span class="text-sm font-medium">Đang chọn</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-6 h-6 bg-surface-dim opacity-40 rounded-md"></div>
+                        <span class="text-sm font-medium">Đã đặt</span>
+                    </div>
+                </div>
+
+                <!-- Seat Map Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 p-8 bg-surface-container-low rounded-3xl">
+
+                    <!-- Lower Deck -->
+                    <div class="space-y-6">
+                        <h3 class="text-lg font-bold text-center text-primary-container">Tầng dưới</h3>
+                        <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm border-l-4 border-primary">
+                            <div class="grid grid-cols-4 gap-4">
+                                <div class="col-span-4 flex justify-end mb-8 opacity-20">
+                                    <span class="material-symbols-outlined text-4xl">airline_seat_recline_extra</span>
+                                </div>
+                                <!--
+                                    DYNAMIC: th:each="seat : ${lowerDeckSeats}"
+                                    seat.seatId, seat.status (AVAILABLE | SELECTED | BOOKED)
+                                    Nếu seat.col == 3 thì thêm <div class="col-span-1"/> sau để tạo lối đi
+                                -->
+                                <th:block th:each="seat : ${lowerDeckSeats}">
+                                    <!-- Lối đi sau cột 2 -->
+                                    <div th:if="${seat.aisleAfter}" class="col-span-1"></div>
+                                    <button th:if="${seat.status == 'BOOKED'}"
+                                            type="button" disabled
+                                            class="aspect-square bg-surface-dim opacity-40 rounded-md flex items-center justify-center cursor-not-allowed">
+                                        <span class="text-xs font-bold" th:text="${seat.seatId}">L01</span>
+                                    </button>
+                                    <button th:if="${seat.status == 'SELECTED'}"
+                                            type="button"
+                                            th:data-seat-id="${seat.seatId}"
+                                            class="aspect-square bg-secondary text-white rounded-md flex items-center justify-center shadow-lg transform scale-105 seat-btn">
+                                        <span class="text-xs font-bold" th:text="${seat.seatId}">L06</span>
+                                    </button>
+                                    <button th:if="${seat.status == 'AVAILABLE'}"
+                                            type="button"
+                                            th:data-seat-id="${seat.seatId}"
+                                            class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn">
+                                        <span class="text-xs font-bold" th:text="${seat.seatId}">L02</span>
+                                    </button>
+                                </th:block>
+
+                                <!-- STATIC FALLBACK (xóa khi dùng dynamic) -->
+                                <th:block th:unless="${lowerDeckSeats != null}">
+                                    <button class="aspect-square bg-surface-dim opacity-40 rounded-md flex items-center justify-center cursor-not-allowed"><span class="text-xs font-bold">L01</span></button>
+                                    <button class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn" data-seat-id="L02"><span class="text-xs font-bold">L02</span></button>
+                                    <div class="col-span-1"></div>
+                                    <button class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn" data-seat-id="L03"><span class="text-xs font-bold">L03</span></button>
+                                    <button class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn" data-seat-id="L04"><span class="text-xs font-bold">L04</span></button>
+                                    <button class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn" data-seat-id="L05"><span class="text-xs font-bold">L05</span></button>
+                                    <div class="col-span-1"></div>
+                                    <button class="aspect-square bg-secondary text-white rounded-md flex items-center justify-center shadow-lg transform scale-105 seat-btn selected" data-seat-id="L06"><span class="text-xs font-bold">L06</span></button>
+                                    <button class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn" data-seat-id="L07"><span class="text-xs font-bold">L07</span></button>
+                                    <button class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn" data-seat-id="L08"><span class="text-xs font-bold">L08</span></button>
+                                    <div class="col-span-1"></div>
+                                    <button class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn" data-seat-id="L09"><span class="text-xs font-bold">L09</span></button>
+                                </th:block>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upper Deck -->
+                    <div class="space-y-6">
+                        <h3 class="text-lg font-bold text-center text-primary-container">Tầng trên</h3>
+                        <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm border-l-4 border-secondary">
+                            <div class="grid grid-cols-4 gap-4">
+                                <div class="col-span-4 flex justify-center mb-8 opacity-20">
+                                    <span class="material-symbols-outlined text-4xl">panorama</span>
+                                </div>
+                                <!-- Dynamic upper deck -->
+                                <th:block th:each="seat : ${upperDeckSeats}">
+                                    <div th:if="${seat.aisleAfter}" class="col-span-1"></div>
+                                    <button th:if="${seat.status == 'BOOKED'}" type="button" disabled
+                                            class="aspect-square bg-surface-dim opacity-40 rounded-md flex items-center justify-center cursor-not-allowed">
+                                        <span class="text-xs font-bold" th:text="${seat.seatId}"></span>
+                                    </button>
+                                    <button th:if="${seat.status == 'SELECTED'}" type="button"
+                                            th:data-seat-id="${seat.seatId}"
+                                            class="aspect-square bg-secondary text-white rounded-md flex items-center justify-center shadow-lg transform scale-105 seat-btn">
+                                        <span class="text-xs font-bold" th:text="${seat.seatId}"></span>
+                                    </button>
+                                    <button th:if="${seat.status == 'AVAILABLE'}" type="button"
+                                            th:data-seat-id="${seat.seatId}"
+                                            class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn">
+                                        <span class="text-xs font-bold" th:text="${seat.seatId}"></span>
+                                    </button>
+                                </th:block>
+                                <!-- STATIC FALLBACK -->
+                                <th:block th:unless="${upperDeckSeats != null}">
+                                    <button class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn" data-seat-id="U01"><span class="text-xs font-bold">U01</span></button>
+                                    <button class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn" data-seat-id="U02"><span class="text-xs font-bold">U02</span></button>
+                                    <div class="col-span-1"></div>
+                                    <button class="aspect-square bg-surface-dim opacity-40 rounded-md flex items-center justify-center cursor-not-allowed"><span class="text-xs font-bold">U03</span></button>
+                                    <button class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn" data-seat-id="U04"><span class="text-xs font-bold">U04</span></button>
+                                    <button class="aspect-square bg-secondary text-white rounded-md flex items-center justify-center shadow-lg transform scale-105 seat-btn selected" data-seat-id="U05"><span class="text-xs font-bold">U05</span></button>
+                                    <div class="col-span-1"></div>
+                                    <button class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn" data-seat-id="U06"><span class="text-xs font-bold">U06</span></button>
+                                    <button class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn" data-seat-id="U07"><span class="text-xs font-bold">U07</span></button>
+                                    <button class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn" data-seat-id="U08"><span class="text-xs font-bold">U08</span></button>
+                                    <div class="col-span-1"></div>
+                                    <button class="aspect-square bg-surface-container-highest hover:bg-secondary hover:text-white rounded-md flex items-center justify-center transition-all seat-btn" data-seat-id="U09"><span class="text-xs font-bold">U09</span></button>
+                                </th:block>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PASSENGER INFO FORM -->
+            <section class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-3xl font-extrabold tracking-tight mb-2">Thông tin hành khách</h2>
+                        <p class="text-on-surface-variant">Vui lòng cung cấp họ tên đầy đủ theo giấy tờ tùy thân.</p>
+                    </div>
+                    <button type="button" id="addPassengerBtn"
+                            class="flex items-center space-x-2 py-2 px-4 bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-all font-semibold">
+                        <span class="material-symbols-outlined text-sm">add</span>
+                        <span>Thêm hành khách</span>
+                    </button>
+                </div>
+
+                <form th:action="@{/booking/confirm}" method="post" id="passengerForm">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <input type="hidden" name="tripId" th:value="${trip.id}"/>
+                    <!-- Selected seats are submitted as hidden inputs via JS -->
+                    <div id="selectedSeatsContainer"></div>
+
+                    <div class="space-y-4" id="passengerList">
+                        <!--
+                            DYNAMIC: th:each="passenger, iterStat : ${bookingForm.passengers}"
+                            passenger.seatId, passenger.seatLabel, passenger.deck, passenger.fullName
+                        -->
+                        <div th:each="passenger, iterStat : ${bookingForm.passengers}"
+                             th:classappend="${iterStat.index == 0} ? 'border-primary' : 'border-secondary'"
+                             class="p-6 bg-surface-container-lowest rounded-2xl shadow-[0_12px_32px_rgba(26,27,33,0.06)] border-l-4 passenger-card">
+                            <div class="flex flex-col md:flex-row md:items-center gap-6">
+                                <div th:classappend="${iterStat.index == 0} ? 'bg-primary-fixed text-primary' : 'bg-secondary-fixed text-secondary'"
+                                     class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full font-bold"
+                                     th:text="${iterStat.index + 1}">1</div>
+                                <div class="flex-grow grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Chọn ghế</label>
+                                        <div th:classappend="${iterStat.index == 0} ? 'text-primary' : 'text-secondary'"
+                                             class="flex items-center font-bold">
+                                            <span class="material-symbols-outlined mr-1">event_seat</span>
+                                            <span th:text="${passenger.seatLabel}">L06 (Tầng dưới)</span>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Họ và tên</label>
+                                        <input type="text"
+                                               th:name="'passengers[' + ${iterStat.index} + '].fullName'"
+                                               th:value="${passenger.fullName}"
+                                               th:placeholder="${iterStat.index == 0 ? 'VD: Nguyễn Văn A' : 'VD: Trần Thị B'}"
+                                               class="w-full bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-surface-tint p-3 text-on-surface placeholder:text-outline"/>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="removePassenger(this)"
+                                        class="text-error hover:bg-error-container p-2 rounded-lg transition-all self-end md:self-center">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- STATIC FALLBACK (xóa khi dùng dynamic) -->
+                        <div th:unless="${bookingForm != null}"
+                             class="p-6 bg-surface-container-lowest rounded-2xl shadow-[0_12px_32px_rgba(26,27,33,0.06)] border-l-4 border-primary passenger-card">
+                            <div class="flex flex-col md:flex-row md:items-center gap-6">
+                                <div class="flex-shrink-0 w-12 h-12 bg-primary-fixed flex items-center justify-center rounded-full text-primary font-bold">1</div>
+                                <div class="flex-grow grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Chọn ghế</label>
+                                        <div class="flex items-center text-primary font-bold">
+                                            <span class="material-symbols-outlined mr-1">event_seat</span> L06 (Tầng dưới)
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Họ và tên</label>
+                                        <input type="text" placeholder="VD: Nguyễn Văn A"
+                                               class="w-full bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-surface-tint p-3 text-on-surface placeholder:text-outline"/>
+                                    </div>
+                                </div>
+                                <button type="button" class="text-error hover:bg-error-container p-2 rounded-lg transition-all">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <!-- ===== RIGHT: Order Summary ===== -->
+        <aside class="lg:col-span-4 sticky top-24 space-y-6">
+            <div class="bg-surface-container-high rounded-[2.5rem] p-8 overflow-hidden relative">
+                <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                    <span class="material-symbols-outlined text-[120px]" style="font-variation-settings:'FILL' 1;">directions_bus</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-primary mb-6">Chi tiết đặt vé</h3>
+                <!-- Route -->
+                <div class="space-y-4 mb-8">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Điểm đi</p>
+                            <p class="font-bold" th:text="${trip.departureStation}">Bến xe Miền Đông</p>
+                            <p class="text-sm text-on-surface-variant" th:text="${trip.departureDateTimeLabel}">Thứ 6, 24 Th5 • 08:30 AM</p>
+                        </div>
+                        <span class="material-symbols-outlined text-primary">logout</span>
+                    </div>
+                    <div class="border-l-2 border-dashed border-outline-variant ml-3 py-2"></div>
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Điểm đến</p>
+                            <p class="font-bold" th:text="${trip.arrivalStation}">Bến xe Đà Lạt</p>
+                            <p class="text-sm text-on-surface-variant" th:text="${trip.arrivalDateTimeLabel}">Thứ 6, 24 Th5 • 02:30 PM</p>
+                        </div>
+                        <span class="material-symbols-outlined text-secondary">login</span>
+                    </div>
+                </div>
+                <hr class="border-outline-variant opacity-30 mb-6"/>
+                <!-- Price breakdown - dynamic -->
+                <div class="space-y-3 mb-6" id="priceBreakdown">
+                    <div th:each="item : ${bookingForm.priceItems}" class="flex justify-between text-sm">
+                        <span class="text-on-surface-variant" th:text="${item.label}">Ghế L06</span>
+                        <span class="font-semibold" th:text="${item.priceFormatted}">450.000đ</span>
+                    </div>
+                    <!-- Static fallback -->
+                    <div th:unless="${bookingForm != null}" class="flex justify-between text-sm">
+                        <span class="text-on-surface-variant">Ghế L06 (Hạng Premium)</span>
+                        <span class="font-semibold">450.000đ</span>
+                    </div>
+                    <div th:unless="${bookingForm != null}" class="flex justify-between text-sm">
+                        <span class="text-on-surface-variant">Ghế U05 (Hạng Elite View)</span>
+                        <span class="font-semibold">480.000đ</span>
+                    </div>
+                    <div th:unless="${bookingForm != null}" class="flex justify-between text-sm">
+                        <span class="text-on-surface-variant">Phí dịch vụ</span>
+                        <span class="font-semibold">20.000đ</span>
+                    </div>
+                </div>
+                <!-- Total -->
+                <div class="bg-primary/5 rounded-2xl p-4 flex items-center justify-between mb-6">
+                    <div>
+                        <p class="text-xs font-bold text-primary uppercase">Tổng cộng</p>
+                        <p class="text-2xl font-black text-secondary" id="totalPrice"
+                           th:text="${bookingForm.totalFormatted}">950.000đ</p>
+                    </div>
+                    <span class="material-symbols-outlined text-3xl text-secondary" style="font-variation-settings:'FILL' 1;">payments</span>
+                </div>
+            </div>
+            <!-- Submit button -->
+            <a th:href="@{/booking/payment}"
+               onclick="document.getElementById('passengerForm').submit(); return false;"
+               class="block w-full bg-gradient-to-r from-primary to-primary-container text-white py-5 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all flex items-center justify-center space-x-3 group active:scale-95 duration-150 text-center">
+                <span>Tiếp tục thanh toán</span>
+                <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </a>
+            <p class="text-center text-xs text-on-surface-variant px-4">
+                Bằng việc nhấn tiếp tục, bạn đồng ý với
+                <a th:href="@{/terms}" class="underline font-bold">Điều khoản vận chuyển</a> và
+                <a th:href="@{/privacy}" class="underline font-bold">Chính sách bảo mật</a>.
+            </p>
+        </aside>
+    </div>
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="bg-slate-100 mt-20">
+    <div class="w-full px-8 py-12 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div>
+            <span class="text-xl font-bold text-blue-900 mb-4 block">Premium Transit</span>
+            <p class="text-sm leading-relaxed text-slate-600">Định nghĩa lại sự sang trọng trong vận tải hành khách với sự thoải mái và an toàn tuyệt đối.</p>
+        </div>
+        <div class="flex flex-col space-y-3">
+            <p class="font-bold text-blue-900">Liên kết nhanh</p>
+            <a th:href="@{/privacy}" class="text-sm text-slate-600 hover:text-blue-700 underline">Chính sách bảo mật</a>
+            <a th:href="@{/terms}" class="text-sm text-slate-600 hover:text-blue-700 underline">Điều khoản dịch vụ</a>
+            <a th:href="@{/fleet}" class="text-sm text-slate-600 hover:text-blue-700 underline">Thông tin đội xe</a>
+        </div>
+        <div class="flex flex-col space-y-3">
+            <p class="font-bold text-blue-900">Liên hệ</p>
+            <p class="text-sm text-slate-600">123 Đại lộ, TP. Hồ Chí Minh, Việt Nam</p>
+            <p class="text-sm text-slate-600">support@premiumtransit.com</p>
+        </div>
+    </div>
+    <div class="border-t border-slate-200 py-6 text-center">
+        <p class="text-sm text-slate-500">© 2024 Tổng công ty Premium Transit. Bảo lưu mọi quyền.</p>
+    </div>
+</footer>
+
+<!-- Mobile Nav -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 rounded-t-3xl bg-white/80 backdrop-blur-xl shadow-[0_-8px_24px_rgba(0,0,0,0.08)]">
+    <div class="flex justify-around items-center px-4 pb-6 pt-3">
+        <a th:href="@{/}" class="flex flex-col items-center text-slate-400 px-5 py-2"><span class="material-symbols-outlined">search</span><span class="text-[11px] font-medium">Tìm kiếm</span></a>
+        <a th:href="@{/my-trips}" class="flex flex-col items-center bg-orange-50 text-orange-700 rounded-2xl px-5 py-2"><span class="material-symbols-outlined">directions_bus</span><span class="text-[11px] font-medium">Chuyến đi</span></a>
+        <a th:href="@{/notifications}" class="flex flex-col items-center text-slate-400 px-5 py-2"><span class="material-symbols-outlined">notifications</span><span class="text-[11px] font-medium">Thông báo</span></a>
+        <a th:href="@{/profile}" class="flex flex-col items-center text-slate-400 px-5 py-2"><span class="material-symbols-outlined">person</span><span class="text-[11px] font-medium">Tài khoản</span></a>
+    </div>
+</nav>
+
+<script>
+    // Seat toggle logic (static pages — Spring sẽ xử lý state thật qua server)
+    document.querySelectorAll('.seat-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (this.classList.contains('selected')) {
+                this.classList.remove('selected', 'bg-secondary', 'text-white', 'scale-105', 'shadow-lg');
+                this.classList.add('bg-surface-container-highest');
+            } else {
+                this.classList.add('selected', 'bg-secondary', 'text-white', 'scale-105', 'shadow-lg');
+                this.classList.remove('bg-surface-container-highest');
+            }
+        });
+    });
+</script>
+</body>
+</html>
