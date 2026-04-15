@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng ký tài khoản</title>
+</head>
+<body>
+    <h2>Đăng ký tài khoản</h2>
+    <div th:if="${errorMessage}">
+        <p style="color: red;" th:text="${errorMessage}"></p>
+    </div>
+
+    <form th:action="@{/register}" th:object="${registerDTO}" method="post">
+        <div>
+            <label>Họ tên:</label>
+            <input type="text" th:field="*{fullName}" required />
+            <p th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" style="color: red;"></p>
+        </div>
+        <div>
+            <label>Email:</label>
+            <input type="email" th:field="*{email}" required />
+            <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" style="color: red;"></p>
+        </div>
+        <div>
+            <label>Số điện thoại:</label>
+            <input type="text" th:field="*{phone}" required />
+            <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" style="color: red;"></p>
+        </div>
+        <div>
+            <label>Mật khẩu:</label>
+            <input type="password" th:field="*{password}" required />
+            <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}" style="color: red;"></p>
+        </div>
+        <div>
+            <label>Xác nhận mật khẩu:</label>
+            <input type="password" th:field="*{confirmPassword}" required />
+            <p th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" style="color: red;"></p>
+        </div>
+        <div>
+            <button type="submit">Đăng ký</button>
+        </div>
+    </form>
+    <p>Đã có tài khoản? <a th:href="@{/login}">Đăng nhập ngay</a></p>
+</body>
+</html>
