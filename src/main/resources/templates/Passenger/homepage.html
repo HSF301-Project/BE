@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Premium Transit Authority | Home</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-container": "#ededf5",
+            "on-tertiary-container": "#7ecf79",
+            "surface-variant": "#e2e2ea",
+            "surface-container-high": "#e8e7f0",
+            "on-background": "#1a1b21",
+            "on-surface": "#1a1b21",
+            "secondary-container": "#fe5825",
+            "surface-container-low": "#f3f3fb",
+            "surface-dim": "#d9d9e1",
+            "on-primary": "#ffffff",
+            "primary-container": "#0d47a1",
+            "surface": "#faf8ff",
+            "primary": "#003178",
+            "surface-container-highest": "#e2e2ea",
+            "on-surface-variant": "#434652",
+            "on-secondary": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "outline": "#737783",
+            "background": "#faf8ff",
+            "surface-tint": "#2b5bb5"
+          },
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            full: "9999px"
+          },
+          fontFamily: {
+            headline: ["Plus Jakarta Sans"],
+            body: ["Inter"],
+            label: ["Inter"]
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      line-height: 1;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #faf8ff;
+      color: #1a1b21;
+    }
+    .editorial-heading {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface">
+
+<!-- ===== TOP NAV ===== -->
+<nav class="bg-white/80 backdrop-blur-xl sticky top-0 z-50 shadow-[0_12px_32px_rgba(26,27,33,0.06)]">
+  <div class="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
+    <div class="flex items-center gap-8">
+      <a th:href="@{/}" class="text-2xl font-black italic text-blue-900 editorial-heading">Premium Transit</a>
+      <div class="hidden md:flex gap-6">
+        <a th:href="@{/my-trips}" class="font-semibold tracking-tight text-slate-500 hover:text-blue-800 transition-colors editorial-heading">My Trips</a>
+        <a th:href="@{/promotions}" class="font-semibold tracking-tight text-slate-500 hover:text-blue-800 transition-colors editorial-heading">Promotions</a>
+        <a th:href="@{/help}" class="font-semibold tracking-tight text-slate-500 hover:text-blue-800 transition-colors editorial-heading">Help</a>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <button class="p-2 hover:bg-slate-50 rounded-lg transition-all text-blue-900">
+        <span class="material-symbols-outlined">notifications</span>
+      </button>
+      <button class="p-2 hover:bg-slate-50 rounded-lg transition-all text-blue-900">
+        <span class="material-symbols-outlined">account_circle</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ===== HERO SECTION ===== -->
+  <section class="relative min-h-[716px] flex flex-col justify-center px-8 pt-20 pb-32 overflow-hidden bg-gradient-to-br from-primary to-primary-container">
+    <div class="absolute inset-0 opacity-20 pointer-events-none">
+      <img class="w-full h-full object-cover"
+           th:src="@{/images/hero-bus.jpg}"
+           src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmp-22C92bonD-RhLNWGC8i9BEssgeTXCIMSJts8mvcau1siWzOl9BxHbVkK4JMwN-h19aUJXE8FjZ6DNMnU1bodgSgma7LzN1fxyAONJUPUSm_0GWAlj0jAbLrG0aC1YfAvgOZ0F4RDhQAjik4ieUEDrXS8asXeKs3bJutRQeq9vhufcO_Wn5LKcCRMEQ9iQ9-NWlicXHIGDekmfMF7TJ--yeSwwuyu3vJ_0pasg9qdhNhbVf7Colb8FYswCH8utTwyk71tKSMA"
+           alt="Hero background bus"/>
+    </div>
+    <div class="relative z-10 max-w-7xl mx-auto w-full">
+      <div class="md:w-2/3 lg:w-1/2 mb-12">
+        <h1 class="editorial-heading text-5xl md:text-7xl font-black text-white leading-tight mb-4">
+          Khởi hành cùng<br/>
+          <span class="text-on-tertiary-container">Sự Sang Trọng.</span>
+        </h1>
+        <p class="text-white/80 text-lg font-medium mt-4">
+          Nâng tầm trải nghiệm di chuyển của bạn với<br/>dịch vụ xe khách cao cấp hàng đầu Việt Nam.
+        </p>
+      </div>
+
+      <!-- Search Form -->
+      <div class="bg-white rounded-3xl p-6 shadow-2xl max-w-4xl">
+        <form th:action="@{/search}" method="get" class="flex flex-col md:flex-row gap-4 items-end">
+          <!-- Điểm đi -->
+          <div class="flex-1">
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Điểm đi</label>
+            <div class="flex items-center gap-2 border border-slate-200 rounded-2xl px-4 py-3">
+              <span class="material-symbols-outlined text-primary text-xl">location_on</span>
+              <input type="text"
+                     name="from"
+                     th:value="${searchForm?.from}"
+                     placeholder="TP. Hồ Chí Minh"
+                     class="flex-1 outline-none text-on-surface font-medium bg-transparent"/>
+            </div>
+          </div>
+          <!-- Điểm đến -->
+          <div class="flex-1">
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Điểm đến</label>
+            <div class="flex items-center gap-2 border border-slate-200 rounded-2xl px-4 py-3">
+              <span class="material-symbols-outlined text-primary text-xl">near_me</span>
+              <input type="text"
+                     name="to"
+                     th:value="${searchForm?.to}"
+                     placeholder="Bạn muốn đi đâu?"
+                     class="flex-1 outline-none text-on-surface font-medium bg-transparent"/>
+            </div>
+          </div>
+          <!-- Ngày đi -->
+          <div class="flex-1">
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Ngày đi</label>
+            <div class="flex items-center gap-2 border border-slate-200 rounded-2xl px-4 py-3">
+              <span class="material-symbols-outlined text-primary text-xl">calendar_month</span>
+              <input type="date"
+                     name="date"
+                     th:value="${searchForm?.date}"
+                     class="flex-1 outline-none text-on-surface font-medium bg-transparent"/>
+            </div>
+          </div>
+          <!-- Submit -->
+          <button type="submit"
+                  class="bg-secondary-container text-white px-8 py-4 rounded-2xl font-bold text-base hover:opacity-90 transition-opacity shadow-lg whitespace-nowrap">
+            Tìm Chuyến
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== POPULAR ROUTES SECTION ===== -->
+  <section class="max-w-7xl mx-auto px-8 py-20">
+    <!-- Section Header -->
+    <div class="flex justify-between items-end mb-10">
+      <div>
+        <p class="text-secondary-container font-bold uppercase tracking-widest text-sm mb-2">Hành Trình Gợi Ý</p>
+        <h2 class="editorial-heading text-4xl font-black text-on-surface">Tuyến đường phổ biến</h2>
+      </div>
+      <a th:href="@{/routes}" class="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1">
+        Xem tất cả tuyến đường
+        <span class="material-symbols-outlined text-base">arrow_forward</span>
+      </a>
+    </div>
+
+    <!-- Route Cards Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 auto-rows-[220px]">
+
+      <!-- Large Card (spans 2 rows) - rendered from th:each or static -->
+      <!-- Nếu dùng dynamic data: th:each="route : ${featuredRoutes}" -->
+
+      <!-- Featured Card (large) -->
+      <div th:if="${featuredRoute != null}"
+           class="col-span-2 row-span-2 relative group overflow-hidden rounded-3xl bg-surface-container-low">
+        <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+             th:src="${featuredRoute.imageUrl}"
+             th:alt="${featuredRoute.name}"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        <div class="absolute bottom-0 left-0 p-8 w-full">
+          <p class="text-white/70 text-sm font-medium mb-2" th:text="${featuredRoute.route}">Sài Gòn → Đà Lạt</p>
+          <h3 class="text-white text-3xl font-black editorial-heading mb-4" th:text="${featuredRoute.name}">Thành Phố Ngàn Hoa</h3>
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-1 text-on-tertiary-container">
+              <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+              <span class="text-white font-bold" th:text="${featuredRoute.rating}">4.9</span>
+              <span class="text-white/60 text-sm" th:text="'(' + ${featuredRoute.reviewCount} + ' đánh giá)'"></span>
+            </div>
+            <span class="text-secondary-container font-black text-xl" th:text="${featuredRoute.priceFormatted}">350.000đ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Static fallback (xoá khi dùng dynamic) -->
+      <div th:unless="${featuredRoute != null}"
+           class="col-span-2 row-span-2 relative group overflow-hidden rounded-3xl bg-surface-container-low">
+        <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlcw-P2Y6i4GAnPrPQpGb_fJE1i3pFWVGc37YUiM2YMeIaGQvJUXjFM3cRKxe7gCNrmLZVpO9HXCO3k6WFXWgY6Mu0-Ui0GvJ0NUPbXVZDTHwExVp75GMnpDEPiWAZ2w4sRwPSRmDa3lPHVEGmFJWgKvGvdqLzR43KxsxDNtFGiPRq2qpxFMTj5qgr8FXfb4oqUm8s4YKO0rMXLMUekU0u4k7YkNzr-JQ3mVBSEaGlriPjjmEGfmDw"
+             alt="Đà Lạt"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        <div class="absolute bottom-0 left-0 p-8 w-full">
+          <p class="text-white/70 text-sm font-medium mb-2">Sài Gòn → Đà Lạt</p>
+          <h3 class="text-white text-3xl font-black editorial-heading mb-4">Thành Phố Ngàn Hoa</h3>
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-1 text-on-tertiary-container">
+              <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+              <span class="text-white font-bold">4.9</span>
+              <span class="text-white/60 text-sm">(482 đánh giá)</span>
+            </div>
+            <span class="text-secondary-container font-black text-xl">350.000đ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Small Cards - dynamic (uncomment khi có data) -->
+      <!--
+      <div th:each="route : ${smallRoutes}"
+           class="relative group overflow-hidden rounded-3xl bg-surface-container-low">
+          <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+               th:src="${route.imageUrl}" th:alt="${route.name}"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+          <div class="absolute bottom-0 left-0 p-6 w-full">
+              <p class="text-white/70 text-xs font-medium mb-1" th:text="${route.route}"></p>
+              <h3 class="text-white text-xl font-black editorial-heading mb-4" th:text="${route.name}"></h3>
+              <div class="flex justify-between items-center">
+                  <div class="flex items-center gap-1 text-on-tertiary-container">
+                      <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                      <span class="text-white font-bold" th:text="${route.rating}"></span>
+                  </div>
+                  <span class="text-secondary-container font-black font-body" th:text="${route.priceFormatted}"></span>
+              </div>
+          </div>
+      </div>
+      -->
+
+      <!-- Small Card 1 - Static -->
+      <div class="relative group overflow-hidden rounded-3xl bg-surface-container-low">
+        <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+             src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1gTOXGqhV4VDVfZEk6oWNx0klQDGQcnYb9-FqF8FxNbpijNPO_cPYJW7tX0EoZrLFCNkqzIE_yY_i-IcKk3eDW-dlFwmHefGMGx5gDIEJuNzqT2OJIgvPBW_-z0cMFZJz6AqXi3Y_4m3dP0zqKdxbgCxQq-RwqiWqPZ_NfZkMw7pnqeF4r3LhIBMvvGTRgDt1bHOFfNZjd_YW3r1M02wniHhMcRJFJxibVNi93v1h3N3E3zKELOA"
+             alt="Vũng Tàu"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        <div class="absolute bottom-0 left-0 p-6 w-full">
+          <p class="text-white/70 text-xs font-medium mb-1">Sài Gòn → Vũng Tàu</p>
+          <h3 class="text-white text-xl font-black editorial-heading mb-4">Biển Xanh Nắng Vàng</h3>
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-1 text-on-tertiary-container">
+              <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+              <span class="text-white font-bold">4.8</span>
+            </div>
+            <span class="text-secondary-container font-black">180.000đ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Small Card 2 -->
+      <div class="relative group overflow-hidden rounded-3xl bg-surface-container-low">
+        <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuA7j1OLfAzGZhJLMzqFuHgzfE0tz6gEDolXW6RVh5s8FJMx7Ug1sZQv4a5JEqmpLxc9iQrNWh9e-qQv-3VfUkwuK1QNgLaqFdmcBuoJqk2oQs6-p1BM-GFXG4hZYCIRJJwn6nE82ynW9jQ0fFJ5ixwLRxV5-lNqPnvNv7IkZ1y4cbNmrxbPFD6-dvTU8bIqjzLWV2h0sUJVT2BFYOQ2o83jT4A-eFdX3v1ZMVjBZ0R6e5JZDqI_g"
+             alt="Huế"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        <div class="absolute bottom-0 left-0 p-6 w-full">
+          <p class="text-white/70 text-xs font-medium mb-1">Đà Nẵng → Huế</p>
+          <h3 class="text-white text-xl font-black editorial-heading mb-4">Cố Đô Trầm Mặc</h3>
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-1 text-on-tertiary-container">
+              <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+              <span class="text-white font-bold">4.7</span>
+            </div>
+            <span class="text-secondary-container font-black">150.000đ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Small Card 3 -->
+      <div class="relative group overflow-hidden rounded-3xl bg-surface-container-low">
+        <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuW6qgADbDSPMPHg3y_08LWFIo8-4Vm1buCOKBe7vUHGJAcR08qQBLWXEdOs0C7LIyDXdACjv6UoEqOqvvn92y8W-dAUjaFKaQqug9RpFPAHcnL2_YhOOHP6c5hlR30DM_RSVt0t2vTdqwKeSlKwGbK06NYWGiuAtE0vOqpVfU9TU0XQLCaYzjvaniLlMOfgDvH6FA7KkmO8P4K84V68Zz3WDy2yGJoF93MUwuAVu83-Uqk7SAUksJX6k_ezcooErTL0gMA"
+             alt="Hạ Long"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        <div class="absolute bottom-0 left-0 p-6 w-full">
+          <p class="text-white/70 text-xs font-medium mb-1">Hà Nội → Hạ Long</p>
+          <h3 class="text-white text-xl font-black editorial-heading mb-4">Kỳ Quan Thiên Nhiên</h3>
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-1 text-on-tertiary-container">
+              <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+              <span class="text-white font-bold">4.9</span>
+            </div>
+            <span class="text-secondary-container font-black">250.000đ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Small Card 4 -->
+      <div class="relative group overflow-hidden rounded-3xl bg-surface-container-low">
+        <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzHTpbliQ6QFU5DJvqrX5scTvyBNR-TjKWFiI6ChZEHSZOaEf_Gih3V2WxUqsFmcEWVcwJiQvdMCEELT88dF39e_chAxcQrakeMgAPpBK3UrsTC74KT6ZEGcXjGHkV0peQWCRszLvNh2fOaCLt8n5xZXYPpjyNozzawFtUBAjcRpbo3YV_lxTYEtcII4adB3I45Mr5vbxIFd1WMZ9FCzMudVehXmnvEM4FOc3eVHN-M7jdo_FLmVwk1e65yPCz8QjqUkQ"
+             alt="Nha Trang"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        <div class="absolute bottom-0 left-0 p-6 w-full">
+          <p class="text-white/70 text-xs font-medium mb-1">Sài Gòn → Nha Trang</p>
+          <h3 class="text-white text-xl font-black editorial-heading mb-4">Vịnh Biển Thiên Đường</h3>
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-1 text-on-tertiary-container">
+              <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+              <span class="text-white font-bold">4.6</span>
+            </div>
+            <span class="text-secondary-container font-black">420.000đ</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== NEWSLETTER SECTION ===== -->
+  <section class="max-w-7xl mx-auto px-8 mb-24">
+    <div class="bg-surface-container-high rounded-[3rem] p-12 md:p-20 relative overflow-hidden">
+      <div class="absolute right-12 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none hidden lg:block">
+        <span class="material-symbols-outlined" style="font-size: 240px; color: #003178;">mail</span>
+      </div>
+      <div class="relative z-10 max-w-2xl">
+        <h2 class="editorial-heading text-4xl font-black text-primary mb-6">
+          Đăng ký nhận ưu đãi hành trình tiếp theo.
+        </h2>
+        <p class="text-on-surface-variant font-body mb-10 text-lg">
+          Tham gia cộng đồng du lịch của chúng tôi để nhận mã giảm giá lên đến 30%
+          và cập nhật những chuyến đi mới nhất.
+        </p>
+        <form th:action="@{/newsletter/subscribe}" method="post"
+              class="flex flex-col sm:flex-row gap-4">
+          <!-- CSRF token nếu Spring Security được bật -->
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+          <input type="email"
+                 name="email"
+                 placeholder="Email của bạn..."
+                 class="flex-1 px-8 py-5 rounded-2xl border-none bg-surface-container-lowest focus:ring-2 focus:ring-primary text-on-surface font-medium outline-none"/>
+          <button type="submit"
+                  class="bg-primary text-white px-10 py-5 rounded-2xl font-bold hover:bg-primary-container transition-colors shadow-lg shadow-primary/20 whitespace-nowrap">
+            Tham gia ngay
+          </button>
+        </form>
+        <!-- Success / Error message -->
+        <div class="mt-4 text-green-700 font-semibold"
+             th:if="${newsletterSuccess}"
+             th:text="${newsletterSuccess}"></div>
+        <div class="mt-4 text-red-600 font-semibold"
+             th:if="${newsletterError}"
+             th:text="${newsletterError}"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="w-full border-t border-surface-variant bg-slate-100">
+  <div class="max-w-7xl mx-auto px-8 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+    <!-- Brand -->
+    <div class="space-y-4">
+      <a th:href="@{/}" class="text-xl font-bold text-blue-900 block editorial-heading">Premium Transit</a>
+      <p class="text-sm leading-relaxed text-slate-600 max-w-xs">
+        Mang đến trải nghiệm di chuyển xe khách đẳng cấp, an toàn và chuyên nghiệp nhất
+        cho mỗi hành trình của bạn.
+      </p>
+      <div class="flex gap-4 pt-4">
+        <span class="material-symbols-outlined text-primary cursor-pointer hover:scale-110 transition-transform">public</span>
+        <span class="material-symbols-outlined text-primary cursor-pointer hover:scale-110 transition-transform">share</span>
+        <span class="material-symbols-outlined text-primary cursor-pointer hover:scale-110 transition-transform">thumb_up</span>
+      </div>
+    </div>
+
+    <!-- Links -->
+    <div>
+      <h4 class="font-bold text-blue-900 mb-6 uppercase tracking-wider text-xs">Khám phá</h4>
+      <ul class="space-y-3">
+        <li><a th:href="@{/privacy}" class="text-slate-600 hover:text-blue-700 underline transition-all text-sm">Privacy Policy</a></li>
+        <li><a th:href="@{/terms}" class="text-slate-600 hover:text-blue-700 underline transition-all text-sm">Terms of Service</a></li>
+        <li><a th:href="@{/contact}" class="text-slate-600 hover:text-blue-700 underline transition-all text-sm">Contact Us</a></li>
+        <li><a th:href="@{/fleet}" class="text-slate-600 hover:text-blue-700 underline transition-all text-sm">Fleet Details</a></li>
+      </ul>
+    </div>
+
+    <!-- Contact -->
+    <div>
+      <h4 class="font-bold text-blue-900 mb-6 uppercase tracking-wider text-xs">Liên hệ</h4>
+      <div class="space-y-3 text-sm text-slate-600">
+        <p class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-base text-primary">call</span>
+          1900 8888
+        </p>
+        <p class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-base text-primary">mail</span>
+          contact@premiumtransit.com
+        </p>
+        <p class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-base text-primary">location_on</span>
+          Bến Xe Miền Đông, TP. Hồ Chí Minh
+        </p>
+      </div>
+    </div>
+
+    <!-- Copyright -->
+    <div class="md:col-span-3 pt-8 border-t border-slate-200 text-center text-slate-500 text-xs">
+      © 2024 The Premium Transit Authority. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<!-- ===== BOTTOM NAV (Mobile only) ===== -->
+<div class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 backdrop-blur-xl z-50 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] rounded-t-3xl">
+  <a th:href="@{/}" class="flex flex-col items-center bg-orange-50 text-orange-700 rounded-2xl px-5 py-2">
+    <span class="material-symbols-outlined">search</span>
+    <span class="text-[11px] font-medium">Search</span>
+  </a>
+  <a th:href="@{/my-trips}" class="flex flex-col items-center text-slate-400 px-5 py-2">
+    <span class="material-symbols-outlined">directions_bus</span>
+    <span class="text-[11px] font-medium">My Trips</span>
+  </a>
+  <a th:href="@{/notifications}" class="flex flex-col items-center text-slate-400 px-5 py-2">
+    <span class="material-symbols-outlined">notifications</span>
+    <span class="text-[11px] font-medium">Notifications</span>
+  </a>
+  <a th:href="@{/profile}" class="flex flex-col items-center text-slate-400 px-5 py-2">
+    <span class="material-symbols-outlined">person</span>
+    <span class="text-[11px] font-medium">Profile</span>
+  </a>
+</div>
+
+</body>
+</html>

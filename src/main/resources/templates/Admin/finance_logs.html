@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Transit Admin - Quản lý Thanh toán</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"/>
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                    colors: {
+                        "surface-container":"#ededf5","surface-container-high":"#e8e7f0","surface-container-low":"#f3f3fb",
+                        "surface-container-lowest":"#ffffff","surface-container-highest":"#e2e2ea","surface-bright":"#faf8ff",
+                        "surface-variant":"#e2e2ea","on-surface":"#1a1b21","on-surface-variant":"#434652",
+                        "secondary-container":"#fe5825","secondary":"#b02e00","on-secondary":"#ffffff",
+                        "secondary-fixed":"#ffdbd1","on-secondary-fixed":"#3b0900",
+                        "primary-container":"#0d47a1","primary":"#003178","on-primary":"#ffffff",
+                        "primary-fixed":"#d9e2ff","on-primary-fixed":"#001945","on-primary-container":"#a1bbff",
+                        "tertiary-container":"#005914","tertiary-fixed":"#a3f69c","on-tertiary-fixed":"#002204",
+                        "outline":"#737783","outline-variant":"#c3c6d4","background":"#faf8ff",
+                        "error":"#ba1a1a","error-container":"#ffdad6"
+                    },
+                    fontFamily: { headline:["Plus Jakarta Sans"], body:["Inter"] }
+                }}
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; display:inline-block; line-height:1; }
+        body { font-family:'Inter',sans-serif; }
+        .font-headline { font-family:'Plus Jakarta Sans',sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="fixed left-0 top-0 h-full z-40 flex flex-col w-64 bg-slate-50 font-semibold tracking-tight" style="font-family:'Plus Jakarta Sans',sans-serif;">
+    <div class="p-6 flex flex-col gap-6 h-full">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white">
+                <span class="material-symbols-outlined">directions_bus</span>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tighter text-blue-900 leading-none">Quản trị Transit</h1>
+                <p class="text-xs text-on-surface-variant opacity-70">Quản lý Cơ quan</p>
+            </div>
+        </div>
+        <nav class="flex-1 flex flex-col gap-1">
+            <a th:href="@{/admin/dashboard}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
+                <span class="material-symbols-outlined">dashboard</span><span>Bảng điều khiển</span>
+            </a>
+            <a th:href="@{/admin/trips}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
+                <span class="material-symbols-outlined">directions_bus</span><span>Chuyến đi</span>
+            </a>
+            <a th:href="@{/admin/infrastructure}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
+                <span class="material-symbols-outlined">construction</span><span>Cơ sở hạ tầng</span>
+            </a>
+            <!-- ACTIVE -->
+            <a th:href="@{/admin/payments}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-blue-700 font-bold border-r-4 border-blue-700 bg-slate-200/50">
+                <span class="material-symbols-outlined">payments</span><span>Thanh toán</span>
+            </a>
+            <a th:href="@{/admin/reports}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
+                <span class="material-symbols-outlined">analytics</span><span>Báo cáo</span>
+            </a>
+        </nav>
+        <div class="mt-auto flex flex-col gap-1 border-t border-slate-200 pt-4">
+            <a th:href="@{/admin/settings}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
+                <span class="material-symbols-outlined">settings</span><span>Cài đặt</span>
+            </a>
+            <a th:href="@{/admin/help}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
+                <span class="material-symbols-outlined">help_center</span><span>Hỗ trợ</span>
+            </a>
+            <!-- Admin profile card -->
+            <div class="mt-4 p-4 bg-primary rounded-xl text-white">
+                <img th:src="${adminUser.avatarUrl != null ? adminUser.avatarUrl : '/images/default-admin.png'}"
+                     th:alt="${adminUser.fullName}"
+                     class="w-10 h-10 rounded-full border-2 border-primary-fixed mb-3 object-cover"/>
+                <p class="text-xs font-semibold opacity-80">Quản lý Cơ quan</p>
+                <p class="text-sm font-bold truncate" th:text="${adminUser.fullName}">Alex Rivera</p>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<main class="pl-64 min-h-screen">
+    <!-- Top Nav -->
+    <header class="flex justify-between items-center w-full h-16 px-8 bg-white/80 backdrop-blur-xl shadow-sm sticky top-0 z-30" style="font-family:'Plus Jakarta Sans',sans-serif;">
+        <div class="flex items-center gap-4">
+            <span class="text-lg font-black text-blue-900 tracking-tight font-headline">The Premium Transit Authority</span>
+            <span class="w-px h-6 bg-slate-200 mx-2"></span>
+            <span class="text-sm font-semibold text-slate-500">Quản lý Giao dịch</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <form th:action="@{/admin/payments}" method="get" class="relative">
+                <input type="text" name="q" th:value="${searchQuery}"
+                       placeholder="Tìm kiếm ID Giao dịch..."
+                       class="w-64 pl-10 pr-4 py-2 bg-surface-container-low border-0 rounded-full text-sm focus:ring-2 focus:ring-primary/20"/>
+                <span class="material-symbols-outlined absolute left-3 top-2 text-on-surface-variant text-lg">search</span>
+            </form>
+            <div class="flex items-center gap-3">
+                <button class="p-2 hover:bg-surface-container-high rounded-full transition-colors relative">
+                    <span class="material-symbols-outlined text-slate-600">notifications</span>
+                    <span th:if="${hasAlerts}" class="absolute top-2 right-2 w-2 h-2 bg-secondary rounded-full border-2 border-white"></span>
+                </button>
+                <button class="p-2 hover:bg-surface-container-high rounded-full">
+                    <span class="material-symbols-outlined text-slate-600">account_circle</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="p-8 max-w-7xl mx-auto">
+
+        <!-- ===== STATS BENTO ===== -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+
+            <!-- Revenue card (2 cols) -->
+            <div class="md:col-span-2 p-8 rounded-[2rem] bg-gradient-to-br from-primary to-primary-container text-white flex flex-col justify-between overflow-hidden relative group">
+                <div class="z-10 relative">
+                    <p class="text-primary-fixed opacity-80 font-medium mb-1">Tổng doanh thu hôm nay</p>
+                    <h2 class="text-4xl font-black font-headline tracking-tight" th:text="${finance.todayRevenueFormatted}">$42,890.50</h2>
+                    <div th:if="${finance.growthPercent != null}"
+                         class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-semibold backdrop-blur-md">
+                        <span class="material-symbols-outlined text-sm">trending_up</span>
+                        <span th:text="'+' + ${finance.growthPercent} + '% so với hôm qua'">+12.5% so với hôm qua</span>
+                    </div>
+                </div>
+                <div class="absolute -right-10 -bottom-10 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                    <span class="material-symbols-outlined text-[12rem]">payments</span>
+                </div>
+            </div>
+
+            <!-- Success rate -->
+            <div class="p-6 rounded-[2rem] bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center">
+                    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">check_circle</span>
+                </div>
+                <div>
+                    <p class="text-on-surface-variant text-sm font-medium mb-1">Tỉ lệ thành công</p>
+                    <h3 class="text-2xl font-bold font-headline" th:text="${finance.successRate + '%'}">98.2%</h3>
+                    <p class="text-xs text-tertiary-container mt-1 font-semibold" th:text="${finance.successLabel}">Hoạt động ổn định</p>
+                </div>
+            </div>
+
+            <!-- Failure rate -->
+            <div class="p-6 rounded-[2rem] bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
+                    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">error</span>
+                </div>
+                <div>
+                    <p class="text-on-surface-variant text-sm font-medium mb-1">Thanh toán thất bại</p>
+                    <h3 class="text-2xl font-bold font-headline" th:text="${finance.failureRate + '%'}">1.8%</h3>
+                    <p class="text-xs text-secondary mt-1 font-semibold"
+                       th:text="${finance.failedCount + ' giao dịch bị cảnh báo'}">14 giao dịch bị cảnh báo</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TRANSACTION TABLE ===== -->
+        <div class="bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-sm mb-8">
+            <div class="p-8 flex justify-between items-center bg-surface-container-low/30">
+                <div>
+                    <h4 class="text-xl font-bold font-headline">Giao dịch gần đây</h4>
+                    <p class="text-sm text-on-surface-variant">Nhật ký hoạt động thanh toán thời gian thực qua các cổng</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface font-semibold text-sm hover:bg-surface-container-highest transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">filter_list</span> Bộ lọc
+                    </button>
+                    <a th:href="@{/admin/payments/export}"
+                       class="px-4 py-2 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-container transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">download</span> Xuất dữ liệu
+                    </a>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                    <tr class="bg-surface-container-low/50">
+                        <th class="px-8 py-4 font-headline text-xs font-bold uppercase tracking-wider text-on-surface-variant">Mã Giao dịch</th>
+                        <th class="px-6 py-4 font-headline text-xs font-bold uppercase tracking-wider text-on-surface-variant">Mã Đặt chỗ</th>
+                        <th class="px-6 py-4 font-headline text-xs font-bold uppercase tracking-wider text-on-surface-variant">Số tiền</th>
+                        <th class="px-6 py-4 font-headline text-xs font-bold uppercase tracking-wider text-on-surface-variant">Phương thức</th>
+                        <th class="px-6 py-4 font-headline text-xs font-bold uppercase tracking-wider text-on-surface-variant">Trạng thái</th>
+                        <th class="px-8 py-4 font-headline text-xs font-bold uppercase tracking-wider text-on-surface-variant">Ngày/Giờ</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-surface-variant/30">
+                    <!--
+                        DYNAMIC: txn.txnId, txn.bookingCode, txn.amount,
+                        txn.paymentMethod (MOMO/ZALOPAY/CREDIT_CARD/OTHER),
+                        txn.paymentLabel, txn.paymentBadgeColor,
+                        txn.status (THANH_CONG/THAT_BAI/DANG_CHO),
+                        txn.statusLabel, txn.dateTimeLabel
+                    -->
+                    <tr th:each="txn : ${transactions}"
+                        class="hover:bg-surface-bright transition-colors group">
+                        <td class="px-8 py-5">
+                            <a th:href="@{/admin/payments/{id}(id=${txn.id})}"
+                               class="text-sm font-mono font-semibold text-primary hover:underline"
+                               th:text="'#' + ${txn.txnId}">#TXN-882910</a>
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="text-sm font-medium" th:text="${txn.bookingCode}">BK-VLO-442</span>
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="text-sm font-bold" th:text="${txn.amountFormatted}">$124.00</span>
+                        </td>
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold"
+                                     th:classappend="${txn.paymentMethod == 'MOMO'} ? 'bg-pink-100 text-pink-600' : (${txn.paymentMethod == 'ZALOPAY'} ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500')"
+                                     th:text="${txn.paymentBadge}">Mo</div>
+                                <span class="text-sm font-medium" th:text="${txn.paymentLabel}">Momo</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 w-fit"
+                                      th:classappend="${txn.status == 'THANH_CONG'} ? 'bg-green-100 text-green-700' : (${txn.status == 'THAT_BAI'} ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700')">
+                                    <span class="w-1.5 h-1.5 rounded-full"
+                                          th:classappend="${txn.status == 'THANH_CONG'} ? 'bg-green-500' : (${txn.status == 'THAT_BAI'} ? 'bg-red-500' : 'bg-orange-500')"></span>
+                                    <span th:text="${txn.statusLabel}">Thành công</span>
+                                </span>
+                        </td>
+                        <td class="px-8 py-5">
+                            <span class="text-sm text-on-surface-variant" th:text="${txn.dateTimeLabel}">24 Th10, 2023 · 14:22</span>
+                        </td>
+                    </tr>
+
+                    <!-- Static fallback -->
+                    <tr th:unless="${transactions != null}" class="hover:bg-surface-bright">
+                        <td class="px-8 py-5"><span class="text-sm font-mono font-semibold text-primary">#TXN-882910</span></td>
+                        <td class="px-6 py-5"><span class="text-sm font-medium">BK-VLO-442</span></td>
+                        <td class="px-6 py-5"><span class="text-sm font-bold">$124.00</span></td>
+                        <td class="px-6 py-5"><div class="flex items-center gap-2"><div class="w-6 h-6 rounded bg-pink-100 flex items-center justify-center text-[10px] font-bold text-pink-600">Mo</div><span class="text-sm">Momo</span></div></td>
+                        <td class="px-6 py-5"><span class="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 w-fit bg-green-100 text-green-700"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Thành công</span></td>
+                        <td class="px-8 py-5"><span class="text-sm text-on-surface-variant">24 Th10, 2023 · 14:22</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="px-8 py-5 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-surface-variant/30">
+                <p class="text-sm text-on-surface-variant">
+                    Hiển thị <span th:text="${pagination.startItem}">1</span>-<span th:text="${pagination.endItem}">10</span>
+                    trên <span th:text="${#numbers.formatInteger(pagination.totalCount,1,'COMMA')}">1.240</span> kết quả
+                </p>
+                <div class="flex gap-2">
+                    <a th:href="@{/admin/payments(page=${pagination.currentPage - 1})}"
+                       th:classappend="${pagination.currentPage <= 1} ? 'opacity-40 pointer-events-none' : ''"
+                       class="w-9 h-9 flex items-center justify-center rounded-lg border border-surface-container-highest hover:bg-surface-container-low transition-colors">
+                        <span class="material-symbols-outlined text-sm">chevron_left</span>
+                    </a>
+                    <!-- Page numbers -->
+                    <th:block th:each="pageNum : ${pagination.pageNumbers}">
+                        <a th:href="@{/admin/payments(page=${pageNum})}"
+                           th:text="${pageNum}"
+                           th:classappend="${pageNum == pagination.currentPage} ? 'bg-primary text-white' : 'hover:bg-surface-container-low'"
+                           class="w-9 h-9 flex items-center justify-center rounded-lg border border-surface-container-highest text-sm font-semibold transition-colors">1</a>
+                    </th:block>
+                    <a th:href="@{/admin/payments(page=${pagination.currentPage + 1})}"
+                       th:classappend="${!pagination.hasNext} ? 'opacity-40 pointer-events-none' : ''"
+                       class="w-9 h-9 flex items-center justify-center rounded-lg border border-surface-container-highest hover:bg-surface-container-low transition-colors">
+                        <span class="material-symbols-outlined text-sm">chevron_right</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== BOTTOM ANALYTICS GRID ===== -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Top payment gateways -->
+            <div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+                <h4 class="font-bold font-headline mb-6 uppercase tracking-widest text-xs text-on-surface-variant">Cổng thanh toán hàng đầu</h4>
+                <div class="space-y-4">
+                    <div th:each="gateway : ${finance.topGateways}">
+                        <div class="flex justify-between text-sm font-medium mb-1">
+                            <span th:text="${gateway.name}">Momo</span>
+                            <span class="font-bold" th:text="${gateway.percent + '%'}">65%</span>
+                        </div>
+                        <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                            <div class="h-full rounded-full"
+                                 th:classappend="${gateway.name == 'Momo'} ? 'bg-primary' : (${gateway.name == 'ZaloPay'} ? 'bg-orange-400' : 'bg-surface-dim')"
+                                 th:style="'width:' + ${gateway.percent} + '%'"></div>
+                        </div>
+                    </div>
+                    <!-- Static fallback -->
+                    <div th:unless="${finance.topGateways != null}">
+                        <div class="flex justify-between text-sm font-medium mb-1"><span>Momo</span><span class="font-bold">65%</span></div>
+                        <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full rounded-full bg-primary" style="width:65%"></div></div>
+                        <div class="flex justify-between text-sm font-medium mb-1 mt-3"><span>ZaloPay</span><span class="font-bold">25%</span></div>
+                        <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full rounded-full bg-orange-400" style="width:25%"></div></div>
+                        <div class="flex justify-between text-sm font-medium mb-1 mt-3"><span>Khác</span><span class="font-bold">10%</span></div>
+                        <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full rounded-full bg-surface-dim" style="width:10%"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue forecast -->
+            <div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+                <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Dự báo doanh thu</p>
+                <h4 class="font-bold font-headline text-lg mb-2">DỰ BÁO DOANH THU</h4>
+                <p class="text-sm text-on-surface-variant mb-4" th:text="${finance.forecastLabel}">
+                    Các xu hướng hiện tại cho thấy khối lượng đặt chỗ tăng 14% cho kỳ nghỉ lễ sắp tới.
+                </p>
+                <a th:href="@{/admin/reports/revenue-forecast}"
+                   class="text-primary font-semibold text-sm flex items-center gap-1 hover:underline">
+                    Xem chi tiết dự báo
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </a>
+                <!-- Simplified bar chart (visual only) -->
+                <div class="mt-6 flex items-end gap-2 h-20">
+                    <div th:each="bar : ${finance.chartBars}"
+                         th:classappend="${bar.highlighted} ? 'bg-primary' : 'bg-surface-container-high'"
+                         class="flex-1 rounded-t-md"
+                         th:style="'height:' + ${bar.heightPercent} + '%'"></div>
+                    <!-- Static bars -->
+                    <div th:unless="${finance.chartBars != null}" class="flex items-end gap-2 h-full w-full">
+                        <div class="flex-1 rounded-t-md bg-surface-container-high" style="height:40%"></div>
+                        <div class="flex-1 rounded-t-md bg-surface-container-high" style="height:55%"></div>
+                        <div class="flex-1 rounded-t-md bg-surface-container-high" style="height:70%"></div>
+                        <div class="flex-1 rounded-t-md bg-primary" style="height:100%"></div>
+                        <div class="flex-1 rounded-t-md bg-secondary" style="height:80%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>
