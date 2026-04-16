@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Lịch trình của tôi - Driver Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: { extend: { colors: { "primary": "#003178", "accent": "#3b82f6" } } }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+<aside th:replace="~{fragments/sidebar :: driver-sidebar}"></aside>
+
+<main class="ml-64 p-8">
+    <header class="flex justify-between items-center mb-8">
+        <h1 class="text-2xl font-bold text-primary">Lịch trình của tôi</h1>
+        <div class="flex gap-4 items-center">
+            <span class="material-symbols-outlined text-slate-500">help</span>
+            <span class="material-symbols-outlined text-slate-500">settings</span>
+            <img th:src="${driverAvatar}" class="w-10 h-10 rounded-full border shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCh7M_ZjW-N3PrxD-NqV2nyl9FJR7pR-k_9XDi6aYYm7tHNzXAjcG5D-eA_z_FtITye2NC-BBaMJg34qfYjij0Bk8WqBcMkWej8N0HezI5x3hjaiEutvpI-i8Ee3d_1HvllRAp8bxdTsIddXYyDW-DmFcg_x-uY2sr67XRZnfBkoH9AX-o2i7bGH8Q8eeCsJgkTL2eqizDzJqU2aUqzhsabBgVmMAuop78_ZI25oxIvaqrCx-ywFEIGSZutLPHW0NWuJsF71nzGJw"/>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-3 gap-6 mb-10">
+        <div class="col-span-2 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+            <div class="flex justify-between items-start mb-6">
+                <div class="flex items-center gap-4">
+                    <div class="bg-blue-600 p-3 rounded-xl text-white">
+                        <span class="material-symbols-outlined">directions_bus</span>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Chuyến hiện tại</p>
+                        <h2 class="text-2xl font-black" th:text="${currentBus.plateNumber}">29B - 124.56</h2>
+                    </div>
+                </div>
+                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-black">SẮP CHẠY</span>
+            </div>
+
+            <div class="flex items-center gap-12 mb-8 relative">
+                <div class="flex-1 space-y-6">
+                    <div class="flex items-start gap-3 relative">
+                        <span class="w-3 h-3 rounded-full bg-blue-600 mt-1 z-10"></span>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Điểm đi</p>
+                            <p class="font-bold" th:text="${currentBus.origin}">Bến xe Mỹ Đình, Hà Nội</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 relative">
+                        <span class="w-3 h-3 rounded-full border-2 border-orange-400 bg-white mt-1 z-10"></span>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Điểm đến</p>
+                            <p class="font-bold" th:text="${currentBus.destination}">Sapa, Lào Cai</p>
+                        </div>
+                    </div>
+                    <div class="absolute left-[5px] top-4 bottom-4 w-[2px] bg-slate-100"></div>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-6 flex gap-8">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 mb-1">Giờ khởi hành</p>
+                        <p class="text-xl font-black text-blue-700" th:text="${currentBus.departureTime}">08:30</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 mb-1">Ngày xuất phát</p>
+                        <p class="font-bold" th:text="${currentBus.date}">Hôm nay, 24 Th 5</p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all">
+                <span class="material-symbols-outlined">play_arrow</span> BẮT ĐẦU HÀNH TRÌNH
+            </button>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-blue-600 rounded-3xl p-6 text-white relative overflow-hidden shadow-lg">
+                <p class="text-sm font-medium opacity-80">Tổng số khách</p>
+                <h3 class="text-5xl font-black my-2" th:text="${totalPassengers}">42</h3>
+                <p class="text-xs font-bold opacity-70">Công suất: 95%</p>
+                <span class="material-symbols-outlined absolute right-[-10px] bottom-[-10px] text-8xl opacity-10">groups</span>
+            </div>
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex justify-between items-end mb-4">
+                    <p class="text-sm font-bold text-slate-400">Đã check-in</p>
+                    <p class="font-black text-xl"><span th:text="${checkedInCount}">38</span>/42</p>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div class="bg-orange-500 h-full transition-all" th:style="'width: ' + (${checkedInCount}*100/42) + '%'"></div>
+                </div>
+            </div>
+            <div class="rounded-3xl h-44 bg-slate-200 relative overflow-hidden group">
+                <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=500" class="w-full h-full object-cover grayscale opacity-80"/>
+                <div class="absolute inset-0 bg-black/20 flex items-center justify-center">
+                    <button class="bg-white/90 px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-1 shadow-xl">
+                        <span class="material-symbols-outlined text-sm">map</span> XEM LỘ TRÌNH CHI TIẾT
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="font-black text-lg mb-4">Danh sách chuyến trong ngày</h3>
+    <div class="space-y-3">
+        <div th:each="trip : ${dailyTrips}" class="bg-white p-6 rounded-2xl flex items-center justify-between border border-slate-100 hover:shadow-md transition-all">
+            <div class="flex items-center gap-8">
+                <div class="text-center min-w-[60px]">
+                    <p class="text-xl font-black text-slate-900" th:text="${trip.time}">08:30</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase" th:text="${trip.status}">SẮP CHẠY</p>
+                </div>
+                <div>
+                    <p class="font-bold" th:text="${trip.origin} + ' → ' + ${trip.destination}">Hà Nội → Sapa</p>
+                    <p class="text-xs text-slate-500" th:text="'Xe: ' + ${trip.plate} + ' | Khách: ' + ${trip.passengerCount}">Xe: 29B-124.56 | Khách: 42/45</p>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <button class="text-sm font-bold text-blue-600">Chi tiết</button>
+                <button th:if="${trip.status == 'SẮP CHẠY'}" class="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-bold">Bắt đầu</button>
+                <button th:unless="${trip.status == 'SẮP CHẠY'}" class="bg-slate-100 text-slate-500 px-6 py-2 rounded-lg text-sm font-bold">Quản lý</button>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

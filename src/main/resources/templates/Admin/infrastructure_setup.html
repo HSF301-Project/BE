@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Transit Admin - Thiết lập Hạ tầng</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"/>
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                    colors: {
+                        "surface-container":"#ededf5","surface-container-high":"#e8e7f0","surface-container-low":"#f3f3fb",
+                        "surface-container-lowest":"#ffffff","surface-container-highest":"#e2e2ea",
+                        "surface-variant":"#e2e2ea","on-surface":"#1a1b21","on-surface-variant":"#434652",
+                        "secondary":"#b02e00","on-secondary":"#ffffff",
+                        "primary-container":"#0d47a1","primary":"#003178","on-primary":"#ffffff",
+                        "primary-fixed":"#d9e2ff","on-primary-fixed":"#001945",
+                        "outline":"#737783","outline-variant":"#c3c6d4","background":"#faf8ff",
+                        "error":"#ba1a1a"
+                    },
+                    fontFamily: { headline:["Plus Jakarta Sans"], body:["Inter"] }
+                }}
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; display:inline-block; line-height:1; }
+        body { font-family:'Inter',sans-serif; }
+        h1,h2,h3 { font-family:'Plus Jakarta Sans',sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen">
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="fixed left-0 top-0 h-full z-40 flex flex-col w-64 bg-slate-50 font-semibold tracking-tight" style="font-family:'Plus Jakarta Sans',sans-serif;">
+    <div class="p-6">
+        <a th:href="@{/admin}" class="text-xl font-bold tracking-tighter text-blue-900 mb-8 block">Quản trị Giao thông</a>
+        <nav class="space-y-1">
+            <a th:href="@{/admin/dashboard}" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors rounded-lg">
+                <span class="material-symbols-outlined">dashboard</span> Bảng điều khiển
+            </a>
+            <a th:href="@{/admin/trips}" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors rounded-lg">
+                <span class="material-symbols-outlined">directions_bus</span> Chuyến đi
+            </a>
+            <!-- ACTIVE -->
+            <a th:href="@{/admin/infrastructure}" class="flex items-center gap-3 px-4 py-3 text-blue-700 font-bold border-r-4 border-blue-700 bg-slate-100">
+                <span class="material-symbols-outlined">construction</span> Hạ tầng
+            </a>
+            <a th:href="@{/admin/payments}" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors rounded-lg">
+                <span class="material-symbols-outlined">payments</span> Thanh toán
+            </a>
+            <a th:href="@{/admin/reports}" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors rounded-lg">
+                <span class="material-symbols-outlined">analytics</span> Báo cáo
+            </a>
+        </nav>
+    </div>
+    <div class="mt-auto p-6 space-y-1">
+        <a th:href="@{/admin/settings}" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors rounded-lg">
+            <span class="material-symbols-outlined">settings</span> Cài đặt
+        </a>
+        <div class="flex items-center gap-3 p-4 mt-4 bg-slate-100 rounded-xl">
+            <img th:src="${adminUser.avatarUrl != null ? adminUser.avatarUrl : '/images/default-admin.png'}"
+                 th:alt="${adminUser.fullName}"
+                 class="w-10 h-10 rounded-full object-cover"/>
+            <div>
+                <p class="text-sm font-bold text-blue-900" th:text="${adminUser.role}">Hồ sơ Quản trị</p>
+                <p class="text-xs text-slate-500">Quản lý Cơ quan</p>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<!-- ===== TOP NAV ===== -->
+<header class="flex justify-between items-center w-full h-16 pl-72 pr-8 fixed top-0 bg-white/80 backdrop-blur-xl z-30 shadow-sm" style="font-family:'Plus Jakarta Sans',sans-serif;">
+    <div class="text-lg font-black text-blue-900">Ban Quản lý Giao thông Cao cấp</div>
+    <div class="flex items-center gap-6">
+        <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+            <input type="text" name="q" placeholder="Tìm kiếm hạ tầng..."
+                   class="pl-10 pr-4 py-2 bg-surface-container-low rounded-full border-0 focus:ring-2 focus:ring-primary/20 w-64 text-sm"/>
+        </div>
+        <div class="flex gap-4">
+            <button class="text-on-surface-variant hover:text-primary transition-colors">
+                <span class="material-symbols-outlined">notifications</span>
+            </button>
+            <button class="text-on-surface-variant hover:text-primary transition-colors">
+                <span class="material-symbols-outlined">account_circle</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<main class="pl-72 pr-8 pt-24 pb-12">
+    <div class="max-w-6xl mx-auto">
+
+        <!-- Page Header -->
+        <div class="flex justify-between items-end mb-10">
+            <div class="max-w-xl">
+                <h1 class="text-4xl font-extrabold tracking-tight mb-2">Thiết lập Hạ tầng</h1>
+                <p class="text-on-surface-variant">Cấu hình mạng lưới nhà ga, tối ưu hóa các tuyến đường du lịch và tùy chỉnh sơ đồ xe giường nằm cho trải nghiệm cao cấp.</p>
+            </div>
+            <a th:href="@{/admin/infrastructure/new}"
+               class="px-6 py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-lg font-bold shadow-lg shadow-primary/10 flex items-center gap-2">
+                <span class="material-symbols-outlined">add</span> Thêm mới
+            </a>
+        </div>
+
+        <!-- ===== TABS ===== -->
+        <div class="bg-surface-container-low rounded-xl p-1 mb-8 flex gap-2 w-fit">
+            <a th:href="@{/admin/infrastructure(tab='stations')}"
+               th:classappend="${activeTab == 'stations' or activeTab == null} ? 'bg-surface-container-lowest text-primary shadow-sm font-bold' : 'text-on-surface-variant hover:text-primary font-medium'"
+               class="px-6 py-2 rounded-lg transition-all">Địa điểm</a>
+            <a th:href="@{/admin/infrastructure(tab='routes')}"
+               th:classappend="${activeTab == 'routes'} ? 'bg-surface-container-lowest text-primary shadow-sm font-bold' : 'text-on-surface-variant hover:text-primary font-medium'"
+               class="px-6 py-2 rounded-lg transition-all">Tuyến đường</a>
+            <a th:href="@{/admin/infrastructure(tab='layout')}"
+               th:classappend="${activeTab == 'layout'} ? 'bg-surface-container-lowest text-primary shadow-sm font-bold' : 'text-on-surface-variant hover:text-primary font-medium'"
+               class="px-6 py-2 rounded-lg transition-all">Sơ đồ xe</a>
+        </div>
+
+        <!-- ===== BENTO GRID ===== -->
+        <div class="grid grid-cols-12 gap-6">
+
+            <!-- ===== STATION LIST (8 cols) ===== -->
+            <div class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold">Mạng lưới Nhà ga Hoạt động</h2>
+                    <a th:href="@{/admin/infrastructure/stations}"
+                       class="text-primary text-sm font-semibold flex items-center gap-1 hover:underline">
+                        Xem toàn bộ danh sách
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </a>
+                </div>
+                <table class="w-full text-left">
+                    <thead>
+                    <tr class="border-b border-surface-variant">
+                        <th class="pb-4 font-semibold text-on-surface-variant text-sm">Tên nhà ga</th>
+                        <th class="pb-4 font-semibold text-on-surface-variant text-sm">Thành phố</th>
+                        <th class="pb-4 font-semibold text-on-surface-variant text-sm">Sân ga</th>
+                        <th class="pb-4 font-semibold text-on-surface-variant text-sm text-right">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-surface-variant/30">
+                    <tr th:each="station : ${stations}">
+                        <td class="py-4 font-medium" th:text="${station.name}">Grand Central Terminal</td>
+                        <td class="py-4 text-on-surface-variant" th:text="${station.city}">Thành phố Metro</td>
+                        <td class="py-4">
+                                <span class="px-2 py-1 bg-primary-fixed text-on-primary-fixed rounded text-xs font-bold"
+                                      th:text="${#numbers.formatInteger(station.activePlatforms,2,'NONE') + ' Hoạt động'}">12 Hoạt động</span>
+                        </td>
+                        <td class="py-4 text-right">
+                            <a th:href="@{/admin/infrastructure/stations/{id}/edit(id=${station.id})}"
+                               class="text-outline hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined">edit</span>
+                            </a>
+                        </td>
+                    </tr>
+                    <!-- Static fallback -->
+                    <tr th:unless="${stations != null}">
+                        <td class="py-4 font-medium">Grand Central Terminal</td>
+                        <td class="py-4 text-on-surface-variant">Thành phố Metro</td>
+                        <td class="py-4"><span class="px-2 py-1 bg-primary-fixed text-on-primary-fixed rounded text-xs font-bold">12 Hoạt động</span></td>
+                        <td class="py-4 text-right"><button class="text-outline hover:text-primary"><span class="material-symbols-outlined">edit</span></button></td>
+                    </tr>
+                    <tr th:unless="${stations != null}">
+                        <td class="py-4 font-medium">East Gate Hub</td>
+                        <td class="py-4 text-on-surface-variant">Bờ Cảng</td>
+                        <td class="py-4"><span class="px-2 py-1 bg-primary-fixed text-on-primary-fixed rounded text-xs font-bold">08 Hoạt động</span></td>
+                        <td class="py-4 text-right"><button class="text-outline hover:text-primary"><span class="material-symbols-outlined">edit</span></button></td>
+                    </tr>
+                    <tr th:unless="${stations != null}">
+                        <td class="py-4 font-medium">Skyline Junction</td>
+                        <td class="py-4 text-on-surface-variant">Điểm Ngắm Cảnh</td>
+                        <td class="py-4"><span class="px-2 py-1 bg-primary-fixed text-on-primary-fixed rounded text-xs font-bold">05 Hoạt động</span></td>
+                        <td class="py-4 text-right"><button class="text-outline hover:text-primary"><span class="material-symbols-outlined">edit</span></button></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ===== NETWORK SCOPE (4 cols) ===== -->
+            <div class="col-span-12 lg:col-span-4 bg-primary text-on-primary rounded-xl overflow-hidden relative min-h-[300px]">
+                <div class="p-6 relative z-10">
+                    <h2 class="text-xl font-bold mb-1">Phạm vi Mạng lưới</h2>
+                    <p class="text-on-primary-container text-sm mb-6">Khả năng hiển thị đầu cuối thời gian thực</p>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">Tổng số thành phố</span>
+                            <span class="text-2xl font-black" th:text="${infra.totalCities}">24</span>
+                        </div>
+                        <div class="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+                            <div class="bg-secondary h-full rounded-full"
+                                 th:style="'width:' + ${infra.networkCoverage} + '%'" style="width:75%"></div>
+                        </div>
+                        <div th:if="${infra.totalStations != null}" class="flex justify-between items-center">
+                            <span class="text-sm">Tổng nhà ga</span>
+                            <span class="text-xl font-bold" th:text="${infra.totalStations}">12</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== COACH LAYOUT EDITOR (full width) ===== -->
+            <div class="col-span-12 bg-surface-container-low rounded-xl p-8">
+                <div class="flex flex-col md:flex-row justify-between gap-6 mb-8">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-primary tracking-tight">Trình chỉnh sửa Trực quan Sơ đồ xe giường nằm</h2>
+                        <p class="text-on-surface-variant">
+                            Thiết kế sơ đồ sang trọng 2 tầng cho dòng xe
+                            '<span th:text="${infra.coachModelName}">Royal Voyager</span>'.
+                        </p>
+                    </div>
+                    <div class="flex gap-4 h-fit">
+                        <form th:action="@{/admin/infrastructure/layout/copy}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <input type="hidden" name="coachId" th:value="${infra.coachId}"/>
+                            <button type="submit"
+                                    class="px-4 py-2 border-2 border-primary/20 rounded-lg font-bold text-primary hover:bg-primary/5 transition-colors">
+                                Sao chép sơ đồ
+                            </button>
+                        </form>
+                        <form th:action="@{/admin/infrastructure/layout/save}" method="post" id="layoutForm">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <input type="hidden" name="coachId" th:value="${infra.coachId}"/>
+                            <!-- Selected seats submitted via JS -->
+                            <div id="selectedSeatsContainer"></div>
+                            <button type="submit"
+                                    class="px-6 py-2 bg-secondary text-on-secondary rounded-lg font-bold shadow-lg shadow-secondary/20">
+                                Lưu cấu hình
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+
+                    <!-- Lower Deck -->
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="px-3 py-1 bg-surface-container-highest text-on-surface-variant text-xs font-bold uppercase rounded-full">Tầng dưới</span>
+                            <span class="text-sm text-on-surface-variant font-medium"
+                                  th:text="${infra.lowerDeckCount + ' Giường'}">20 Giường</span>
+                        </div>
+                        <div class="bg-surface-container-lowest rounded-2xl p-6">
+                            <!-- Driver icon -->
+                            <div class="flex justify-center mb-4 opacity-30">
+                                <span class="material-symbols-outlined text-3xl">steering</span>
+                            </div>
+                            <!-- Seat grid - dynamic -->
+                            <div class="grid grid-cols-3 gap-3">
+                                <th:block th:each="seat : ${infra.lowerDeckSeats}">
+                                    <button type="button"
+                                            th:data-seat-id="${seat.seatId}"
+                                            th:classappend="${seat.status == 'SELECTED'} ? 'bg-secondary text-white' : (${seat.status == 'SOLD'} ? 'bg-surface-container text-on-surface-variant cursor-not-allowed opacity-50' : 'bg-surface-container-high hover:bg-primary/10 hover:text-primary')"
+                                            class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm transition-all layout-seat"
+                                            th:text="${seat.seatId}">1L</button>
+                                </th:block>
+                                <!-- Static fallback -->
+                                <th:block th:unless="${infra.lowerDeckSeats != null}">
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-secondary text-white layout-seat" data-seat-id="1L">1L</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-secondary text-white layout-seat" data-seat-id="2L">2L</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container-high hover:bg-primary/10 layout-seat" data-seat-id="3L">3L</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container-high hover:bg-primary/10 layout-seat" data-seat-id="4L">4L</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container-high hover:bg-primary/10 layout-seat" data-seat-id="5L">5L</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container-high hover:bg-primary/10 layout-seat" data-seat-id="6L">6L</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container text-on-surface-variant opacity-50" data-seat-id="7L">7L</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container text-on-surface-variant opacity-50" data-seat-id="8L">8L</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container-high hover:bg-primary/10 layout-seat" data-seat-id="9L">9L</button>
+                                </th:block>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upper Deck -->
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="px-3 py-1 bg-surface-container-highest text-on-surface-variant text-xs font-bold uppercase rounded-full">Tầng trên</span>
+                            <span class="text-sm text-on-surface-variant font-medium"
+                                  th:text="${infra.upperDeckCount + ' Giường'}">24 Giường</span>
+                        </div>
+                        <div class="bg-surface-container-lowest rounded-2xl p-6">
+                            <div class="grid grid-cols-3 gap-3">
+                                <th:block th:each="seat : ${infra.upperDeckSeats}">
+                                    <button type="button"
+                                            th:data-seat-id="${seat.seatId}"
+                                            th:classappend="${seat.status == 'SELECTED'} ? 'bg-secondary text-white' : (${seat.status == 'SOLD'} ? 'bg-surface-container text-on-surface-variant cursor-not-allowed opacity-50' : 'bg-surface-container-high hover:bg-primary/10 hover:text-primary')"
+                                            class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm transition-all layout-seat"
+                                            th:text="${seat.seatId}">1U</button>
+                                </th:block>
+                                <!-- Static fallback -->
+                                <th:block th:unless="${infra.upperDeckSeats != null}">
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container-high hover:bg-primary/10 layout-seat" data-seat-id="1U">1U</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container-high hover:bg-primary/10 layout-seat" data-seat-id="2U">2U</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container-high hover:bg-primary/10 layout-seat" data-seat-id="3U">3U</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container-high hover:bg-primary/10 layout-seat" data-seat-id="4U">4U</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container-high hover:bg-primary/10 layout-seat" data-seat-id="5U">5U</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container-high hover:bg-primary/10 layout-seat" data-seat-id="6U">6U</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container-high hover:bg-primary/10 layout-seat" data-seat-id="7U">7U</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container-high hover:bg-primary/10 layout-seat" data-seat-id="8U">8U</button>
+                                    <button class="aspect-square flex items-center justify-center rounded-lg font-bold text-sm bg-surface-container-high hover:bg-primary/10 layout-seat" data-seat-id="9U">9U</button>
+                                </th:block>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="flex gap-6 mt-6 justify-center">
+                    <div class="flex items-center gap-2 text-sm text-on-surface-variant">
+                        <div class="w-4 h-4 rounded bg-surface-container-high border border-surface-variant"></div><span>Còn trống</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-on-surface-variant">
+                        <div class="w-4 h-4 rounded bg-secondary"></div><span>Đang chọn</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-on-surface-variant">
+                        <div class="w-4 h-4 rounded bg-surface-container opacity-60 border border-surface-variant"></div><span>Đã bán/Hạn chế</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== PRIORITY ROUTES (full width) ===== -->
+            <div class="col-span-12">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold">Tuyến đường Ưu tiên</h2>
+                    <div class="flex gap-3">
+                        <a th:href="@{/admin/infrastructure/routes(view='weekly')}"
+                           class="px-4 py-2 text-sm font-semibold border border-surface-container-highest rounded-lg hover:bg-surface-container-low transition-colors">
+                            Xem theo tuần
+                        </a>
+                        <a th:href="@{/admin/infrastructure/routes/export}"
+                           class="px-4 py-2 text-sm font-semibold border border-surface-container-highest rounded-lg hover:bg-surface-container-low transition-colors">
+                            Xuất CSV
+                        </a>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Dynamic route cards -->
+                    <a th:each="route : ${infra.priorityRoutes}"
+                       th:href="@{/admin/infrastructure/routes/{id}(id=${route.id})}"
+                       class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group border border-surface-variant/30">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="material-symbols-outlined text-primary text-3xl">route</span>
+                            <span th:text="${route.tierLabel}"
+                                  th:classappend="${route.tier == 'PREMIUM'} ? 'bg-primary-fixed text-on-primary-fixed' : 'bg-surface-container-high text-on-surface-variant'"
+                                  class="px-2 py-0.5 text-[10px] font-black uppercase rounded-full">CAO CẤP</span>
+                        </div>
+                        <h3 class="font-bold text-on-surface mb-1">
+                            <span th:text="${route.fromCity}">Thành phố Metro</span>
+                            <span class="text-on-surface-variant"> → </span>
+                            <span th:text="${route.toCity}">Bờ Cảng</span>
+                        </h3>
+                        <p class="text-xs text-on-surface-variant mb-4"
+                           th:text="${route.description}">Tuyến nhanh trực tiếp • 4h 30m</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-primary font-black text-lg" th:text="${route.priceFormatted}">$124.00</span>
+                            <span class="material-symbols-outlined text-on-surface-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+                        </div>
+                    </a>
+
+                    <!-- Static fallback cards -->
+                    <div th:unless="${infra.priorityRoutes != null}"
+                         class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-surface-variant/30">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="material-symbols-outlined text-primary text-3xl">route</span>
+                            <span class="px-2 py-0.5 text-[10px] font-black uppercase rounded-full bg-primary-fixed text-on-primary-fixed">Cao cấp</span>
+                        </div>
+                        <h3 class="font-bold mb-1">Thành phố Metro <span class="text-on-surface-variant">→</span> Bờ Cảng</h3>
+                        <p class="text-xs text-on-surface-variant mb-4">Tuyến nhanh trực tiếp • 4h 30m</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-primary font-black text-lg">$124.00</span>
+                            <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                        </div>
+                    </div>
+                    <div th:unless="${infra.priorityRoutes != null}"
+                         class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-surface-variant/30">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="material-symbols-outlined text-primary text-3xl">route</span>
+                            <span class="px-2 py-0.5 text-[10px] font-black uppercase rounded-full bg-surface-container-high text-on-surface-variant">Tiêu chuẩn</span>
+                        </div>
+                        <h3 class="font-bold mb-1">Điểm Ngắm Cảnh <span class="text-on-surface-variant">→</span> Thành phố Metro</h3>
+                        <p class="text-xs text-on-surface-variant mb-4">Tuyến đường ngắm cảnh • 6h 15m</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-primary font-black text-lg">$89.00</span>
+                            <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                        </div>
+                    </div>
+
+                    <!-- Add new route CTA -->
+                    <a th:href="@{/admin/infrastructure/routes/new}"
+                       class="border-2 border-dashed border-surface-container-highest rounded-2xl p-6 flex flex-col items-center justify-center gap-3 text-on-surface-variant hover:border-primary hover:text-primary transition-all group">
+                        <div class="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                            <span class="material-symbols-outlined text-2xl">add_location_alt</span>
+                        </div>
+                        <p class="font-semibold text-sm text-center">Tạo Tuyến đường Mới</p>
+                        <p class="text-xs text-center opacity-70">Định nghĩa các nhà ga kết nối và các mức giá.</p>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<script>
+    // Seat layout toggle for editor
+    document.querySelectorAll('.layout-seat').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (this.classList.contains('bg-secondary')) {
+                this.classList.remove('bg-secondary','text-white');
+                this.classList.add('bg-surface-container-high');
+            } else if (!this.classList.contains('opacity-50')) {
+                this.classList.add('bg-secondary','text-white');
+                this.classList.remove('bg-surface-container-high');
+            }
+        });
+    });
+</script>
+</body>
+</html>

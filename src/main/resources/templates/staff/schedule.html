@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Danh sách hành khách - Driver Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+<aside th:replace="~{fragments/sidebar :: driver-sidebar}"></aside>
+
+<main class="ml-64 p-8">
+    <header class="flex items-center gap-4 mb-8">
+        <a th:href="@{/driver/schedule}" class="material-symbols-outlined text-slate-400 hover:text-slate-900">arrow_back</a>
+        <h1 class="text-2xl font-bold text-blue-900">Danh sách Hành khách</h1>
+    </header>
+
+    <div class="grid grid-cols-4 gap-6 mb-8">
+        <div class="col-span-3 bg-blue-700 rounded-3xl p-8 text-white flex justify-between items-center relative overflow-hidden shadow-xl">
+            <div class="z-10">
+                <p class="text-xs font-bold opacity-70 uppercase mb-2">Thông tin lộ trình</p>
+                <div class="flex items-center gap-4 text-3xl font-black mb-4">
+                    <span th:text="${trip.origin}">Sài Gòn</span>
+                    <span class="material-symbols-outlined">arrow_forward</span>
+                    <span th:text="${trip.destination}">Đà Lạt</span>
+                </div>
+                <div class="flex gap-6 text-sm font-medium opacity-90">
+                    <span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">schedule</span> 08:30 sáng</span>
+                    <span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">directions_bus</span> Xe Limousine 22 giường</span>
+                </div>
+            </div>
+            <span class="material-symbols-outlined text-9xl absolute right-0 opacity-10">bus_alert</span>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
+            <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase mb-4">Tỷ lệ Boarding</p>
+                <p class="text-3xl font-black text-blue-600"><span th:text="${boardingCount}">18</span>/22</p>
+            </div>
+            <div class="space-y-2">
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div class="bg-blue-600 h-full" th:style="'width: ' + (${boardingCount}*100/22) + '%'"></div>
+                </div>
+                <p class="text-[10px] font-bold text-slate-400 italic">* Còn 4 hành khách chưa lên xe</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-between items-center mb-6">
+        <div class="flex gap-3">
+            <button class="bg-white px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">filter_list</span> Bộ lọc
+            </button>
+            <button class="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl text-sm font-bold border border-blue-100">
+                Chỉ hiện khách chưa lên xe <span class="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[10px] ml-1">4</span>
+            </button>
+        </div>
+        <button class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 text-sm shadow-lg shadow-slate-200">
+            <span class="material-symbols-outlined text-sm">check_circle</span> Gửi báo cáo hoàn tất boarding
+        </button>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+                <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase">Số ghế</th>
+                <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase">Họ tên</th>
+                <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase text-center">Trạng thái</th>
+                <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase">Ghi chú</th>
+                <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase text-right">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+            <tr th:each="passenger : ${passengers}" class="hover:bg-slate-50/50 transition-colors">
+                <td class="px-6 py-5">
+                    <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg font-black text-xs" th:text="${passenger.seat}">A01</span>
+                </td>
+                <td class="px-6 py-5">
+                    <p class="font-bold text-sm" th:text="${passenger.name}">Nguyễn Văn An</p>
+                    <p class="text-[10px] text-slate-400" th:text="${passenger.phone}">090****123</p>
+                </td>
+                <td class="px-6 py-5 text-center">
+                    <span th:if="${passenger.status == 'BOARDED'}" class="bg-green-50 text-green-600 px-3 py-1 rounded-full text-[10px] font-black border border-green-100">● Đã lên xe</span>
+                    <span th:if="${passenger.status == 'NOT_BOARDED'}" class="bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-[10px] font-black border border-orange-100">● Chưa lên xe</span>
+                </td>
+                <td class="px-6 py-5">
+                    <p class="text-xs text-slate-500 font-medium" th:text="${passenger.note ?: '—'}">Khách đón dọc đường...</p>
+                </td>
+                <td class="px-6 py-5 text-right">
+                    <button th:if="${passenger.status == 'NOT_BOARDED'}" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-[11px] font-black hover:bg-blue-700 transition-all shadow-md shadow-blue-50">Xác nhận lên xe</button>
+                    <button class="material-symbols-outlined text-slate-300 ml-4 align-middle">more_vert</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="px-6 py-4 border-t border-slate-50 flex justify-between items-center text-xs text-slate-400 font-bold">
+            <p>Hiển thị 5 trên tổng số 22 hành khách</p>
+            <div class="flex gap-2">
+                <button class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+                <button class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>
