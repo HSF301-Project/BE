@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Xac Nhan Dat Ve</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); padding: 3rem; width: 100%; max-width: 700px; }
+        .success-icon { text-align: center; font-size: 4rem; color: #27ae60; margin-bottom: 1rem; }
+        h1 { text-align: center; color: #27ae60; margin-bottom: 0.5rem; }
+        .booking-id { text-align: center; color: #7f8c8d; margin-bottom: 2rem; }
+        .booking-id span { font-weight: 700; color: #2c3e50; }
+        
+        .trip-info { background: #f8f9fa; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .trip-info h3 { color: #2c3e50; margin-bottom: 1rem; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+        .info-label { color: #7f8c8d; }
+        .info-value { font-weight: 600; color: #2c3e50; }
+        
+        .tickets-section { margin-bottom: 1.5rem; }
+        .tickets-section h3 { color: #2c3e50; margin-bottom: 1rem; }
+        .ticket-item { background: #e8f5e9; border-radius: 8px; padding: 1rem; margin-bottom: 0.8rem; }
+        .ticket-header { display: flex; justify-content: space-between; font-weight: 600; color: #2c3e50; }
+        .ticket-detail { color: #7f8c8d; margin-top: 0.5rem; }
+        
+        .total-section { background: #fff3e0; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .total-row { display: flex; justify-content: space-between; font-size: 1.2rem; }
+        .total-label { font-weight: 600; color: #2c3e50; }
+        .total-value { font-weight: 700; color: #e74c3c; font-size: 1.5rem; }
+        
+        .payment-info { background: #e3f2fd; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; }
+        .payment-info .status { color: #27ae60; font-weight: 600; }
+        
+        .btn-print { width: 100%; padding: 1rem; background: #3498db; color: white; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; margin-bottom: 1rem; }
+        .btn-home { width: 100%; padding: 1rem; background: #95a5a6; color: white; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">&#10004;</div>
+        <h1>Dat Ve Thanh Cong!</h1>
+        <p class="booking-id">Ma dat ve: <span th:text="${booking.bookingId}"></span></p>
+        
+        <div class="trip-info">
+            <h3>Thong Tin Chuyen Xe</h3>
+            <div class="info-row">
+                <span class="info-label">Tuyen:</span>
+                <span class="info-value" th:text="${booking.trip.departureLocation + ' -> ' + booking.trip.arrivalLocation}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Khoi hanh:</span>
+                <span class="info-value" th:text="${booking.trip.departureTime}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Den:</span>
+                <span class="info-value" th:text="${booking.trip.arrivalTime}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Xe:</span>
+                <span class="info-value" th:text="${booking.trip.coachType + ' - ' + booking.trip.plateNumber}"></span>
+            </div>
+        </div>
+        
+        <div class="tickets-section">
+            <h3>Danh Sach Ve</h3>
+            <div th:each="ticket : ${booking.tickets}" class="ticket-item">
+                <div class="ticket-header">
+                    <span th:text="${'Ghe ' + ticket.seatNumber + ' (Tang ' + ticket.floor + ')'}"></span>
+                    <span th:text="${ticket.ticketCode}"></span>
+                </div>
+                <div class="ticket-detail">
+                    Hanh khach: <span th:text="${ticket.passengerName}"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="total-section">
+            <div class="total-row">
+                <span class="total-label">Tong cong:</span>
+                <span class="total-value" th:text="${#numbers.formatDecimal(booking.totalAmount, 0, 'COMMA', 0, 'POINT') + ' VND'}"></span>
+            </div>
+        </div>
+        
+        <div class="payment-info">
+            <div class="info-row">
+                <span class="info-label">Phuong thuc:</span>
+                <span class="info-value" th:text="${booking.payment.paymentMethod}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Trang thai:</span>
+                <span class="status" th:text="${booking.payment.status}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Ma giao dich:</span>
+                <span class="info-value" th:text="${booking.payment.transactionId}"></span>
+            </div>
+        </div>
+        
+        <button class="btn-print" onclick="window.print()">In Ve</button>
+        <a href="/booking/search" class="btn-home">Dat Ve Tiep</a>
+    </div>
+</body>
+</html>

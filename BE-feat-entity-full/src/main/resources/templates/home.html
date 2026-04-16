@@ -2,19 +2,83 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Trang chủ</title>
+    <title>Trang chủ - Bus Ticket</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .navbar { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .navbar-brand { color: white; font-size: 1.5rem; font-weight: 700; text-decoration: none; }
+        .navbar-links { display: flex; gap: 1.5rem; }
+        .navbar a { color: white; text-decoration: none; font-weight: 500; padding: 0.5rem 1rem; border-radius: 8px; transition: background 0.3s; }
+        .navbar a:hover { background: rgba(255,255,255,0.2); }
+        
+        .hero { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 70px); text-align: center; padding: 2rem; }
+        .hero h1 { color: white; font-size: 3.5rem; margin-bottom: 1rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .hero p { color: rgba(255,255,255,0.9); font-size: 1.3rem; margin-bottom: 2rem; }
+        
+        .btn-book { background: white; color: #667eea; padding: 1rem 3rem; border-radius: 50px; font-size: 1.2rem; font-weight: 700; text-decoration: none; transition: transform 0.3s, box-shadow 0.3s; display: inline-block; }
+        .btn-book:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        
+        .features { display: flex; gap: 2rem; margin-top: 3rem; }
+        .feature-card { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); padding: 2rem; border-radius: 15px; color: white; width: 200px; }
+        .feature-card h3 { margin-bottom: 0.5rem; }
+        .feature-card p { font-size: 0.9rem; opacity: 0.8; }
+        
+        .auth-section { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 3rem; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
+        .auth-section h2 { color: #333; margin-bottom: 1.5rem; }
+        .auth-section a { display: block; padding: 1rem; margin: 0.5rem 0; background: #667eea; color: white; text-decoration: none; border-radius: 10px; font-weight: 600; }
+        .auth-section a:hover { background: #5a6fd6; }
+        
+        .user-info { background: white; padding: 2rem; border-radius: 15px; margin-top: 2rem; }
+        .user-info p { margin: 0.5rem 0; color: #555; }
+        .user-info strong { color: #333; }
+    </style>
 </head>
 <body>
-    <h1>Chào mừng đến với Bus Ticket App</h1>
-    <div sec:authorize="isAuthenticated()">
-        <p>Xin chào, <span sec:authentication="name">User</span>!</p>
-        <p>Vai trò của bạn: <span sec:authentication="authorities">Roles</span></p>
-        <form th:action="@{/logout}" method="post">
-            <button type="submit">Đăng xuất</button>
-        </form>
+    <nav class="navbar">
+        <a href="/home" class="navbar-brand">🚌 BusTicket</a>
+        <div class="navbar-links">
+            <a href="/booking/search">Dat Ve</a>
+            <a href="/booking/my-tickets?phone=">Tra Cuu Ve</a>
+            <a href="/staff/dashboard" sec:authorize="hasAnyRole('ADMIN','STAFF')">Quan Ly</a>
+            <a href="/login" sec:authorize="!isAuthenticated()">Dang Nhap</a>
+            <a href="/register" sec:authorize="!isAuthenticated()">Dang Ky</a>
+            <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()">
+                <button type="submit" style="background: transparent; border: 1px solid white; color: white; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;">Dang Xuat</button>
+            </form>
+        </div>
+    </nav>
+    
+    <div class="hero" sec:authorize="!isAuthenticated()">
+        <h1>Dat Ve Xe Khach Online</h1>
+        <p>Di chuyen de dang - Gia tot nhat - Dat ve ngay tai day</p>
+        <a href="/booking/search" class="btn-book">Dat Ve Ngay</a>
+        
+        <div class="features">
+            <div class="feature-card">
+                <h3>🚍</h3>
+                <p>Nhieu tuyen duong</p>
+            </div>
+            <div class="feature-card">
+                <h3>💺</h3>
+                <p>Chon ghe tu do</p>
+            </div>
+            <div class="feature-card">
+                <h3>⚡</h3>
+                <p>Dat ve nhanh</p>
+            </div>
+            <div class="feature-card">
+                <h3>💰</h3>
+                <p>Gia ca hop ly</p>
+            </div>
+        </div>
     </div>
-    <div sec:authorize="!isAuthenticated()">
-        <p>Vui lòng <a th:href="@{/login}">đăng nhập</a> để tiếp tục.</p>
+    
+    <div class="hero" sec:authorize="isAuthenticated()">
+        <h1>Xin Chao, <span sec:authentication="name">User</span>!</h1>
+        <p>Chuc mot ngay tot lanh</p>
+        
+        <a href="/booking/search" class="btn-book">Dat Ve Ngay</a>
     </div>
 </body>
 </html>

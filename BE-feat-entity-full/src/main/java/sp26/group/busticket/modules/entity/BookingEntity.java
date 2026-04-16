@@ -16,6 +16,7 @@ import lombok.experimental.SuperBuilder;
 import sp26.group.busticket.infrastructure.persistence.BaseEntity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "BOOKING")
@@ -31,7 +32,7 @@ public class BookingEntity extends BaseEntity {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private AccountEntity user;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -43,4 +44,7 @@ public class BookingEntity extends BaseEntity {
 
     @Column(name = "status", nullable = false)
     private String status;
+    
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 }

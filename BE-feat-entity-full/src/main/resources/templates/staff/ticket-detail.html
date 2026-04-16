@@ -69,11 +69,11 @@
                     <h4>Thong Tin Dat Ve</h4>
                     <div class="detail-row">
                         <span class="detail-label">Nguoi Dat:</span>
-                        <span class="detail-value" th:text="${ticket.booking.user.fullName}"></span>
+                        <span class="detail-value" th:text="${ticket.booking.user != null ? ticket.booking.user.fullName : 'Khach hang'}"></span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">SDT:</span>
-                        <span class="detail-value" th:text="${ticket.booking.user.phone}"></span>
+                        <span class="detail-value" th:text="${ticket.booking.user != null ? ticket.booking.user.phone : '-'}"></span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Trang Thai:</span>

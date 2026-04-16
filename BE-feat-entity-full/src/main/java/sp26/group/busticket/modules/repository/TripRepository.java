@@ -13,20 +13,28 @@ import java.util.List;
 public interface TripRepository extends JpaRepository<TripEntity, Integer> {
     
     @Query("SELECT t FROM TripEntity t JOIN FETCH t.route r " +
-           "JOIN FETCH r.departureLocation JOIN FETCH r.arrivalLocation " +
-           "JOIN FETCH t.coach WHERE t.departureTime BETWEEN :start AND :end")
+           "JOIN FETCH r.departureLocation dl " +
+           "JOIN FETCH r.arrivalLocation al " +
+           "JOIN FETCH t.coach WHERE t.departureTime BETWEEN :start AND :end ORDER BY t.departureTime")
     List<TripEntity> findByDepartureTimeBetween(
         @Param("start") LocalDateTime start, 
         @Param("end") LocalDateTime end
     );
     
     @Query("SELECT t FROM TripEntity t JOIN FETCH t.route r " +
-           "JOIN FETCH r.departureLocation JOIN FETCH r.arrivalLocation " +
+           "JOIN FETCH r.departureLocation dl " +
+           "JOIN FETCH r.arrivalLocation al " +
            "JOIN FETCH t.coach WHERE r.id = :routeId " +
-           "AND t.departureTime BETWEEN :start AND :end")
+           "AND t.departureTime BETWEEN :start AND :end ORDER BY t.departureTime")
     List<TripEntity> findByRouteIdAndDepartureTimeBetween(
         @Param("routeId") Integer routeId,
         @Param("start") LocalDateTime start, 
         @Param("end") LocalDateTime end
     );
+    
+    @Query("SELECT t FROM TripEntity t JOIN FETCH t.route r " +
+           "JOIN FETCH r.departureLocation dl " +
+           "JOIN FETCH r.arrivalLocation al " +
+           "JOIN FETCH t.coach ORDER BY t.departureTime")
+    List<TripEntity> findAllWithDetails();
 }

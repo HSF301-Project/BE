@@ -1,10 +1,8 @@
 package sp26.group.busticket.common.exception;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
 public enum ErrorCode {
     // Lỗi hệ thống
     UNEXPECTED_ERROR(500, "Đã xảy ra lỗi hệ thống cục bộ. Vui lòng thử lại sau."),
@@ -15,8 +13,15 @@ public enum ErrorCode {
     PRODUCT_NOT_FOUND(404, "Sản phẩm không tồn tại hoặc đã bị xóa!"),
     INVALID_INPUT(400, "Thông tin đầu vào không hợp lệ!"),
     PASSWORD_NOT_MATCH(400, "Mật khẩu xác nhận không khớp!"),
-    ROLE_NOT_FOUND(404, "Không tìm thấy vai trò này!");
+    ROLE_NOT_FOUND(404, "Không tìm thấy vai trò này!"),
+    NOT_FOUND(404, "Không tìm thấy dữ liệu!"),
+    BAD_REQUEST(400, "Yêu cầu không hợp lệ!");
 
     private final int code;
     private final String defaultMessage;
+    
+    ErrorCode(int code, String defaultMessage) {
+        this.code = code;
+        this.defaultMessage = defaultMessage;
+    }
 }
