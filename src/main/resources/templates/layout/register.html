@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Đăng ký tài khoản - TransitPremium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .bg-overlay { background: linear-gradient(rgba(0, 49, 120, 0.6), rgba(0, 49, 120, 0.8)); }
+    </style>
+</head>
+<body class="h-full bg-white">
+<div class="flex h-full">
+    <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2000" class="absolute inset-0 w-full h-full object-cover" alt="Bus service"/>
+        <div class="absolute inset-0 bg-overlay flex flex-col justify-center p-20 text-white">
+            <div class="bg-white/20 w-12 h-12 rounded-xl flex items-center justify-center mb-8 backdrop-blur-md">
+                <span class="material-symbols-outlined text-3xl">directions_bus</span>
+            </div>
+            <h1 class="text-5xl font-black leading-tight mb-6">Trải nghiệm<br/>Hành trình Đẳng cấp</h1>
+            <p class="text-lg opacity-90 font-medium mb-12 max-w-md">Khám phá vẻ đẹp Việt Nam qua những cung đường với dịch vụ vận tải cao cấp, tiện nghi và an toàn tuyệt đối.</p>
+
+            <div class="space-y-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-blue-500/30 flex items-center justify-center backdrop-blur-md">
+                        <span class="material-symbols-outlined text-xl">verified</span>
+                    </div>
+                    <div>
+                        <p class="font-bold">Chất lượng 5 sao</p>
+                        <p class="text-sm opacity-70">Dịch vụ chuyên nghiệp, tận tâm</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-blue-500/30 flex items-center justify-center backdrop-blur-md">
+                        <span class="material-symbols-outlined text-xl">schedule</span>
+                    </div>
+                    <div>
+                        <p class="font-bold">Đúng giờ & Linh hoạt</p>
+                        <p class="text-sm opacity-70">Lịch trình đa dạng, xuất phát đúng hẹn</p>
+                    </div>
+                </div>
+            </div>
+            <div class="absolute bottom-10 left-20 flex items-center gap-2 opacity-60 text-sm">
+                <span class="material-symbols-outlined text-sm">location_on</span> Premium Transit – Nâng tầm mọi chuyến đi
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 overflow-y-auto">
+        <div class="max-w-md w-full">
+            <div class="flex items-center gap-2 text-blue-600 font-black text-xl mb-10">
+                <span class="material-symbols-outlined">directions_bus</span> TransitPremium
+            </div>
+            <h2 class="text-3xl font-black text-slate-900 mb-2">Đăng ký tài khoản</h2>
+            <p class="text-slate-500 mb-10">Tham gia cùng cộng đồng Premium Transit để nhận được những ưu đãi tốt nhất cho chuyến hành trình của bạn.</p>
+
+            <form class="space-y-5">
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Họ và tên</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">person</span>
+                        <input type="text" class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300" placeholder="Nguyễn Văn A"/>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Email</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">mail</span>
+                        <input type="email" class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300" placeholder="example@gmail.com"/>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Số điện thoại</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">call</span>
+                        <input type="tel" class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300" placeholder="09xx xxx xxx"/>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Mật khẩu</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">lock</span>
+                            <input type="password" class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="••••••••"/>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Xác nhận mật khẩu</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">verified_user</span>
+                            <input type="password" class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="••••••••"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 py-2">
+                    <input type="checkbox" class="mt-1 rounded border-slate-200 text-blue-600 focus:ring-blue-500"/>
+                    <span class="text-xs text-slate-500 leading-relaxed">Tôi đồng ý với <a href="#" class="text-blue-600 font-bold">Điều khoản sử dụng</a> và <a href="#" class="text-blue-600 font-bold">Chính sách bảo mật</a></span>
+                </div>
+
+                <button class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all">
+                    Đăng ký ngay <span class="material-symbols-outlined text-lg">arrow_forward</span>
+                </button>
+            </form>
+
+            <div class="relative my-10">
+                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-100"></div></div>
+                <div class="relative flex justify-center text-[10px] uppercase font-black text-slate-400 tracking-[0.2em] bg-white px-4">Hoặc đăng ký bằng</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button class="flex items-center justify-center gap-3 py-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors font-bold text-sm">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5"/> Google
+                </button>
+                <button class="flex items-center justify-center gap-3 py-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors font-bold text-sm">
+                    <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-5 h-5"/> Facebook
+                </button>
+            </div>
+
+            <p class="text-center mt-10 text-sm font-medium text-slate-500">
+                Đã có tài khoản? <a href="#" class="text-blue-600 font-bold underline">Đăng nhập ngay</a>
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
