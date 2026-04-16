@@ -13,22 +13,28 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import sp26.group.busticket.infrastructure.persistence.BaseEntity;
 
+import java.math.BigDecimal;
+
 @Entity
-@Table(name = "seats")
+@Table(name = "bookings")
 @Getter
 @Setter
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SeatEntity extends BaseEntity {
+public class Booking extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "coach_id", nullable = false)
-    private CoachEntity coach;
+    @JoinColumn(name = "user_id", nullable = false)
+    private Account user;
 
-    @Column(name = "seat_number", nullable = false)
-    private String seatNumber;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trip_id", nullable = false)
+    private Trip trip;
+
+    @Column(name = "total_amount", nullable = false)
+    private BigDecimal totalAmount;
 
     @Column(nullable = false)
-    private Integer floor;
+    private String status;
 }

@@ -13,32 +13,22 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import sp26.group.busticket.infrastructure.persistence.BaseEntity;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-
 @Entity
-@Table(name = "trips")
+@Table(name = "seats")
 @Getter
 @Setter
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TripEntity extends BaseEntity {
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "route_id", nullable = false)
-    private RouteEntity route;
+public class Seat extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coach_id", nullable = false)
-    private CoachEntity coach;
+    private Coach coach;
 
-    @Column(name = "departure_time", nullable = false)
-    private LocalDateTime departureTime;
+    @Column(name = "seat_number", nullable = false)
+    private String seatNumber;
 
-    @Column(name = "arrival_time", nullable = false)
-    private LocalDateTime arrivalTime;
-
-    @Column(name = "price_base", nullable = false)
-    private BigDecimal priceBase;
+    @Column(nullable = false)
+    private Integer floor;
 }

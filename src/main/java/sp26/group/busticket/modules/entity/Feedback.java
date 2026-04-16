@@ -20,15 +20,15 @@ import sp26.group.busticket.infrastructure.persistence.BaseEntity;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class FeedbackEntity extends BaseEntity {
+public class Feedback extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private AccountEntity user;
+    private Account user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_id", nullable = false)
-    private TripEntity trip;
+    private Trip trip;
 
     @Column(nullable = false)
     private Integer rating;

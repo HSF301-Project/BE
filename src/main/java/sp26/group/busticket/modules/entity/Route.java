@@ -20,15 +20,15 @@ import sp26.group.busticket.infrastructure.persistence.BaseEntity;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RouteEntity extends BaseEntity {
+public class Route extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "departure_location_id", nullable = false)
-    private LocationEntity departureLocation;
+    private Location departureLocation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "arrival_location_id", nullable = false)
-    private LocationEntity arrivalLocation;
+    private Location arrivalLocation;
 
     @Column(nullable = false)
     private Float distance;

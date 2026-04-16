@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import sp26.group.busticket.modules.entity.AccountEntity;
+import sp26.group.busticket.modules.entity.Account;
 import sp26.group.busticket.modules.enumType.StatusEnum;
 import sp26.group.busticket.modules.repository.AccountRepository;
 
@@ -18,7 +18,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         if (!accountRepository.existsByEmail("admin@gmail.com")) {
-            AccountEntity admin = AccountEntity.builder()
+            Account admin = Account.builder()
                     .email("admin@gmail.com")
                     .password(passwordEncoder.encode("admin123"))
                     .fullName("System Administrator")

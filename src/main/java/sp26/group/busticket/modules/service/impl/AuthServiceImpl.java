@@ -1,7 +1,5 @@
 package sp26.group.busticket.modules.service.impl;
 
-import java.util.Collections;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,11 +8,13 @@ import lombok.RequiredArgsConstructor;
 import sp26.group.busticket.common.exception.AppException;
 import sp26.group.busticket.common.exception.ErrorCode;
 import sp26.group.busticket.modules.dto.auth.request.RegisterRequestDTO;
-import sp26.group.busticket.modules.entity.AccountEntity;
+import sp26.group.busticket.modules.entity.Account;
 import sp26.group.busticket.modules.enumType.StatusEnum;
 import sp26.group.busticket.modules.mapper.AuthMapper;
 import sp26.group.busticket.modules.repository.AccountRepository;
-import sp26.group.busticket.modules.service.AuthService;@Service
+import sp26.group.busticket.modules.service.AuthService;
+
+@Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
@@ -32,7 +32,7 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
-        AccountEntity account = authMapper.toAccountEntity(request);
+        Account account = authMapper.toAccount(request);
         account.setPassword(passwordEncoder.encode(request.getPassword()));
         
         // Mặc định là ACTIVE vì người dùng yêu cầu bỏ OTP

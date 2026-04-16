@@ -20,7 +20,7 @@ import sp26.group.busticket.modules.enumType.StatusEnum;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountEntity extends BaseEntity {
+public class Account extends BaseEntity {
 
     @Column(nullable = false, unique = true)
     private String email;

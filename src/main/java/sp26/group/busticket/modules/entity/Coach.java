@@ -11,17 +11,20 @@ import lombok.experimental.SuperBuilder;
 import sp26.group.busticket.infrastructure.persistence.BaseEntity;
 
 @Entity
-@Table(name = "locations")
+@Table(name = "coaches")
 @Getter
 @Setter
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class LocationEntity extends BaseEntity {
+public class Coach extends BaseEntity {
 
-    @Column(nullable = false)
-    private String name;
+    @Column(name = "plate_number", nullable = false, unique = true)
+    private String plateNumber;
 
-    @Column(nullable = false)
-    private String city;
+    @Column(name = "coach_type", nullable = false)
+    private String coachType;
+
+    @Column(name = "total_seats", nullable = false)
+    private Integer totalSeats;
 }
