@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Basic Choose Seat - Bus Ticket</title>
+</head>
+<body>
+    <h1>CHỌN GHẾ (BASIC)</h1>
+    <div>
+        <p>Chuyến: <span th:text="${trip.departureStation}"></span> -> <span th:text="${trip.arrivalStation}"></span></p>
+        <p>Khởi hành: <span th:text="${trip.departureDateTimeLabel}"></span></p>
+    </div>
+
+    <form th:action="@{/booking/confirm}" th:object="${bookingForm}" method="post">
+        <input type="hidden" name="tripId" th:value="${trip.id}"/>
+        
+        <h3>Tầng 1 (Dưới)</h3>
+        <div th:each="seat : ${lowerDeckSeats}" style="display: inline-block; margin: 5px;">
+            <input type="checkbox" 
+                   th:id="${seat.seatId}" 
+                   th:name="selectedSeats" 
+                   th:value="${seat.seatId}"
+                   th:disabled="${seat.status == 'BOOKED'}"/>
+            <label th:for="${seat.seatId}" th:text="${seat.seatId}" th:style="${seat.status == 'BOOKED' ? 'color: red;' : ''}"></label>
+            <br th:if="${seat.aisleAfter}"/>
+        </div>
+
+        <h3>Tầng 2 (Trên)</h3>
+        <div th:each="seat : ${upperDeckSeats}" style="display: inline-block; margin: 5px;">
+            <input type="checkbox" 
+                   th:id="${seat.seatId}" 
+                   th:name="selectedSeats" 
+                   th:value="${seat.seatId}"
+                   th:disabled="${seat.status == 'BOOKED'}"/>
+            <label th:for="${seat.seatId}" th:text="${seat.seatId}" th:style="${seat.status == 'BOOKED' ? 'color: red;' : ''}"></label>
+            <br th:if="${seat.aisleAfter}"/>
+        </div>
+
+        <hr>
+        <h3>Thông tin hành khách (Nhập mẫu 1 người)</h3>
+        <div>
+            <label>Tên hành khách:</label>
+            <input type="text" name="passengers[0].fullName" placeholder="Nguyễn Văn A" required/>
+            <!-- Ở bản demo này, ta giả định chọn ghế đầu tiên trong danh sách selectedSeats -->
+            <input type="hidden" name="passengers[0].seatId" value="A01"/> 
+        </div>
+
+        <button type="submit">Tiếp tục thanh toán</button>
+    </form>
+
+    <script>
+        // Script đơn giản để gán seatId vào form passenger khi check
+        document.querySelectorAll('input[name="selectedSeats"]').forEach(cb => {
+            cb.addEventListener('change', function() {
+                if(this.checked) {
+                    document.querySelector('input[name="passengers[0].seatId"]').value = this.value;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Basic Homepage - Bus Ticket</title>
+</head>
+<body>
+    <h1>TÌM CHUYẾN XE (BASIC)</h1>
+    <form th:action="@{/search}" th:object="${searchForm}" method="get">
+        <div>
+            <label>Điểm đi:</label>
+            <select th:field="*{from}" required>
+                <option value="">-- Chọn điểm đi --</option>
+                <option th:each="loc : ${locations}" th:value="${loc.name}" th:text="${loc.name}"></option>
+            </select>
+        </div>
+        <div>
+            <label>Điểm đến:</label>
+            <select th:field="*{to}" required>
+                <option value="">-- Chọn điểm đến --</option>
+                <option th:each="loc : ${locations}" th:value="${loc.name}" th:text="${loc.name}"></option>
+            </select>
+        </div>
+        <div>
+            <label>Ngày đi:</label>
+            <input type="date" th:field="*{date}" required/>
+        </div>
+        <button type="submit">Tìm kiếm chuyến xe</button>
+    </form>
+    <hr>
+    <a th:href="@{/booking/my-trips}">Xem lịch sử đặt vé</a>
+</body>
+</html>

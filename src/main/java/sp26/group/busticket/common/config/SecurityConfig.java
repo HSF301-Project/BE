@@ -27,7 +27,7 @@ public class SecurityConfig {
     // Danh sách các đường dẫn không cần đăng nhập vẫn xem được
     private static final String[] PUBLIC_WHITELIST = {
             "/css/**", "/js/**", "/images/**",
-            "/", "/home", "/login", "/register", "/activate", "/forgot-password", "/reset-password"
+            "/", "/home", "/search", "/login", "/register", "/activate", "/forgot-password", "/reset-password"
     };
 
     @Bean

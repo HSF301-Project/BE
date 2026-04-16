@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Basic Success - Bus Ticket</title>
+</head>
+<body>
+    <h1 style="color: green;">ĐẶT VÉ THÀNH CÔNG!</h1>
+    <div>
+        <h3>Thông tin vé xe</h3>
+        <p>Mã đặt chỗ: <strong th:text="${ticket.bookingCode}"></strong></p>
+        <p>Hành khách: <span th:text="${ticket.passengerName}"></span></p>
+        <p>Tuyến: <span th:text="${ticket.departureStation}"></span> -> <span th:text="${ticket.arrivalStation}"></span></p>
+        <p>Thời gian: <span th:text="${ticket.departureTime}"></span> ngày <span th:text="${ticket.departureDateLabel}"></span></p>
+        <p>Ghế: <span th:text="${ticket.seatLabel}"></span></p>
+        <p>Số xe: <span th:text="${ticket.licensePlate}"></span></p>
+        <p>Thành tiền: <span th:text="${ticket.totalFormatted}"></span></p>
+        
+        <div>
+            <p>Mã QR vé:</p>
+            <img th:src="${ticket.qrImageUrl}" alt="QR Code"/>
+        </div>
+    </div>
+
+    <hr>
+    <a th:href="@{/home}">Về trang chủ</a> | 
+    <a th:href="@{/booking/my-trips}">Xem vé của tôi</a>
+</body>
+</html>

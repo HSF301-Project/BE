@@ -1,0 +1,11 @@
+package sp26.group.busticket.modules.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import sp26.group.busticket.modules.entity.Coach;
+
+import java.util.Optional;
+import java.util.UUID;
+
+public interface CoachRepository extends JpaRepository<Coach, UUID> {
+    Optional<Coach> findByPlateNumber(String plateNumber);
+}

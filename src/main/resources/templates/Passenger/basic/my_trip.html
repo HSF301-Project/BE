@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Basic My Trips - Bus Ticket</title>
+</head>
+<body>
+    <h1>CHUYẾN ĐI CỦA TÔI (BASIC)</h1>
+    <div>
+        <h3>Thông tin người dùng</h3>
+        <p>Họ tên: <span th:text="${user.fullName}"></span></p>
+        <p>Email: <span th:text="${user.email}"></span></p>
+        <p>Hạng thành viên: <span th:text="${user.membershipTier}"></span> (<span th:text="${user.membershipLabel}"></span>)</p>
+    </div>
+
+    <hr>
+    <div>
+        <a th:href="@{/booking/my-trips(tab='upcoming')}" th:style="${activeTab == 'upcoming' ? 'font-weight:bold;' : ''}">Sắp tới</a> | 
+        <a th:href="@{/booking/my-trips(tab='completed')}" th:style="${activeTab == 'completed' ? 'font-weight:bold;' : ''}">Đã đi</a> | 
+        <a th:href="@{/booking/my-trips(tab='cancelled')}" th:style="${activeTab == 'cancelled' ? 'font-weight:bold;' : ''}">Đã hủy</a> | 
+        <a th:href="@{/booking/my-trips(tab='all')}" th:style="${activeTab == 'all' ? 'font-weight:bold;' : ''}">Tất cả</a>
+    </div>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Mã vé</th>
+                <th>Tuyến đường</th>
+                <th>Thời gian</th>
+                <th>Loại xe</th>
+                <th>Trạng thái</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="trip : ${trips}">
+                <td th:text="${trip.bookingCode}"></td>
+                <td>
+                    <span th:text="${trip.fromCity}"></span> -> <span th:text="${trip.toCity}"></span>
+                </td>
+                <td>
+                    <span th:text="${trip.departureTime}"></span>
+                </td>
+                <td th:text="${trip.busTypeLabel}"></td>
+                <td th:text="${trip.status}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(trips)}">
+                <td colspan="5">Không có chuyến đi nào.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+    <a th:href="@{/home}">Về trang chủ</a>
+</body>
+</html>

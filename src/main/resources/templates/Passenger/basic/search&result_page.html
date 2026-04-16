@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Basic Search Result - Bus Ticket</title>
+</head>
+<body>
+    <h1>KẾT QUẢ TÌM KIẾM (BASIC)</h1>
+    <p>Từ: <span th:text="${searchResult.fromCity}"></span> - Đến: <span th:text="${searchResult.toCity}"></span></p>
+    <p>Ngày: <span th:text="${searchResult.dateLabel}"></span></p>
+
+    <div th:if="${#lists.isEmpty(searchResult.trips)}">
+        <p>Không tìm thấy chuyến xe nào.</p>
+    </div>
+
+    <table border="1" th:if="${!#lists.isEmpty(searchResult.trips)}">
+        <thead>
+            <tr>
+                <th>Chuyến xe</th>
+                <th>Giờ đi</th>
+                <th>Giờ đến</th>
+                <th>Loại xe</th>
+                <th>Giá vé</th>
+                <th>Còn trống</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="trip : ${searchResult.trips}">
+                <td th:text="${trip.name}"></td>
+                <td th:text="${trip.departureTime}"></td>
+                <td th:text="${trip.arrivalTime}"></td>
+                <td th:text="${trip.busTypeLabel}"></td>
+                <td th:text="${trip.priceFormatted}"></td>
+                <td th:text="${trip.seatsLeft}"></td>
+                <td>
+                    <a th:href="@{'/booking/' + ${trip.id}}">Chọn ghế</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+    <a th:href="@{/home}">Quay lại tìm kiếm</a>
+</body>
+</html>

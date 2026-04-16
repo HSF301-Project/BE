@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Basic Payment - Bus Ticket</title>
+</head>
+<body>
+    <h1>THANH TOÁN (BASIC)</h1>
+    <div>
+        <h3>Tóm tắt đơn hàng</h3>
+        <p>Lộ trình: <span th:text="${payment.fromCity}"></span> -> <span th:text="${payment.toCity}"></span></p>
+        <p>Ngày: <span th:text="${payment.dateLabel}"></span> lúc <span th:text="${payment.departureTime}"></span></p>
+        <p>Số vé: <span th:text="${payment.ticketCount}"></span></p>
+        <p><strong>Tổng tiền: <span th:text="${payment.totalFormatted}"></span></strong></p>
+        <p>Thời gian giữ chỗ còn lại: <span th:text="${payment.holdSecondsRemaining}"></span> giây</p>
+    </div>
+
+    <form th:action="@{/booking/payment/process}" method="post">
+        <input type="hidden" name="bookingId" th:value="${payment.bookingId}"/>
+        <h3>Chọn phương thức thanh toán:</h3>
+        <div>
+            <input type="radio" name="paymentMethod" value="VNPAY" id="vnpay" checked>
+            <label for="vnpay">Ví VNPAY</label>
+        </div>
+        <div>
+            <input type="radio" name="paymentMethod" value="CASH" id="cash">
+            <label for="cash">Thanh toán tại quầy</label>
+        </div>
+        <br>
+        <button type="submit">Xác nhận thanh toán</button>
+    </form>
+</body>
+</html>
