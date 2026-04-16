@@ -6,7 +6,9 @@ import sp26.group.busticket.modules.dto.trip.request.TripSearchRequestDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripResponseDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripSearchResultDTO;
 import sp26.group.busticket.modules.entity.Trip;
+import sp26.group.busticket.modules.enumType.BookingStatusEnum;
 import sp26.group.busticket.modules.mapper.TripMapper;
+import sp26.group.busticket.modules.repository.TicketRepository;
 import sp26.group.busticket.modules.repository.TripRepository;
 import sp26.group.busticket.modules.service.TripService;
 
@@ -25,16 +27,24 @@ import java.util.stream.Collectors;
 public class TripServiceImpl implements TripService {
 
     private final TripRepository tripRepository;
+    private final TicketRepository ticketRepository;
     private final TripMapper tripMapper;
 
     @Override
     public TripSearchResultDTO searchTrips(TripSearchRequestDTO request) {
         LocalDate date = LocalDate.parse(request.getDate());
-        LocalDateTime startOfDay = date.atStartOfDay();
-        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+        LocalDateTime now = LocalDateTime.now();
+        
+        // Chỉ lấy từ thời điểm hiện tại nếu ngày search là ngày hôm nay
+        LocalDateTime searchStart = date.atStartOfDay();
+        if (date.equals(now.toLocalDate())) {
+            searchStart = now;
+        }
+        
+        LocalDateTime searchEnd = date.atTime(LocalTime.MAX);
 
         List<Trip> trips = tripRepository.findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeBetween(
-                request.getFrom(), request.getTo(), startOfDay, endOfDay);
+                request.getFrom(), request.getTo(), searchStart, searchEnd);
 
         // Basic filtering by busType if present
         if (request.getBusType() != null && !request.getBusType().isEmpty()) {
@@ -58,6 +68,15 @@ public class TripServiceImpl implements TripService {
         List<TripResponseDTO> tripDTOs = trips.stream()
                 .map(trip -> {
                     TripResponseDTO dto = tripMapper.toTripResponseDTO(trip);
+                    
+                    // Tính số ghế trống
+                    int totalSeats = trip.getCoach().getTotalSeats();
+                    long bookedSeatsCount = ticketRepository.findByBooking_Trip_Id(trip.getId()).stream()
+                            .filter(t -> t.getBooking().getStatus() == BookingStatusEnum.PENDING || 
+                                        t.getBooking().getStatus() == BookingStatusEnum.CONFIRMED)
+                            .count();
+                    dto.setSeatsLeft(totalSeats - (int) bookedSeatsCount);
+
                     dto.setImageUrl("https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=400");
                     dto.setFeatured(false);
                     dto.setRating(4.9);

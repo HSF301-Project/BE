@@ -8,6 +8,8 @@ import sp26.group.busticket.modules.dto.booking.response.SeatDisplayDTO;
 import sp26.group.busticket.modules.entity.Seat;
 import sp26.group.busticket.modules.entity.Ticket;
 import sp26.group.busticket.modules.entity.Trip;
+import sp26.group.busticket.modules.enumType.BookingStatusEnum;
+import sp26.group.busticket.modules.enumType.SeatStatusEnum;
 import sp26.group.busticket.modules.mapper.SeatMapper;
 import sp26.group.busticket.modules.repository.SeatRepository;
 import sp26.group.busticket.modules.repository.TicketRepository;
@@ -37,6 +39,8 @@ public class SeatServiceImpl implements SeatService {
         
         List<Ticket> bookedTickets = ticketRepository.findByBooking_Trip_Id(tripId);
         Set<UUID> bookedSeatIds = bookedTickets.stream()
+                .filter(t -> t.getBooking().getStatus() == BookingStatusEnum.PENDING || 
+                            t.getBooking().getStatus() == BookingStatusEnum.CONFIRMED)
                 .map(t -> t.getSeat().getId())
                 .collect(Collectors.toSet());
 
@@ -44,7 +48,7 @@ public class SeatServiceImpl implements SeatService {
                 .filter(s -> s.getFloor().equals(floor))
                 .map(s -> {
                     SeatDisplayDTO dto = seatMapper.toSeatDisplayDTO(s);
-                    dto.setStatus(bookedSeatIds.contains(s.getId()) ? "BOOKED" : "AVAILABLE");
+                    dto.setStatus(bookedSeatIds.contains(s.getId()) ? SeatStatusEnum.BOOKED : SeatStatusEnum.AVAILABLE);
                     dto.setAisleAfter(shouldAddAisle(s.getSeatNumber()));
                     return dto;
                 })

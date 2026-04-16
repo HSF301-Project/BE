@@ -6,6 +6,11 @@
 </head>
 <body>
     <h1>TÌM CHUYẾN XE (BASIC)</h1>
+
+    <div th:if="${errorMessage}" style="color: red; border: 1px solid red; padding: 10px; margin-bottom: 20px;">
+        <p th:text="${errorMessage}"></p>
+    </div>
+
     <form th:action="@{/search}" th:object="${searchForm}" method="get">
         <div>
             <label>Điểm đi:</label>

@@ -1,6 +1,8 @@
 package sp26.group.busticket.modules.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sp26.group.busticket.common.exception.AppException;
@@ -13,6 +15,8 @@ import sp26.group.busticket.modules.dto.booking.response.PaymentResponseDTO;
 import sp26.group.busticket.modules.dto.booking.response.PriceItemDTO;
 import sp26.group.busticket.modules.dto.booking.response.TicketConfirmationDTO;
 import sp26.group.busticket.modules.entity.*;
+import sp26.group.busticket.modules.enumType.BookingStatusEnum;
+import sp26.group.busticket.modules.enumType.PaymentStatusEnum;
 import sp26.group.busticket.modules.repository.*;
 import sp26.group.busticket.modules.service.BookingService;
 
@@ -28,12 +32,16 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
     private final TripRepository tripRepository;
     private final TicketRepository ticketRepository;
     private final SeatRepository seatRepository;
+    private final PaymentRepository paymentRepository;
+
+    private static final int CLEANUP_MINUTES = 7;
 
     @Override
     @Transactional
@@ -41,15 +49,39 @@ public class BookingServiceImpl implements BookingService {
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
+        // Kiểm tra trùng ghế (Concurrency Check)
+        List<String> selectedSeatNumbers = form.getPassengers().stream()
+                .map(PassengerInfoDTO::getSeatId)
+                .toList();
+
+        List<Ticket> existingTickets = ticketRepository.findByBooking_Trip_Id(tripId);
+        for (Ticket t : existingTickets) {
+            BookingStatusEnum status = t.getBooking().getStatus();
+            if ((status == BookingStatusEnum.PENDING || status == BookingStatusEnum.CONFIRMED)
+                    && selectedSeatNumbers.contains(t.getSeat().getSeatNumber())) {
+                throw new AppException(ErrorCode.INVALID_INPUT,
+                        "Ghế " + t.getSeat().getSeatNumber() + " đã bị người khác giữ hoặc đặt thành công!");
+            }
+        }
+
         BigDecimal totalAmount = trip.getPriceBase().multiply(BigDecimal.valueOf(form.getPassengers().size()));
 
         Booking booking = Booking.builder()
                 .user(currentAccount)
                 .trip(trip)
                 .totalAmount(totalAmount)
-                .status("PENDING")
+                .status(BookingStatusEnum.PENDING)
                 .build();
         booking = bookingRepository.save(booking);
+
+        // Tạo Payment ban đầu
+        Payment payment = Payment.builder()
+                .booking(booking)
+                .amount(totalAmount)
+                .paymentMethod("VNPAY") // Mặc định hoặc từ form
+                .status(PaymentStatusEnum.PENDING)
+                .build();
+        paymentRepository.save(payment);
 
         for (PassengerInfoDTO p : form.getPassengers()) {
             Seat seat = seatRepository.findByCoach_IdOrderBySeatNumberAsc(trip.getCoach().getId()).stream()
@@ -80,7 +112,7 @@ public class BookingServiceImpl implements BookingService {
 
         return PaymentResponseDTO.builder()
                 .bookingId(bookingId)
-                .holdSecondsRemaining(600) // 10 minutes
+                .expiryTime(booking.getCreatedAt().plusMinutes(CLEANUP_MINUTES).format(timeFormatter))
                 .fromCity(trip.getRoute().getDepartureLocation().getName())
                 .toCity(trip.getRoute().getArrivalLocation().getName())
                 .departureTime(trip.getDepartureTime().format(timeFormatter))
@@ -96,8 +128,29 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public void processPayment(UUID bookingId, String paymentMethod) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
-        booking.setStatus("PAID");
+        
+        // Kiểm tra nếu booking đã bị hủy (ví dụ: quá hạn 7 phút)
+        if (booking.getStatus() == BookingStatusEnum.CANCELLED) {
+            throw new AppException(ErrorCode.INVALID_INPUT, 
+                "Đơn hàng này đã bị hủy do quá thời gian thanh toán. Vui lòng đặt lại ghế!");
+        }
+
+        booking.setStatus(BookingStatusEnum.CONFIRMED);
         bookingRepository.save(booking);
+
+        Payment payment = paymentRepository.findByBooking_Id(bookingId)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+        
+        // Kiểm tra nếu payment đã bị hủy
+        if (payment.getStatus() == PaymentStatusEnum.CANCELLED) {
+             throw new AppException(ErrorCode.INVALID_INPUT, 
+                "Giao dịch thanh toán đã bị hủy. Vui lòng thực hiện đặt vé mới!");
+        }
+
+        payment.setStatus(PaymentStatusEnum.PAID);
+        payment.setPaymentMethod(paymentMethod);
+        payment.setPaidAt(LocalDateTime.now());
+        paymentRepository.save(payment);
     }
 
     @Override
@@ -141,9 +194,12 @@ public class BookingServiceImpl implements BookingService {
         return bookings.stream()
                 .map(b -> {
                     Trip trip = b.getTrip();
-                    String status = "UPCOMING";
-                    if (b.getStatus().equals("CANCELLED")) status = "CANCELLED";
-                    else if (trip.getArrivalTime().isBefore(now)) status = "COMPLETED";
+                    BookingStatusEnum status = b.getStatus();
+                    
+                    // Nếu đã thanh toán nhưng chuyến đi đã kết thúc thì coi là COMPLETED
+                    if (status == BookingStatusEnum.CONFIRMED && trip.getArrivalTime().isBefore(now)) {
+                        status = BookingStatusEnum.COMPLETED;
+                    }
 
                     return MyTripResponseDTO.builder()
                             .id(b.getId())
@@ -161,7 +217,14 @@ public class BookingServiceImpl implements BookingService {
                             .arrivalTime(trip.getArrivalTime().format(timeFormatter))
                             .build();
                 })
-                .filter(dto -> tab == null || tab.equalsIgnoreCase("all") || dto.getStatus().equalsIgnoreCase(tab))
+                .filter(dto -> {
+                    if (tab == null || tab.equalsIgnoreCase("all")) return true;
+                    if (tab.equalsIgnoreCase("upcoming")) {
+                        return dto.getStatus() == BookingStatusEnum.CONFIRMED || 
+                               dto.getStatus() == BookingStatusEnum.PENDING;
+                    }
+                    return dto.getStatus().name().equalsIgnoreCase(tab);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -175,5 +238,26 @@ public class BookingServiceImpl implements BookingService {
                 .totalTrips(42)
                 .membershipLabel("Premium Voyager")
                 .build();
+    }
+
+    @Scheduled(fixedRate = 60000) // Chạy mỗi phút
+    @Transactional
+    public void cleanupExpiredBookings() {
+        LocalDateTime expiryThreshold = LocalDateTime.now().minusMinutes(CLEANUP_MINUTES);
+        List<Booking> expiredBookings = bookingRepository.findAll().stream()
+                .filter(b -> b.getStatus() == BookingStatusEnum.PENDING && b.getCreatedAt().isBefore(expiryThreshold))
+                .toList();
+
+        if (!expiredBookings.isEmpty()) {
+            log.info("Cleaning up {} expired PENDING bookings", expiredBookings.size());
+            expiredBookings.forEach(b -> {
+                b.setStatus(BookingStatusEnum.CANCELLED);
+                paymentRepository.findByBooking_Id(b.getId()).ifPresent(p -> {
+                    p.setStatus(PaymentStatusEnum.CANCELLED);
+                    paymentRepository.save(p);
+                });
+            });
+            bookingRepository.saveAll(expiredBookings);
+        }
     }
 }

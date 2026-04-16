@@ -30,7 +30,7 @@ public class Ticket extends BaseEntity {
     @JoinColumn(name = "seat_id", nullable = false)
     private Seat seat;
 
-    @Column(name = "passenger_name", nullable = false)
+    @Column(name = "passenger_name", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String passengerName;
 
     @Column(name = "ticket_code", nullable = false, unique = true)

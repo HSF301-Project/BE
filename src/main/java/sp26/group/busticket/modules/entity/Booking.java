@@ -2,6 +2,8 @@ package sp26.group.busticket.modules.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -12,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import sp26.group.busticket.infrastructure.persistence.BaseEntity;
+import sp26.group.busticket.modules.enumType.BookingStatusEnum;
 
 import java.math.BigDecimal;
 
@@ -35,6 +38,7 @@ public class Booking extends BaseEntity {
     @Column(name = "total_amount", nullable = false)
     private BigDecimal totalAmount;
 
-    @Column(nullable = false)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "NVARCHAR(255)")
+    private BookingStatusEnum status;
 }

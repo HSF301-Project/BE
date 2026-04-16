@@ -12,7 +12,7 @@
         <p>Ngày: <span th:text="${payment.dateLabel}"></span> lúc <span th:text="${payment.departureTime}"></span></p>
         <p>Số vé: <span th:text="${payment.ticketCount}"></span></p>
         <p><strong>Tổng tiền: <span th:text="${payment.totalFormatted}"></span></strong></p>
-        <p>Thời gian giữ chỗ còn lại: <span th:text="${payment.holdSecondsRemaining}"></span> giây</p>
+        <p>Thời gian hiệu lực: <span th:text="${payment.expiryTime}"></span></p>
     </div>
 
     <form th:action="@{/booking/payment/process}" method="post">

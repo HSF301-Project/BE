@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class PaymentResponseDTO {
     private UUID bookingId;
-    private Integer holdSecondsRemaining;
+    private String expiryTime;
     private String selectedMethod;
     private String fromCity;
     private String toCity;

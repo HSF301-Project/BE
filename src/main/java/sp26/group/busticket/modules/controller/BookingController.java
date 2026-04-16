@@ -30,6 +30,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 @Controller
 @RequestMapping("/booking")
 @RequiredArgsConstructor
@@ -64,12 +66,30 @@ public class BookingController {
     }
 
     @PostMapping("/confirm")
-    public String confirmBooking(@ModelAttribute("bookingForm") BookingFormDTO form, 
-                                @RequestParam UUID tripId, 
-                                Model model) {
-        Account currentAccount = getCurrentAccount();
-        UUID bookingId = bookingService.createBooking(tripId, form, currentAccount);
-        return "redirect:/booking/payment?bookingId=" + bookingId;
+    public String confirmBooking(@ModelAttribute("bookingForm") BookingFormDTO form,
+                                 @RequestParam UUID tripId,
+                                 Model model) {
+        try {
+            Account currentAccount = getCurrentAccount();
+            UUID bookingId = bookingService.createBooking(tripId, form, currentAccount);
+            return "redirect:/booking/payment?bookingId=" + bookingId;
+        } catch (AppException e) {
+            // Nếu có lỗi (ví dụ trùng ghế), quay lại trang chọn ghế và hiển thị thông báo
+            Trip trip = tripRepository.findById(tripId).orElseThrow();
+            List<SeatDisplayDTO> lowerDeckSeats = seatService.getSeatsByTripAndFloor(tripId, 1);
+            List<SeatDisplayDTO> upperDeckSeats = seatService.getSeatsByTripAndFloor(tripId, 2);
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("EEEE, dd/MM • HH:mm");
+            TripBookingResponseDTO tripDTO = tripMapper.toTripBookingResponseDTO(trip);
+            tripDTO.setDepartureDateTimeLabel(trip.getDepartureTime().format(dateTimeFormatter));
+            tripDTO.setArrivalDateTimeLabel(trip.getArrivalTime().format(dateTimeFormatter));
+
+            model.addAttribute("trip", tripDTO);
+            model.addAttribute("lowerDeckSeats", lowerDeckSeats);
+            model.addAttribute("upperDeckSeats", upperDeckSeats);
+            model.addAttribute("bookingForm", form);
+            model.addAttribute("errorMessage", e.getMessage());
+            return "Passenger/basic/choose_seat";
+        }
     }
 
     @GetMapping("/payment")
@@ -79,9 +99,16 @@ public class BookingController {
     }
 
     @PostMapping("/payment/process")
-    public String processPayment(@RequestParam UUID bookingId, @RequestParam String paymentMethod) {
-        bookingService.processPayment(bookingId, paymentMethod);
-        return "redirect:/booking/success?bookingId=" + bookingId;
+    public String processPayment(@RequestParam UUID bookingId, 
+                                @RequestParam String paymentMethod, 
+                                RedirectAttributes redirectAttributes) {
+        try {
+            bookingService.processPayment(bookingId, paymentMethod);
+            return "redirect:/booking/success?bookingId=" + bookingId;
+        } catch (AppException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/home";
+        }
     }
 
     @GetMapping("/success")

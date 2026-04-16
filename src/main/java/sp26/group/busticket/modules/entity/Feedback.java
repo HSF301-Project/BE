@@ -33,6 +33,6 @@ public class Feedback extends BaseEntity {
     @Column(nullable = false)
     private Integer rating;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String comment;
 }

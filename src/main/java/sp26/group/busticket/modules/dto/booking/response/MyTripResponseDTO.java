@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import sp26.group.busticket.modules.enumType.BookingStatusEnum;
 
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ import java.util.UUID;
 public class MyTripResponseDTO {
     private UUID id;
     private String bookingCode;
-    private String status; // UPCOMING, COMPLETED, CANCELLED
+    private BookingStatusEnum status;
     private String busTypeLabel;
     private Long daysUntilDeparture;
     private String fromCity;

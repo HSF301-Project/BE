@@ -19,9 +19,9 @@ import sp26.group.busticket.infrastructure.persistence.BaseEntity;
 @NoArgsConstructor
 public class Location extends BaseEntity {
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "NVARCHAR(255)")
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "NVARCHAR(255)")
     private String city;
 }

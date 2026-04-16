@@ -5,12 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import sp26.group.busticket.modules.enumType.SeatStatusEnum;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class SeatDisplayDTO {
     private String seatId;
-    private String status; // AVAILABLE, SELECTED, BOOKED
+    private SeatStatusEnum status;
     private boolean aisleAfter;
 }

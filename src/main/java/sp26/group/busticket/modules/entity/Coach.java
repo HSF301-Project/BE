@@ -22,7 +22,7 @@ public class Coach extends BaseEntity {
     @Column(name = "plate_number", nullable = false, unique = true)
     private String plateNumber;
 
-    @Column(name = "coach_type", nullable = false)
+    @Column(name = "coach_type", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String coachType;
 
     @Column(name = "total_seats", nullable = false)
