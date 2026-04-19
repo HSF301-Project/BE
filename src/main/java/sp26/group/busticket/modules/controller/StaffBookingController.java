@@ -1,7 +1,10 @@
 package sp26.group.busticket.modules.controller;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -60,8 +63,7 @@ public class StaffBookingController {
     // 2. Chọn ghế và nhập thông tin khách
     @GetMapping("/create/{tripId}")
     public String showCreateForm(@PathVariable UUID tripId, Model model) {
-        model.addAttribute("tripId", tripId);
-        model.addAttribute("seats", seatService.getSeatsByTripId(tripId));
+        populateCreateFormModel(tripId, model);
         model.addAttribute("bookingDTO", new StaffBookingRequestDTO());
         return "staff/booking-form";
     }
@@ -76,8 +78,7 @@ public class StaffBookingController {
                                  RedirectAttributes redirectAttributes) {
         
         if (bindingResult.hasErrors()) {
-            model.addAttribute("tripId", tripId);
-            model.addAttribute("seats", seatService.getSeatsByTripId(tripId));
+            populateCreateFormModel(tripId, model);
             return "staff/booking-form";
         }
 
@@ -88,10 +89,19 @@ public class StaffBookingController {
             return "redirect:/staff/booking/success/" + bookingId;
         } catch (AppException e) {
             model.addAttribute("errorMessage", e.getMessage());
-            model.addAttribute("tripId", tripId);
-            model.addAttribute("seats", seatService.getSeatsByTripId(tripId));
+            populateCreateFormModel(tripId, model);
             return "staff/booking-form";
         }
+    }
+
+    private void populateCreateFormModel(UUID tripId, Model model) {
+        BigDecimal unitPrice = tripService.getBasePriceByTripId(tripId);
+        NumberFormat vnCurrency = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+
+        model.addAttribute("tripId", tripId);
+        model.addAttribute("seats", seatService.getSeatsByTripId(tripId));
+        model.addAttribute("unitPrice", unitPrice);
+        model.addAttribute("unitPriceFormatted", vnCurrency.format(unitPrice));
     }
 
     // 4. Màn hình thành công

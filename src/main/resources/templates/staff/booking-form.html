@@ -1,55 +1,208 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <meta charset="UTF-8">
-    <title>Staff - Đặt vé</title>
+    <th:block th:replace="~{fragments/head-common :: head-common(title='Nhập thông tin đặt vé | Staff')}"></th:block>
 </head>
-<body>
-    <h1>Nhập thông tin đặt vé Offline</h1>
-    
-    <div th:if="${errorMessage}" style="color: red;">
-        <p th:text="${errorMessage}"></p>
+<body class="bg-slate-50 text-slate-900 min-h-screen" style="font-family:'Public Sans',sans-serif">
+
+<th:block th:replace="~{fragments/staff-sidebar :: staff-sidebar(activeTab='trips')}"></th:block>
+
+<main class="ml-64 min-h-screen p-8">
+
+    <!-- Header -->
+    <header class="flex items-center gap-4 mb-10">
+        <a th:href="@{/staff/booking/trips}"
+           class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm">
+            <span class="material-symbols-outlined text-slate-500">arrow_back</span>
+        </a>
+        <div>
+            <h1 class="text-3xl font-black tracking-tight text-slate-900">Đặt vé tại quầy</h1>
+            <p class="text-slate-500 mt-0.5 font-medium">Nhập thông tin hành khách và xác nhận thanh toán.</p>
+        </div>
+    </header>
+
+    <!-- Error message -->
+    <div th:if="${errorMessage}"
+         class="mb-6 p-4 bg-red-50 text-red-700 rounded-2xl flex items-center gap-3 border border-red-100">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">error</span>
+        <p class="font-semibold" th:text="${errorMessage}"></p>
     </div>
 
-    <form th:action="@{/staff/booking/create/{id}(id=${tripId})}" th:object="${bookingDTO}" method="post">
-        <div>
-            <label>SĐT Khách hàng (Bắt buộc):</label>
-            <input type="text" th:field="*{customerPhone}" required>
-            <p th:if="${#fields.hasErrors('customerPhone')}" th:errors="*{customerPhone}" style="color: red;"></p>
-        </div>
-        <div>
-            <label>Họ tên khách hàng:</label>
-            <input type="text" th:field="*{customerName}" required>
-            <p th:if="${#fields.hasErrors('customerName')}" th:errors="*{customerName}" style="color: red;"></p>
-        </div>
-        <div>
-            <label>Email (Tùy chọn):</label>
-            <input type="email" th:field="*{customerEmail}">
-        </div>
-        
-        <h3>Chọn ghế:</h3>
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 400px;">
-            <div th:each="seat : ${seats}">
-                <input type="checkbox" name="selectedSeats" th:value="${seat.seatId}" 
-                       th:id="${'seat-' + seat.seatId}"
-                       th:disabled="${seat.status.name() == 'BOOKED'}">
-                <label th:for="${'seat-' + seat.seatId}" 
-                       th:text="${seat.seatId}"
-                       th:style="${seat.status.name() == 'BOOKED' ? 'color: grey;' : 'font-weight: bold;'}"></label>
+    <form th:action="@{/staff/booking/create/{id}(id=${tripId})}" th:object="${bookingDTO}" method="post"
+          data-staff-booking-form th:attr="data-unit-price=${unitPrice}">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <!-- ── Left: Customer info + Seat ─────────────────── -->
+            <div class="lg:col-span-8 space-y-6">
+
+                <!-- Customer info -->
+                <section class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+                    <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1">person</span>
+                        Thông tin hành khách
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Phone -->
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                Số điện thoại <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">phone</span>
+                                <input type="text" th:field="*{customerPhone}" required
+                                       placeholder="090 xxx xxxx"
+                                       th:class="${#fields.hasErrors('customerPhone')}
+                                           ? 'w-full pl-10 pr-4 py-3 bg-red-50 rounded-xl border border-red-300 text-slate-700 font-semibold text-sm outline-none'
+                                           : 'w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all'"/>
+                            </div>
+                            <p th:if="${#fields.hasErrors('customerPhone')}" th:errors="*{customerPhone}"
+                               class="text-xs text-red-500 font-medium pl-1"></p>
+                        </div>
+
+                        <!-- Name -->
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                Họ tên <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">badge</span>
+                                <input type="text" th:field="*{customerName}" required
+                                       placeholder="Nguyễn Văn A"
+                                       th:class="${#fields.hasErrors('customerName')}
+                                           ? 'w-full pl-10 pr-4 py-3 bg-red-50 rounded-xl border border-red-300 text-slate-700 font-semibold text-sm outline-none'
+                                           : 'w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all'"/>
+                            </div>
+                            <p th:if="${#fields.hasErrors('customerName')}" th:errors="*{customerName}"
+                               class="text-xs text-red-500 font-medium pl-1"></p>
+                        </div>
+
+                        <!-- Email (optional) -->
+                        <div class="space-y-1.5 md:col-span-2">
+                            <label class="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                Email <span class="text-slate-300">(tùy chọn)</span>
+                            </label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">mail</span>
+                                <input type="email" th:field="*{customerEmail}"
+                                       placeholder="email@example.com"
+                                       class="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"/>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Seat selection -->
+                <section class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+                    <h2 class="text-lg font-black text-slate-800 mb-2 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">event_seat</span>
+                        Chọn ghế
+                    </h2>
+                    <p class="text-sm text-slate-400 mb-6 font-medium">Có thể chọn nhiều ghế. Ghế xám là đã được đặt.</p>
+
+                    <!-- Legend -->
+                    <div class="flex items-center gap-6 mb-6 p-4 bg-slate-50 rounded-xl text-sm font-semibold">
+                        <div class="flex items-center gap-2">
+                            <div class="w-5 h-5 bg-slate-200 rounded-md"></div>
+                            <span class="text-slate-500">Trống</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-5 h-5 bg-primary rounded-md"></div>
+                            <span class="text-slate-500">Đã chọn</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-5 h-5 bg-slate-200 opacity-40 rounded-md"></div>
+                            <span class="text-slate-400">Đã đặt</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
+                        <div th:each="seat : ${seats}" class="aspect-square">
+                            <label th:if="${seat.status.name() == 'AVAILABLE'}"
+                                   th:for="${'seat-' + seat.seatId}"
+                                   class="w-full h-full bg-slate-100 hover:bg-primary/20 rounded-xl flex items-center justify-center cursor-pointer transition-all has-[:checked]:bg-primary has-[:checked]:text-white border-2 border-transparent has-[:checked]:border-primary/50 text-slate-600">
+                                <input type="checkbox" name="selectedSeats" th:value="${seat.seatId}"
+                                       th:id="${'seat-' + seat.seatId}" class="hidden"/>
+                                <span class="text-xs font-black" th:text="${seat.seatId}">L01</span>
+                            </label>
+                            <div th:if="${seat.status.name() == 'BOOKED'}"
+                                 class="w-full h-full bg-slate-100 opacity-40 rounded-xl flex items-center justify-center cursor-not-allowed">
+                                <span class="text-xs font-black text-slate-400" th:text="${seat.seatId}">L01</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p th:if="${#fields.hasErrors('selectedSeats')}" th:errors="*{selectedSeats}"
+                       class="mt-3 text-xs text-red-500 font-medium"></p>
+                </section>
+
+                <!-- Payment method -->
+                <section class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+                    <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">payments</span>
+                        Phương thức thanh toán
+                    </h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl cursor-pointer border-2 border-transparent hover:border-primary/30 transition-all has-[:checked]:border-primary has-[:checked]:bg-blue-50">
+                            <input type="radio" th:field="*{paymentMethod}" value="CASH" class="hidden peer" checked/>
+                            <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1">payments</span>
+                            <div>
+                                <p class="font-bold text-slate-700">Tiền mặt</p>
+                                <p class="text-xs text-slate-400">Thu tiền trực tiếp</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl cursor-pointer border-2 border-transparent hover:border-primary/30 transition-all has-[:checked]:border-primary has-[:checked]:bg-blue-50">
+                            <input type="radio" th:field="*{paymentMethod}" value="POS" class="hidden peer"/>
+                            <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1">credit_card</span>
+                            <div>
+                                <p class="font-bold text-slate-700">Quẹt thẻ (POS)</p>
+                                <p class="text-xs text-slate-400">Thẻ ATM / Tín dụng</p>
+                            </div>
+                        </label>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ── Right: Summary + Submit ─────────────────────── -->
+            <div class="lg:col-span-4">
+                <div class="sticky top-8 space-y-4">
+                    <div class="bg-primary rounded-3xl p-6 text-white">
+                        <p class="text-xs font-bold opacity-70 uppercase tracking-wider mb-4">Tóm tắt đơn hàng</p>
+
+                        <div class="space-y-3 text-sm mb-6">
+                            <div class="flex justify-between">
+                                <span class="opacity-75">Ghế đã chọn</span>
+                                <span id="summary-selected-seats" class="font-bold">Chưa chọn</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="opacity-75">Đơn giá / ghế</span>
+                                <span id="summary-unit-price" class="font-bold" th:text="${unitPriceFormatted}">0 đ</span>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-white/20 pt-4 mt-4">
+                            <p class="text-xs font-bold opacity-70 uppercase">Tổng thanh toán</p>
+                            <p id="summary-total-price" class="text-3xl font-black mt-1">0 đ</p>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <button type="submit"
+                            class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-lg shadow-emerald-100 flex items-center justify-center gap-2 transition-all active:scale-95">
+                        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">check_circle</span>
+                        Xác nhận &amp; Thu tiền
+                    </button>
+                    <a th:href="@{/staff/booking/trips}"
+                       class="block w-full py-3 border border-slate-200 text-slate-500 font-bold rounded-2xl text-center hover:bg-slate-50 transition-all text-sm">
+                        Hủy bỏ
+                    </a>
+                </div>
             </div>
         </div>
-        <p th:if="${#fields.hasErrors('selectedSeats')}" th:errors="*{selectedSeats}" style="color: red;"></p>
-
-        <div>
-            <label>Phương thức thanh toán:</label>
-            <select th:field="*{paymentMethod}">
-                <option value="CASH">Tiền mặt</option>
-                <option value="POS">Quẹt thẻ (POS)</option>
-            </select>
-        </div>
-
-        <button type="submit" style="margin-top: 20px; padding: 10px 20px;">Xác nhận đặt vé & Thu tiền</button>
-        <a th:href="@{/staff/booking/trips}">Hủy</a>
     </form>
+
+</main>
+<script th:src="@{/js/staff-booking-summary.js}"></script>
 </body>
 </html>

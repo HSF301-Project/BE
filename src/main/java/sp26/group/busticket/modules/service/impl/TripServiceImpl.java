@@ -2,6 +2,8 @@ package sp26.group.busticket.modules.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import sp26.group.busticket.common.exception.AppException;
+import sp26.group.busticket.common.exception.ErrorCode;
 import sp26.group.busticket.modules.dto.trip.request.TripSearchRequestDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripResponseDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripSearchResultDTO;
@@ -104,6 +106,13 @@ public class TripServiceImpl implements TripService {
                 .currentPage(0)
                 .sort(request.getSort())
                 .build();
+    }
+
+    @Override
+    public BigDecimal getBasePriceByTripId(java.util.UUID tripId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+        return trip.getPriceBase();
     }
 
     private String calculateDuration(LocalDateTime start, LocalDateTime end) {

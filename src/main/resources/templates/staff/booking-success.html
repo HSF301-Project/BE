@@ -1,30 +1,105 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <meta charset="UTF-8">
-    <title>Staff - Đặt vé thành công</title>
+    <th:block th:replace="~{fragments/head-common :: head-common(title='Đặt vé thành công | Staff')}"></th:block>
 </head>
-<body>
-    <h1>Đặt vé thành công!</h1>
-    
-    <div th:if="${successMessage}" style="color: green;">
-        <p th:text="${successMessage}"></p>
+<body class="bg-slate-50 text-slate-900 min-h-screen" style="font-family:'Public Sans',sans-serif">
+
+<th:block th:replace="~{fragments/staff-sidebar :: staff-sidebar(activeTab='trips')}"></th:block>
+
+<main class="ml-64 min-h-screen p-8 flex flex-col items-center justify-center">
+
+    <!-- Success banner -->
+    <div class="mb-8 text-center">
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 mb-4">
+            <span class="material-symbols-outlined text-4xl" style="font-variation-settings:'FILL' 1">check_circle</span>
+        </div>
+        <h1 class="text-3xl font-black tracking-tight text-slate-900 mb-1">Đặt vé thành công!</h1>
+        <p th:if="${successMessage}" class="text-slate-500 font-medium" th:text="${successMessage}">
+            Vé đã được tạo và thanh toán hoàn tất.
+        </p>
     </div>
 
-    <div border="1" style="padding: 20px; border: 1px solid #ccc; max-width: 500px;">
-        <h2>Thông tin vé:</h2>
-        <p><strong>Mã vé:</strong> <span th:text="${ticket.bookingCode}"></span></p>
-        <p><strong>Khách hàng:</strong> <span th:text="${ticket.passengerName}"></span></p>
-        <p><strong>Chuyến:</strong> <span th:text="${ticket.fromCityShort + ' -> ' + ticket.toCityShort}"></span></p>
-        <p><strong>Thời gian đi:</strong> <span th:text="${ticket.departureTime + ' ' + ticket.departureDateLabel}"></span></p>
-        <p><strong>Ghế:</strong> <span th:text="${ticket.seatLabel}"></span></p>
-        <p><strong>Biển số xe:</strong> <span th:text="${ticket.licensePlate}"></span></p>
-        <p><strong>Tổng tiền (Đã thanh toán):</strong> <span th:text="${ticket.totalFormatted}"></span></p>
+    <!-- Ticket card -->
+    <div class="w-full max-w-xl bg-white rounded-3xl overflow-hidden shadow-xl border border-slate-100 mb-8">
+
+        <!-- Ticket header -->
+        <div class="bg-primary px-8 py-5 flex justify-between items-center">
+            <div>
+                <p class="text-[10px] font-bold text-white/60 uppercase tracking-widest mb-1">Trạng thái</p>
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+                    <span class="font-black text-white">Đã thanh toán</span>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-[10px] font-bold text-white/60 uppercase tracking-widest mb-1">Mã đặt chỗ</p>
+                <span class="font-black text-white font-mono" th:text="${'#' + ticket.bookingCode}">#PTA-0001</span>
+            </div>
+        </div>
+
+        <!-- Ticket body -->
+        <div class="p-8 space-y-6">
+            <!-- Route -->
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-2xl font-black text-primary" th:text="${ticket.fromCityShort?.toUpperCase()}">HCM</p>
+                    <p class="text-xs text-slate-400 font-medium mt-0.5" th:text="${ticket.departureStation}">Bến xe Miền Đông</p>
+                    <p class="text-3xl font-black text-slate-800 mt-1" th:text="${ticket.departureTime}">08:30</p>
+                </div>
+                <div class="flex flex-col items-center text-slate-300">
+                    <span class="material-symbols-outlined text-3xl">arrow_forward</span>
+                </div>
+                <div class="text-right">
+                    <p class="text-2xl font-black text-primary" th:text="${ticket.toCityShort?.toUpperCase()}">DLT</p>
+                    <p class="text-xs text-slate-400 font-medium mt-0.5" th:text="${ticket.arrivalStation}">Bến xe Đà Lạt</p>
+                    <p class="text-3xl font-black text-slate-800 mt-1" th:text="${ticket.arrivalTime}">14:00</p>
+                </div>
+            </div>
+
+            <!-- Details grid -->
+            <div class="grid grid-cols-2 gap-4 pt-6 border-t border-dashed border-slate-200">
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Hành khách</p>
+                    <p class="font-bold text-slate-700" th:text="${ticket.passengerName}">Nguyễn Văn A</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Số ghế</p>
+                    <p class="font-black text-primary text-lg" th:text="${ticket.seatLabel}">A1</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Ngày đi</p>
+                    <p class="font-bold text-slate-700" th:text="${ticket.departureDateLabel}">24/05/2025</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Biển số xe</p>
+                    <p class="font-bold text-slate-700" th:text="${ticket.licensePlate}">29B-888.22</p>
+                </div>
+            </div>
+
+            <!-- Total -->
+            <div class="flex justify-between items-end pt-6 border-t border-slate-100">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tổng đã thu</p>
+                <p class="text-2xl font-black text-emerald-600" th:text="${ticket.totalFormatted}">450.000đ</p>
+            </div>
+        </div>
     </div>
 
-    <div style="margin-top: 20px;">
-        <button onclick="window.print()">In vé cho khách</button>
-        <a th:href="@{/staff/booking/trips}">Về trang chủ Staff</a>
+    <!-- Action buttons -->
+    <div class="flex gap-4 w-full max-w-xl">
+        <button onclick="window.print()"
+                class="flex-1 py-4 border-2 border-primary text-primary rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-primary/5 transition-all active:scale-95">
+            <span class="material-symbols-outlined">print</span>
+            In vé cho khách
+        </button>
+        <a th:href="@{/staff/booking/trips}"
+           class="flex-1 py-4 bg-primary text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-primary/90 transition-all active:scale-95 shadow-lg shadow-primary/20">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Đặt vé mới
+        </a>
     </div>
+
+</main>
 </body>
 </html>

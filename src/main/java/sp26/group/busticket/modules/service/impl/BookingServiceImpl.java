@@ -322,12 +322,14 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public UserProfileDTO getUserProfile(Account account) {
+        long totalTrips = bookingRepository.countByUser_Id(account.getId());
+
         return UserProfileDTO.builder()
                 .fullName(account.getFullName())
                 .email(account.getEmail())
                 .avatarUrl(null)
                 .membershipTier("Vàng")
-                .totalTrips(42)
+                .totalTrips((int) totalTrips)
                 .membershipLabel("Premium Voyager")
                 .build();
     }

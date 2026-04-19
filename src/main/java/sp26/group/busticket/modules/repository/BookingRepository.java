@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface BookingRepository extends JpaRepository<Booking, UUID> {
     List<Booking> findByUser_IdOrderByCreatedAtDesc(UUID userId);
+    long countByUser_Id(UUID userId);
 }
