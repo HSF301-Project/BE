@@ -27,7 +27,7 @@ public class SecurityConfig {
     // Danh sách các đường dẫn không cần đăng nhập vẫn xem được
     private static final String[] PUBLIC_WHITELIST = {
             "/css/**", "/js/**", "/images/**",
-            "/", "/home", "/search", "/login", "/register", "/activate", "/forgot-password", "/reset-password"
+            "/", "/home", "/search", "/login", "/register", "/activate", "/forgot-password", "/reset-password","/admin/staff/**"
     };
 
     @Bean
@@ -35,9 +35,9 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_WHITELIST).permitAll()
-                        // Nếu có phân quyền Admin
+                        // Nếu có phân quyền admin
                         // .requestMatchers("/admin/**").hasRole("ADMIN") 
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")

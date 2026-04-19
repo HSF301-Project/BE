@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
         return mav;
     }
 
-    // Bắt lỗi 403 - Cố tình truy cập trang không đủ quyền (Ví dụ User mò vào trang Admin)
+    // Bắt lỗi 403 - Cố tình truy cập trang không đủ quyền (Ví dụ User mò vào trang admin)
     @ExceptionHandler(AccessDeniedException.class)
     public ModelAndView handleAccessDenied(AccessDeniedException ex) {
         log.warn("Access Denied: {}", ex.getMessage());
