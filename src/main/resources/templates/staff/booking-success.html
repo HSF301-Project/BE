@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Staff - Đặt vé thành công</title>
+</head>
+<body>
+    <h1>Đặt vé thành công!</h1>
+    
+    <div th:if="${successMessage}" style="color: green;">
+        <p th:text="${successMessage}"></p>
+    </div>
+
+    <div border="1" style="padding: 20px; border: 1px solid #ccc; max-width: 500px;">
+        <h2>Thông tin vé:</h2>
+        <p><strong>Mã vé:</strong> <span th:text="${ticket.bookingCode}"></span></p>
+        <p><strong>Khách hàng:</strong> <span th:text="${ticket.passengerName}"></span></p>
+        <p><strong>Chuyến:</strong> <span th:text="${ticket.fromCityShort + ' -> ' + ticket.toCityShort}"></span></p>
+        <p><strong>Thời gian đi:</strong> <span th:text="${ticket.departureTime + ' ' + ticket.departureDateLabel}"></span></p>
+        <p><strong>Ghế:</strong> <span th:text="${ticket.seatLabel}"></span></p>
+        <p><strong>Biển số xe:</strong> <span th:text="${ticket.licensePlate}"></span></p>
+        <p><strong>Tổng tiền (Đã thanh toán):</strong> <span th:text="${ticket.totalFormatted}"></span></p>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <button onclick="window.print()">In vé cho khách</button>
+        <a th:href="@{/staff/booking/trips}">Về trang chủ Staff</a>
+    </div>
+</body>
+</html>

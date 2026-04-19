@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Staff - Danh sách chuyến đi</title>
+</head>
+<body>
+    <h1>Staff Dashboard - Đặt vé tại quầy</h1>
+    
+    <div th:if="${successMessage}" style="color: green;">
+        <p th:text="${successMessage}"></p>
+    </div>
+
+    <div th:if="${errorMessage}" style="color: red;">
+        <p th:text="${errorMessage}"></p>
+    </div>
+
+    <form th:action="@{/staff/booking/trips}" method="get">
+        <select name="from" required>
+            <option value="">-- Chọn điểm đi --</option>
+            <option th:each="loc : ${locations}" th:value="${loc.name}" th:text="${loc.name}"></option>
+        </select>
+        <select name="to" required>
+            <option value="">-- Chọn điểm đến --</option>
+            <option th:each="loc : ${locations}" th:value="${loc.name}" th:text="${loc.name}"></option>
+        </select>
+        <input type="date" name="date" required>
+        <button type="submit">Tìm chuyến</button>
+    </form>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Chuyến đi</th>
+                <th>Giờ đi</th>
+                <th>Giờ đến</th>
+                <th>Giá vé</th>
+                <th>Loại xe</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="trip : ${trips}">
+                <td th:text="${trip.departureStation + ' -> ' + trip.arrivalStation}"></td>
+                <td th:text="${trip.departureTime}"></td>
+                <td th:text="${trip.arrivalTime}"></td>
+                <td th:text="${trip.priceFormatted}"></td>
+                <td th:text="${trip.busTypeLabel}"></td>
+                <td>
+                    <a th:href="@{/staff/booking/create/{id}(id=${trip.id})}">Đặt vé</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Staff - Danh sách chuyến đi</title>
+</head>
+<body>
+    <h1>Staff Dashboard - Đặt vé tại quầy</h1>
+    
+    <div th:if="${successMessage}" style="color: green;">
+        <p th:text="${successMessage}"></p>
+    </div>
+
+    <form th:action="@{/staff/booking/trips}" method="get">
+        <input type="text" name="departureLocation" placeholder="Điểm đi">
+        <input type="text" name="arrivalLocation" placeholder="Điểm đến">
+        <input type="date" name="departureDate">
+        <button type="submit">Tìm chuyến</button>
+    </form>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Chuyến đi</th>
+                <th>Giờ đi</th>
+                <th>Giờ đến</th>
+                <th>Giá vé</th>
+                <th>Loại xe</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="trip : ${trips}">
+                <td th:text="${trip.route.departureLocation.name + ' -> ' + trip.route.arrivalLocation.name}"></td>
+                <td th:text="${#temporals.format(trip.departureTime, 'HH:mm dd/MM')}"></td>
+                <td th:text="${#temporals.format(trip.arrivalTime, 'HH:mm dd/MM')}"></td>
+                <td th:text="${trip.priceBase}"></td>
+                <td th:text="${trip.coach.coachType}"></td>
+                <td>
+                    <a th:href="@{/staff/booking/create/{id}(id=${trip.id})}">Đặt vé</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

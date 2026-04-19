@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface TicketRepository extends JpaRepository<Ticket, UUID> {
     List<Ticket> findByBooking_Trip_Id(UUID tripId);
+    List<Ticket> findByPassengerPhone(String passengerPhone);
 }

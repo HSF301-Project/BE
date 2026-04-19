@@ -27,5 +27,4 @@ public class TicketConfirmationDTO {
     private String serviceType;
     private String passengerName;
     private String totalFormatted;
-    private String qrImageUrl;
 }

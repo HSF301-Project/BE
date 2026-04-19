@@ -2,6 +2,7 @@ package sp26.group.busticket.modules.service;
 
 import sp26.group.busticket.modules.dto.account.response.UserProfileDTO;
 import sp26.group.busticket.modules.dto.booking.request.BookingFormDTO;
+import sp26.group.busticket.modules.dto.booking.request.StaffBookingRequestDTO;
 import sp26.group.busticket.modules.dto.booking.response.MyTripResponseDTO;
 import sp26.group.busticket.modules.dto.booking.response.PaymentResponseDTO;
 import sp26.group.busticket.modules.dto.booking.response.TicketConfirmationDTO;
@@ -12,6 +13,8 @@ import java.util.UUID;
 
 public interface BookingService {
     UUID createBooking(UUID tripId, BookingFormDTO form, Account currentAccount);
+    UUID createStaffBooking(UUID tripId, StaffBookingRequestDTO form, Account staffAccount);
+    void linkGuestBookingsToAccount(Account account);
     PaymentResponseDTO getPaymentInfo(UUID bookingId);
     void processPayment(UUID bookingId, String paymentMethod);
     TicketConfirmationDTO getBookingSuccessInfo(UUID bookingId);

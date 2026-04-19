@@ -72,6 +72,26 @@ public class DataInitializer implements CommandLineRunner {
                     .role("USER")
                     .build());
         }
+        if (!accountRepository.existsByEmail("staff@gmail.com")) {
+            accountRepository.save(Account.builder()
+                    .email("staff@gmail.com")
+                    .password(passwordEncoder.encode("staff123"))
+                    .fullName("Nhân viên quầy")
+                    .phone("0988888888")
+                    .status(StatusEnum.ACTIVE)
+                    .role("STAFF")
+                    .build());
+        }
+        if (!accountRepository.existsByEmail("guest@busticket.com")) {
+            accountRepository.save(Account.builder()
+                    .email("guest@busticket.com")
+                    .password(passwordEncoder.encode("no-login"))
+                    .fullName("Khách vãng lai")
+                    .phone("0000000000")
+                    .status(StatusEnum.ACTIVE)
+                    .role("USER")
+                    .build());
+        }
     }
 
     private Location initLocation(String name, String city) {

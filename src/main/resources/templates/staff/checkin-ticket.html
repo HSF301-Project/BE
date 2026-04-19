@@ -78,18 +78,6 @@
     <div class="grid grid-cols-12 gap-8">
         <div class="col-span-12 lg:col-span-5 space-y-6">
             <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-5 border-b border-slate-50 flex justify-between items-center">
-                    <span class="font-bold flex items-center gap-2">
-                        <span class="material-symbols-outlined text-primary">qr_code_scanner</span> Quét mã QR
-                    </span>
-                    <span class="px-3 py-1 bg-green-100 text-green-700 text-[10px] font-black rounded-full">LIVE CAMERA</span>
-                </div>
-                <div class="aspect-square bg-slate-900 relative flex items-center justify-center">
-                    <div class="w-48 h-48 border-2 border-white/30 rounded-3xl relative">
-                        <div class="absolute inset-0 border-2 border-white rounded-3xl animate-pulse"></div>
-                    </div>
-                    <p class="absolute bottom-4 text-white/50 text-xs italic">Đặt mã QR vào khung hình</p>
-                </div>
                 <div class="p-6">
                     <form th:action="@{/driver/check-ticket}" method="POST">
                         <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Nhập mã vé thủ công</label>

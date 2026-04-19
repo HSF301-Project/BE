@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Staff - Đặt vé</title>
+</head>
+<body>
+    <h1>Nhập thông tin đặt vé Offline</h1>
+    
+    <div th:if="${errorMessage}" style="color: red;">
+        <p th:text="${errorMessage}"></p>
+    </div>
+
+    <form th:action="@{/staff/booking/create/{id}(id=${tripId})}" th:object="${bookingDTO}" method="post">
+        <div>
+            <label>SĐT Khách hàng (Bắt buộc):</label>
+            <input type="text" th:field="*{customerPhone}" required>
+            <p th:if="${#fields.hasErrors('customerPhone')}" th:errors="*{customerPhone}" style="color: red;"></p>
+        </div>
+        <div>
+            <label>Họ tên khách hàng:</label>
+            <input type="text" th:field="*{customerName}" required>
+            <p th:if="${#fields.hasErrors('customerName')}" th:errors="*{customerName}" style="color: red;"></p>
+        </div>
+        <div>
+            <label>Email (Tùy chọn):</label>
+            <input type="email" th:field="*{customerEmail}">
+        </div>
+        
+        <h3>Chọn ghế:</h3>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 400px;">
+            <div th:each="seat : ${seats}">
+                <input type="checkbox" name="selectedSeats" th:value="${seat.seatId}" 
+                       th:id="${'seat-' + seat.seatId}"
+                       th:disabled="${seat.status.name() == 'BOOKED'}">
+                <label th:for="${'seat-' + seat.seatId}" 
+                       th:text="${seat.seatId}"
+                       th:style="${seat.status.name() == 'BOOKED' ? 'color: grey;' : 'font-weight: bold;'}"></label>
+            </div>
+        </div>
+        <p th:if="${#fields.hasErrors('selectedSeats')}" th:errors="*{selectedSeats}" style="color: red;"></p>
+
+        <div>
+            <label>Phương thức thanh toán:</label>
+            <select th:field="*{paymentMethod}">
+                <option value="CASH">Tiền mặt</option>
+                <option value="POS">Quẹt thẻ (POS)</option>
+            </select>
+        </div>
+
+        <button type="submit" style="margin-top: 20px; padding: 10px 20px;">Xác nhận đặt vé & Thu tiền</button>
+        <a th:href="@{/staff/booking/trips}">Hủy</a>
+    </form>
+</body>
+</html>

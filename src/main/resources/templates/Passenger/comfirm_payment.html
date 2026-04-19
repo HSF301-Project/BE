@@ -61,7 +61,7 @@
         </p>
     </div>
 
-    <!-- ===== TICKET + QR GRID ===== -->
+    <!-- ===== TICKET DETAILS ===== -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
         <!-- LEFT: Main Ticket -->
@@ -176,42 +176,8 @@
             </div>
         </div>
 
-        <!-- RIGHT: QR + Notice -->
+        <!-- RIGHT: Notice -->
         <div class="lg:col-span-4 flex flex-col gap-6">
-            <!-- QR Card -->
-            <div class="bg-surface-container-lowest p-8 rounded-3xl shadow-[0_12px_32px_rgba(26,27,33,0.06)] border border-outline-variant/15 text-center">
-                <h3 class="font-bold text-primary mb-6" style="font-family:'Plus Jakarta Sans',sans-serif;">Mã vé QR</h3>
-                <!-- QR image — server-side generated -->
-                <div class="w-48 h-48 mx-auto bg-white p-2 border-2 border-surface-container-high rounded-2xl flex items-center justify-center">
-                    <img th:if="${ticket.qrImageUrl != null}"
-                         th:src="${ticket.qrImageUrl}"
-                         th:alt="'QR ' + ${ticket.bookingCode}"
-                         class="w-full h-full object-contain rounded-lg"/>
-                    <!-- Placeholder QR pattern (xóa khi có ảnh thật) -->
-                    <div th:unless="${ticket.qrImageUrl != null}"
-                         class="w-full h-full bg-slate-100 rounded-lg flex items-center justify-center relative overflow-hidden">
-                        <div class="grid grid-cols-4 grid-rows-4 gap-1 w-full h-full p-2 opacity-80">
-                            <div class="bg-primary rounded-sm"></div><div class="bg-primary-fixed rounded-sm"></div><div class="bg-primary rounded-sm"></div><div class="bg-primary rounded-sm"></div>
-                            <div class="bg-primary rounded-sm"></div><div class="bg-transparent"></div><div class="bg-primary-fixed rounded-sm"></div><div class="bg-primary rounded-sm"></div>
-                            <div class="bg-primary rounded-sm"></div><div class="bg-primary rounded-sm"></div><div class="bg-transparent"></div><div class="bg-primary-fixed rounded-sm"></div>
-                            <div class="bg-primary rounded-sm"></div><div class="bg-primary-fixed rounded-sm"></div><div class="bg-primary rounded-sm"></div><div class="bg-primary rounded-sm"></div>
-                        </div>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <div class="bg-white p-1 rounded-lg">
-                                <div class="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-white text-xs">directions_bus</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <p class="mt-6 font-mono text-sm tracking-widest font-bold text-on-surface-variant"
-                   th:text="${ticket.bookingCode}">PTA-2024-8892</p>
-                <p class="mt-4 text-xs text-on-surface-variant leading-relaxed">
-                    Xuất trình mã này cho nhân viên soát vé tại bến để làm thủ tục lên xe.
-                </p>
-            </div>
-
             <!-- Important Notice -->
             <div class="bg-secondary-fixed p-6 rounded-3xl border border-secondary/10">
                 <div class="flex gap-4 items-start">

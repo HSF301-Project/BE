@@ -32,7 +32,10 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public TripSearchResultDTO searchTrips(TripSearchRequestDTO request) {
-        LocalDate date = LocalDate.parse(request.getDate());
+        String dateStr = (request.getDate() != null && !request.getDate().isBlank()) 
+                ? request.getDate() 
+                : LocalDate.now().toString();
+        LocalDate date = LocalDate.parse(dateStr);
         LocalDateTime now = LocalDateTime.now();
         
         // Chỉ lấy từ thời điểm hiện tại nếu ngày search là ngày hôm nay

@@ -15,11 +15,6 @@
         <p>Ghế: <span th:text="${ticket.seatLabel}"></span></p>
         <p>Số xe: <span th:text="${ticket.licensePlate}"></span></p>
         <p>Thành tiền: <span th:text="${ticket.totalFormatted}"></span></p>
-        
-        <div>
-            <p>Mã QR vé:</p>
-            <img th:src="${ticket.qrImageUrl}" alt="QR Code"/>
-        </div>
     </div>
 
     <hr>

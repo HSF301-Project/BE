@@ -12,9 +12,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.web.SecurityFilterChain;
 
 import lombok.RequiredArgsConstructor;
+
+import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
@@ -35,8 +38,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_WHITELIST).permitAll()
-                        // Nếu có phân quyền Admin
-                        // .requestMatchers("/admin/**").hasRole("ADMIN") 
+                        .requestMatchers("/staff/**").hasRole("STAFF")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -44,7 +46,16 @@ public class SecurityConfig {
                         .loginProcessingUrl("/process-login")
                         .usernameParameter("email")
                         .passwordParameter("password")
-                        .defaultSuccessUrl("/home", false)
+                        .successHandler((request, response, authentication) -> {
+                            Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
+                            if (roles.contains("ROLE_ADMIN")) {
+                                response.sendRedirect("/admin/dashboard");
+                            } else if (roles.contains("ROLE_STAFF")) {
+                                response.sendRedirect("/staff/booking/trips");
+                            } else {
+                                response.sendRedirect("/home");
+                            }
+                        })
                         .failureUrl("/login?error=true")
                         .permitAll()
                 )
