@@ -77,9 +77,6 @@
                         <div class="space-y-6">
                             <h3 class="text-lg font-bold text-center text-primary-container">Tầng dưới</h3>
                             <div class="relative bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm border-l-4 border-primary">
-                                <div class="absolute top-3 right-4 opacity-20">
-                                    <span class="material-symbols-outlined text-4xl">airline_seat_recline_extra</span>
-                                </div>
                                 <div class="grid grid-cols-2 gap-x-12 gap-y-3">
                                     <th:block th:each="seat : ${lowerDeckSeats}">
                                         <!-- Available seat -->
@@ -107,9 +104,6 @@
                         <div class="space-y-6">
                             <h3 class="text-lg font-bold text-center text-primary-container">Tầng trên</h3>
                             <div class="relative bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm border-l-4 border-secondary">
-                                <div class="absolute top-3 right-4 opacity-20">
-                                    <span class="material-symbols-outlined text-4xl">panorama</span>
-                                </div>
                                 <div class="grid grid-cols-2 gap-x-12 gap-y-3">
                                     <th:block th:each="seat : ${upperDeckSeats}">
                                         <button th:if="${seat.status.name() == 'AVAILABLE'}"

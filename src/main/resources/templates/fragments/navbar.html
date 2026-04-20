@@ -23,14 +23,17 @@
                    style="font-family:'Plus Jakarta Sans',sans-serif">
                     Chuyến đi của tôi
                 </a>
+                <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/dashboard}"
+                   class="font-semibold tracking-tight text-blue-700 hover:text-blue-900 transition-colors"
+                   style="font-family:'Plus Jakarta Sans',sans-serif">
+                    Trang quản trị
+                </a>
             </div>
         </div>
 
         <!-- Right actions -->
         <div class="flex items-center gap-4">
-            <button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all text-blue-900 dark:text-blue-400">
-                <span class="material-symbols-outlined">notifications</span>
-            </button>
+
 
             <!-- Show user info or login link depending on auth state -->
             <div sec:authorize="isAuthenticated()" class="flex items-center gap-2">

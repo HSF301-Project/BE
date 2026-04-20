@@ -64,6 +64,13 @@
             </h1>
             <p class="text-on-surface-variant mb-8">Điền thông tin để bắt đầu hành trình cùng chúng tôi.</p>
 
+            <!-- Success message -->
+            <div th:if="${successMessage}"
+                 class="mb-6 p-4 bg-success-container text-on-success-container rounded-xl flex items-center gap-3 text-sm">
+                <span class="material-symbols-outlined flex-shrink-0" style="font-variation-settings:'FILL' 1">check_circle</span>
+                <p th:text="${successMessage}"></p>
+            </div>
+
             <!-- Error message -->
             <div th:if="${errorMessage}"
                  class="mb-6 p-4 bg-error-container text-on-error-container rounded-xl flex items-center gap-3 text-sm">

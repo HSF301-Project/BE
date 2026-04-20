@@ -68,15 +68,15 @@
             <div th:if="${param.error}"
                  class="mb-6 p-4 bg-error-container text-on-error-container rounded-xl flex items-center gap-3 text-sm">
                 <span class="material-symbols-outlined flex-shrink-0" style="font-variation-settings:'FILL' 1">error</span>
-                <p>Email hoặc mật khẩu không chính xác. Vui lòng thử lại.</p>
+                <p>Email hoặc mật khẩu không đúng</p>
             </div>
             <div th:if="${param.logout}"
-                 class="mb-6 p-4 bg-secondary/10 text-secondary rounded-xl flex items-center gap-3 text-sm">
+                 class="mb-6 p-4 bg-success-container text-on-success-container rounded-xl flex items-center gap-3 text-sm">
                 <span class="material-symbols-outlined flex-shrink-0" style="font-variation-settings:'FILL' 1">check_circle</span>
                 <p>Bạn đã đăng xuất thành công.</p>
             </div>
             <div th:if="${successMessage}"
-                 class="mb-6 p-4 bg-secondary/10 text-secondary rounded-xl flex items-center gap-3 text-sm">
+                 class="mb-6 p-4 bg-success-container text-on-success-container rounded-xl flex items-center gap-3 text-sm">
                 <span class="material-symbols-outlined flex-shrink-0" style="font-variation-settings:'FILL' 1">check_circle</span>
                 <p th:text="${successMessage}"></p>
             </div>
