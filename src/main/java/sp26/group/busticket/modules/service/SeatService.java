@@ -7,4 +7,5 @@ import java.util.UUID;
 
 public interface SeatService {
     List<SeatDisplayDTO> getSeatsByTripAndFloor(UUID tripId, Integer floor);
+    List<SeatDisplayDTO> getSeatsByTripId(UUID tripId);
 }

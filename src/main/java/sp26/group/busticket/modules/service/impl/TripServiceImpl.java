@@ -2,6 +2,8 @@ package sp26.group.busticket.modules.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import sp26.group.busticket.common.exception.AppException;
+import sp26.group.busticket.common.exception.ErrorCode;
 import sp26.group.busticket.modules.dto.trip.request.TripSearchRequestDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripResponseDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripSearchResultDTO;
@@ -32,7 +34,10 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public TripSearchResultDTO searchTrips(TripSearchRequestDTO request) {
-        LocalDate date = LocalDate.parse(request.getDate());
+        String dateStr = (request.getDate() != null && !request.getDate().isBlank()) 
+                ? request.getDate() 
+                : LocalDate.now().toString();
+        LocalDate date = LocalDate.parse(dateStr);
         LocalDateTime now = LocalDateTime.now();
         
         // Chỉ lấy từ thời điểm hiện tại nếu ngày search là ngày hôm nay
@@ -87,6 +92,7 @@ public class TripServiceImpl implements TripService {
                     dto.setDuration(calculateDuration(trip.getDepartureTime(), trip.getArrivalTime()));
                     return dto;
                 })
+                .filter(dto -> dto.getSeatsLeft() > 0) // Tự động ẩn các chuyến đã hết chỗ
                 .collect(Collectors.toList());
 
         return TripSearchResultDTO.builder()
@@ -101,6 +107,13 @@ public class TripServiceImpl implements TripService {
                 .currentPage(0)
                 .sort(request.getSort())
                 .build();
+    }
+
+    @Override
+    public BigDecimal getBasePriceByTripId(java.util.UUID tripId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+        return trip.getPriceBase();
     }
 
     private String calculateDuration(LocalDateTime start, LocalDateTime end) {

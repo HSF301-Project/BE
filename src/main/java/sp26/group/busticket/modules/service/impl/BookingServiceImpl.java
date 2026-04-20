@@ -10,6 +10,7 @@ import sp26.group.busticket.common.exception.ErrorCode;
 import sp26.group.busticket.modules.dto.account.response.UserProfileDTO;
 import sp26.group.busticket.modules.dto.booking.request.BookingFormDTO;
 import sp26.group.busticket.modules.dto.booking.request.PassengerInfoDTO;
+import sp26.group.busticket.modules.dto.booking.request.StaffBookingRequestDTO;
 import sp26.group.busticket.modules.dto.booking.response.MyTripResponseDTO;
 import sp26.group.busticket.modules.dto.booking.response.PaymentResponseDTO;
 import sp26.group.busticket.modules.dto.booking.response.PriceItemDTO;
@@ -17,8 +18,10 @@ import sp26.group.busticket.modules.dto.booking.response.TicketConfirmationDTO;
 import sp26.group.busticket.modules.entity.*;
 import sp26.group.busticket.modules.enumType.BookingStatusEnum;
 import sp26.group.busticket.modules.enumType.PaymentStatusEnum;
+import sp26.group.busticket.modules.enumType.StatusEnum;
 import sp26.group.busticket.modules.repository.*;
 import sp26.group.busticket.modules.service.BookingService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -40,6 +43,8 @@ public class BookingServiceImpl implements BookingService {
     private final TicketRepository ticketRepository;
     private final SeatRepository seatRepository;
     private final PaymentRepository paymentRepository;
+    private final AccountRepository accountRepository;
+    private final PasswordEncoder passwordEncoder;
 
     private static final int CLEANUP_MINUTES = 7;
 
@@ -47,7 +52,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public UUID createBooking(UUID tripId, BookingFormDTO form, Account currentAccount) {
         Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
 
         // Kiểm tra trùng ghế (Concurrency Check)
         List<String> selectedSeatNumbers = form.getPassengers().stream()
@@ -87,7 +92,7 @@ public class BookingServiceImpl implements BookingService {
             Seat seat = seatRepository.findByCoach_IdOrderBySeatNumberAsc(trip.getCoach().getId()).stream()
                     .filter(s -> s.getSeatNumber().equals(p.getSeatId()))
                     .findFirst()
-                    .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                    .orElseThrow(() -> new AppException(ErrorCode.SEAT_NOT_FOUND));
 
             Ticket ticket = Ticket.builder()
                     .booking(booking)
@@ -99,6 +104,94 @@ public class BookingServiceImpl implements BookingService {
         }
 
         return booking.getId();
+    }
+
+    @Override
+    @Transactional
+    public UUID createStaffBooking(UUID tripId, StaffBookingRequestDTO form, Account staffAccount) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+
+        // 1. Xử lý Account (Ưu tiên tìm Account thật theo SĐT, nếu không có mới dùng GUEST)
+        Account userAccount = accountRepository.findByPhone(form.getCustomerPhone())
+                .orElseGet(() -> accountRepository.findByEmail("guest@busticket.com")
+                        .orElseThrow(() -> new AppException(ErrorCode.UNEXPECTED_ERROR, "Không tìm thấy Guest Account mặc định!")));
+
+        // 2. Kiểm tra trùng ghế
+        List<String> selectedSeatNumbers = form.getSelectedSeats();
+        List<Ticket> existingTickets = ticketRepository.findByBooking_Trip_Id(tripId);
+        for (Ticket t : existingTickets) {
+            BookingStatusEnum status = t.getBooking().getStatus();
+            if ((status == BookingStatusEnum.PENDING || status == BookingStatusEnum.CONFIRMED)
+                    && selectedSeatNumbers.contains(t.getSeat().getSeatNumber())) {
+                throw new AppException(ErrorCode.INVALID_INPUT,
+                        "Ghế " + t.getSeat().getSeatNumber() + " đã bị người khác đặt!");
+            }
+        }
+
+        // 3. Tạo Booking
+        BigDecimal totalAmount = trip.getPriceBase().multiply(BigDecimal.valueOf(form.getSelectedSeats().size()));
+        Booking booking = Booking.builder()
+                .user(userAccount) // Dùng account tìm được
+                .createdBy(staffAccount)
+                .trip(trip)
+                .totalAmount(totalAmount)
+                .status(BookingStatusEnum.CONFIRMED)
+                .build();
+        booking = bookingRepository.save(booking);
+
+        // 4. Tạo Payment (Đã thanh toán)
+        Payment payment = Payment.builder()
+                .booking(booking)
+                .amount(totalAmount)
+                .paymentMethod(form.getPaymentMethod() != null ? form.getPaymentMethod() : "CASH")
+                .status(PaymentStatusEnum.PAID)
+                .paidAt(LocalDateTime.now())
+                .build();
+        paymentRepository.save(payment);
+
+        // 5. Tạo Tickets (Lưu Tên và SĐT của khách vào từng vé)
+        for (String seatNumber : selectedSeatNumbers) {
+            Seat seat = seatRepository.findByCoach_IdOrderBySeatNumberAsc(trip.getCoach().getId()).stream()
+                    .filter(s -> s.getSeatNumber().equals(seatNumber))
+                    .findFirst()
+                    .orElseThrow(() -> new AppException(ErrorCode.SEAT_NOT_FOUND));
+
+            Ticket ticket = Ticket.builder()
+                    .booking(booking)
+                    .seat(seat)
+                    .passengerName(form.getCustomerName())
+                    .passengerPhone(form.getCustomerPhone())
+                    .ticketCode("OFFLINE-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                    .build();
+            ticketRepository.save(ticket);
+        }
+
+        return booking.getId();
+    }
+
+    @Override
+    @Transactional
+    public void linkGuestBookingsToAccount(Account account) {
+        // Tìm tất cả vé có SĐT trùng với SĐT của Account mới
+        List<Ticket> guestTickets = ticketRepository.findByPassengerPhone(account.getPhone());
+        
+        // Lấy Guest Account mặc định để kiểm tra
+        Account guestAccount = accountRepository.findByEmail("guest@busticket.com").orElse(null);
+        if (guestAccount == null) return;
+
+        // Tập hợp các Booking thuộc về GUEST và có vé chứa SĐT này
+        List<Booking> bookingsToUpdate = guestTickets.stream()
+                .map(Ticket::getBooking)
+                .filter(b -> b.getUser().getId().equals(guestAccount.getId()))
+                .distinct()
+                .toList();
+
+        if (!bookingsToUpdate.isEmpty()) {
+            log.info("Linking {} guest bookings to new account: {}", bookingsToUpdate.size(), account.getEmail());
+            bookingsToUpdate.forEach(b -> b.setUser(account));
+            bookingRepository.saveAll(bookingsToUpdate);
+        }
     }
 
     @Override
@@ -139,7 +232,7 @@ public class BookingServiceImpl implements BookingService {
         bookingRepository.save(booking);
 
         Payment payment = paymentRepository.findByBooking_Id(bookingId)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.UNEXPECTED_ERROR, "Không tìm thấy thông tin thanh toán!"));
         
         // Kiểm tra nếu payment đã bị hủy
         if (payment.getStatus() == PaymentStatusEnum.CANCELLED) {
@@ -156,19 +249,36 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public TicketConfirmationDTO getBookingSuccessInfo(UUID bookingId) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
-        Ticket ticket = ticketRepository.findAll().stream()
+        List<Ticket> tickets = ticketRepository.findAll().stream()
                 .filter(t -> t.getBooking().getId().equals(bookingId))
-                .findFirst().orElseThrow();
+                .collect(Collectors.toList());
+        
+        if (tickets.isEmpty()) {
+            throw new AppException(ErrorCode.BOOKING_NOT_FOUND, "Không tìm thấy thông tin vé");
+        }
+
+        Ticket firstTicket = tickets.get(0);
         Trip trip = booking.getTrip();
         Locale localeVN = new Locale("vi", "VN");
         NumberFormat vnFormat = NumberFormat.getCurrencyInstance(localeVN);
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", localeVN);
+        DateTimeFormatter fullDateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+        // Gộp tất cả số ghế
+        String allSeats = tickets.stream()
+                .map(t -> t.getSeat().getSeatNumber())
+                .collect(Collectors.joining(", "));
+
+        // Lấy thời gian đặt (thanh toán thành công)
+        String bookingDate = paymentRepository.findByBooking_Id(bookingId)
+                .map(p -> p.getPaidAt() != null ? p.getPaidAt().format(fullDateTimeFormatter) : booking.getCreatedAt().format(fullDateTimeFormatter))
+                .orElse(booking.getCreatedAt().format(fullDateTimeFormatter));
 
         return TicketConfirmationDTO.builder()
-                .id(ticket.getId())
+                .id(firstTicket.getId())
                 .statusLabel("Đã xác nhận")
-                .bookingCode(ticket.getTicketCode())
+                .bookingCode(firstTicket.getTicketCode())
                 .fromCityShort(trip.getRoute().getDepartureLocation().getName().toUpperCase())
                 .toCityShort(trip.getRoute().getArrivalLocation().getName().toUpperCase())
                 .departureStation(trip.getRoute().getDepartureLocation().getName())
@@ -176,12 +286,12 @@ public class BookingServiceImpl implements BookingService {
                 .departureTime(trip.getDepartureTime().format(timeFormatter))
                 .arrivalTime(trip.getArrivalTime().format(timeFormatter))
                 .departureDateLabel(trip.getDepartureTime().format(dateFormatter))
-                .seatLabel(ticket.getSeat().getSeatNumber() + " (Tầng " + ticket.getSeat().getFloor() + ")")
+                .seatLabel(allSeats)
                 .licensePlate(trip.getCoach().getPlateNumber())
                 .serviceType(trip.getCoach().getCoachType())
-                .passengerName(ticket.getPassengerName())
+                .passengerName(firstTicket.getPassengerName())
                 .totalFormatted(vnFormat.format(booking.getTotalAmount()))
-                .qrImageUrl("https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + ticket.getTicketCode())
+                .bookingDate(bookingDate)
                 .build();
     }
 
@@ -189,6 +299,7 @@ public class BookingServiceImpl implements BookingService {
     public List<MyTripResponseDTO> getMyTrips(UUID accountId, String tab) {
         List<Booking> bookings = bookingRepository.findByUser_IdOrderByCreatedAtDesc(accountId);
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        DateTimeFormatter fullDateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         LocalDateTime now = LocalDateTime.now();
 
         return bookings.stream()
@@ -200,6 +311,11 @@ public class BookingServiceImpl implements BookingService {
                     if (status == BookingStatusEnum.CONFIRMED && trip.getArrivalTime().isBefore(now)) {
                         status = BookingStatusEnum.COMPLETED;
                     }
+
+                    // Lấy thời gian thanh toán từ Payment, nếu không có thì lấy thời gian tạo Booking
+                    String bookingDate = paymentRepository.findByBooking_Id(b.getId())
+                            .map(p -> p.getPaidAt() != null ? p.getPaidAt().format(fullDateTimeFormatter) : b.getCreatedAt().format(fullDateTimeFormatter))
+                            .orElse(b.getCreatedAt().format(fullDateTimeFormatter));
 
                     return MyTripResponseDTO.builder()
                             .id(b.getId())
@@ -215,6 +331,7 @@ public class BookingServiceImpl implements BookingService {
                             .toCity(trip.getRoute().getArrivalLocation().getName())
                             .arrivalStation(trip.getRoute().getArrivalLocation().getName())
                             .arrivalTime(trip.getArrivalTime().format(timeFormatter))
+                            .bookingDate(bookingDate)
                             .build();
                 })
                 .filter(dto -> {
@@ -230,12 +347,14 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public UserProfileDTO getUserProfile(Account account) {
+        long totalTrips = bookingRepository.countByUser_Id(account.getId());
+
         return UserProfileDTO.builder()
                 .fullName(account.getFullName())
                 .email(account.getEmail())
                 .avatarUrl(null)
                 .membershipTier("Vàng")
-                .totalTrips(42)
+                .totalTrips((int) totalTrips)
                 .membershipLabel("Premium Voyager")
                 .build();
     }

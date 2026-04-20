@@ -33,6 +33,9 @@ public class Ticket extends BaseEntity {
     @Column(name = "passenger_name", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String passengerName;
 
+    @Column(name = "passenger_phone", columnDefinition = "NVARCHAR(20)")
+    private String passengerPhone;
+
     @Column(name = "ticket_code", nullable = false, unique = true)
     private String ticketCode;
 }

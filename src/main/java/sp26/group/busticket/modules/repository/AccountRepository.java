@@ -16,7 +16,9 @@ import org.springframework.data.domain.Pageable;
 public interface AccountRepository extends JpaRepository<Account, UUID> {
     Optional<Account> findByEmail(String email);
 
+    Optional<Account> findByPhone(String phone);
     boolean existsByEmail(String email);
+    boolean existsByPhone(String phone);
 
     List<Account> findAllByRoleOrderByCreatedAtDesc(String role);
 

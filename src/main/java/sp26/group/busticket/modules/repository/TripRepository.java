@@ -10,4 +10,7 @@ import java.util.UUID;
 public interface TripRepository extends JpaRepository<Trip, UUID> {
     List<Trip> findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeBetween(
             String from, String to, LocalDateTime startOfDay, LocalDateTime endOfDay);
+
+    boolean existsByCoach_Id(UUID coachId);
+    List<Trip> findByCoach_Id(UUID coachId);
 }

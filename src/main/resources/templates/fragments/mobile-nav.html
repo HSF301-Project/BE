@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    Fragment: mobile-nav
+    Usage: th:replace="~{fragments/mobile-nav :: mobile-nav(activeTab='search')}"
+    activeTab values: 'search' | 'trips' | 'notifications' | 'profile'
+-->
+<nav th:fragment="mobile-nav(activeTab)"
+     class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-50 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] rounded-t-3xl">
+
+    <a th:href="@{/home}"
+       th:class="${activeTab == 'search'}
+           ? 'flex flex-col items-center justify-center bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-2xl px-5 py-2'
+           : 'flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2 hover:text-blue-900'">
+        <span class="material-symbols-outlined">search</span>
+        <span class="text-[11px] font-medium" style="font-family:'Inter',sans-serif">Tìm kiếm</span>
+    </a>
+
+    <a th:href="@{/booking/my-trips}"
+       th:class="${activeTab == 'trips'}
+           ? 'flex flex-col items-center justify-center bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-2xl px-5 py-2'
+           : 'flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2 hover:text-blue-900'">
+        <span class="material-symbols-outlined">directions_bus</span>
+        <span class="text-[11px] font-medium" style="font-family:'Inter',sans-serif">Chuyến đi</span>
+    </a>
+
+    <a href="#"
+       th:class="${activeTab == 'notifications'}
+           ? 'flex flex-col items-center justify-center bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-2xl px-5 py-2'
+           : 'flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2 hover:text-blue-900'">
+        <span class="material-symbols-outlined">notifications</span>
+        <span class="text-[11px] font-medium" style="font-family:'Inter',sans-serif">Thông báo</span>
+    </a>
+
+    <a href="#"
+       th:class="${activeTab == 'profile'}
+           ? 'flex flex-col items-center justify-center bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-2xl px-5 py-2'
+           : 'flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2 hover:text-blue-900'">
+        <span class="material-symbols-outlined">person</span>
+        <span class="text-[11px] font-medium" style="font-family:'Inter',sans-serif">Cá nhân</span>
+    </a>
+</nav>
+
+</body>
+</html>

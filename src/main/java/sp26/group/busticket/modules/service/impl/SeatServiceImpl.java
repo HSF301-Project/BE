@@ -33,7 +33,7 @@ public class SeatServiceImpl implements SeatService {
     @Override
     public List<SeatDisplayDTO> getSeatsByTripAndFloor(UUID tripId, Integer floor) {
         Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
 
         List<Seat> allSeats = seatRepository.findByCoach_IdOrderBySeatNumberAsc(trip.getCoach().getId());
         
@@ -50,6 +50,29 @@ public class SeatServiceImpl implements SeatService {
                     SeatDisplayDTO dto = seatMapper.toSeatDisplayDTO(s);
                     dto.setStatus(bookedSeatIds.contains(s.getId()) ? SeatStatusEnum.BOOKED : SeatStatusEnum.AVAILABLE);
                     dto.setAisleAfter(shouldAddAisle(s.getSeatNumber()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SeatDisplayDTO> getSeatsByTripId(UUID tripId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+
+        List<Seat> allSeats = seatRepository.findByCoach_IdOrderBySeatNumberAsc(trip.getCoach().getId());
+        
+        List<Ticket> bookedTickets = ticketRepository.findByBooking_Trip_Id(tripId);
+        Set<UUID> bookedSeatIds = bookedTickets.stream()
+                .filter(t -> t.getBooking().getStatus() == BookingStatusEnum.PENDING || 
+                            t.getBooking().getStatus() == BookingStatusEnum.CONFIRMED)
+                .map(t -> t.getSeat().getId())
+                .collect(Collectors.toSet());
+
+        return allSeats.stream()
+                .map(s -> {
+                    SeatDisplayDTO dto = seatMapper.toSeatDisplayDTO(s);
+                    dto.setStatus(bookedSeatIds.contains(s.getId()) ? SeatStatusEnum.BOOKED : SeatStatusEnum.AVAILABLE);
                     return dto;
                 })
                 .collect(Collectors.toList());

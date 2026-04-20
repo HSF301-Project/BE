@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Transit Admin - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"/>
+    <link rel="stylesheet" th:href="@{/css/common.css}"/>
+    <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                    colors: {
+                        "surface-container":"#ededf5","surface-container-high":"#e8e7f0","surface-container-low":"#f3f3fb",
+                        "surface-container-lowest":"#ffffff","surface-container-highest":"#e2e2ea","surface-bright":"#faf8ff",
+                        "surface-variant":"#e2e2ea","on-surface":"#1a1b21","on-surface-variant":"#434652",
+                        "secondary-container":"#fe5825","secondary":"#b02e00","on-secondary":"#ffffff",
+                        "primary-container":"#0d47a1","primary":"#003178","on-primary":"#ffffff",
+                        "background":"#faf8ff","error":"#ba1a1a"
+                    },
+                    fontFamily: { headline:["Plus Jakarta Sans"], body:["Inter"] }
+                }}
+        }
+    </script>
+</head>
+<body class="admin-main text-on-surface antialiased overflow-x-hidden">
+
+<aside class="admin-sidebar fixed left-0 top-0 h-full z-40 flex flex-col w-64 bg-slate-50 font-semibold tracking-tight shadow-lg">
+    <div class="p-6 flex flex-col gap-1 border-b border-slate-200">
+        <a th:href="@{/admin/dashboard}" class="text-xl font-black tracking-tighter text-blue-900">PREMIUM TRANSIT</a>
+        <span class="text-[10px] text-blue-600 uppercase tracking-[0.2em] font-black">Admin Panel</span>
+    </div>
+    <nav class="flex-1 px-4 py-8 space-y-2">
+        <a th:href="@{/admin/dashboard}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-700 text-white shadow-md shadow-blue-200 transition-all">
+            <span class="material-symbols-outlined">dashboard</span><span>Bảng điều khiển</span>
+        </a>
+        <a th:href="@{/admin/coaches}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
+            <span class="material-symbols-outlined">rv_hookup</span><span>Quản lý Xe</span>
+        </a>
+        <a th:href="@{/admin/trips}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
+            <span class="material-symbols-outlined">directions_bus</span><span>Lịch trình</span>
+        </a>
+    </nav>
+    <div class="p-4 border-t border-slate-200">
+        <div class="bg-white p-4 rounded-2xl flex items-center gap-3 shadow-sm border border-slate-100">
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-black">AD</div>
+            <div class="flex-1 overflow-hidden">
+                <p class="text-xs font-black text-blue-900 truncate" th:text="${adminUser.fullName}">Admin Name</p>
+                <p class="text-[10px] text-slate-400 truncate" th:text="${adminUser.role}">System Admin</p>
+            </div>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="text-slate-400 hover:text-error transition-colors">
+                    <span class="material-symbols-outlined text-lg">logout</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</aside>
+
+<main class="pl-72 pr-8 pt-12 pb-12 min-h-screen">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-12">
+            <h1 class="text-5xl font-black tracking-tight text-blue-900 mb-2">Xin chào, <span th:text="${adminUser.fullName}">Admin</span></h1>
+            <p class="text-slate-500 font-medium">Chào mừng trở lại trung tâm điều hành Premium Transit.</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div class="card-stat bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="p-4 bg-blue-50 rounded-2xl text-blue-700">
+                        <span class="material-symbols-outlined text-3xl">rv_hookup</span>
+                    </div>
+                </div>
+                <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Tổng đội xe</h3>
+                <p class="text-4xl font-black text-blue-900" th:text="${totalCoaches + ' Phương tiện'}">12 Phương tiện</p>
+                <a th:href="@{/admin/coaches}" class="inline-block mt-4 text-xs font-black text-blue-600 hover:underline">Quản lý đội xe &rarr;</a>
+            </div>
+
+            <div class="card-stat bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="p-4 bg-emerald-50 rounded-2xl text-emerald-700">
+                        <span class="material-symbols-outlined text-3xl">confirmation_number</span>
+                    </div>
+                </div>
+                <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Vé đã bán hôm nay</h3>
+                <p class="text-4xl font-black text-blue-900">142 Vé</p>
+            </div>
+
+            <div class="card-stat bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="p-4 bg-orange-50 rounded-2xl text-orange-700">
+                        <span class="material-symbols-outlined text-3xl">payments</span>
+                    </div>
+                </div>
+                <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Doanh thu ngày</h3>
+                <p class="text-4xl font-black text-blue-900">42,500,000đ</p>
+            </div>
+        </div>
+
+        <section class="bg-white rounded-[2.5rem] p-10 shadow-sm border border-slate-100">
+            <h2 class="text-2xl font-black text-blue-900 mb-8 flex items-center gap-3">
+                <span class="w-2 h-8 bg-blue-700 rounded-full"></span>
+                Truy cập nhanh
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <a th:href="@{/admin/coaches/create}" class="p-6 bg-slate-50 rounded-3xl hover:bg-blue-50 transition-colors group">
+                    <span class="material-symbols-outlined text-slate-400 group-hover:text-blue-700 mb-3">add_circle</span>
+                    <p class="font-black text-slate-600 group-hover:text-blue-900">Thêm xe mới</p>
+                </a>
+                <a th:href="@{/admin/trips}" class="p-6 bg-slate-50 rounded-3xl hover:bg-blue-50 transition-colors group">
+                    <span class="material-symbols-outlined text-slate-400 group-hover:text-blue-700 mb-3">event_available</span>
+                    <p class="font-black text-slate-600 group-hover:text-blue-900">Lịch trình</p>
+                </a>
+            </div>
+        </section>
+    </div>
+</main>
+
+</body>
+</html>

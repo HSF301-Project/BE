@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${title}">Chi tiết xe & Lịch sử</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"/>
+    <link rel="stylesheet" th:href="@{/css/common.css}"/>
+    <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body class="admin-main text-on-surface antialiased overflow-x-hidden">
+
+<aside class="admin-sidebar fixed left-0 top-0 h-full z-40 flex flex-col w-64 bg-slate-50 font-semibold tracking-tight shadow-lg">
+    <div class="p-6 flex flex-col gap-1 border-b border-slate-200">
+        <a th:href="@{/admin/dashboard}" class="text-xl font-black tracking-tighter text-blue-900">PREMIUM TRANSIT</a>
+        <span class="text-[10px] text-blue-600 uppercase tracking-[0.2em] font-black">Admin Panel</span>
+    </div>
+    <nav class="flex-1 px-4 py-8 space-y-2">
+        <a th:href="@{/admin/dashboard}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
+            <span class="material-symbols-outlined">dashboard</span><span>Bảng điều khiển</span>
+        </a>
+        <a th:href="@{/admin/coaches}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-700 text-white shadow-md shadow-blue-200 transition-all">
+            <span class="material-symbols-outlined">rv_hookup</span><span>Quản lý Xe</span>
+        </a>
+        <a th:href="@{/admin/trips}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
+            <span class="material-symbols-outlined">directions_bus</span><span>Lịch trình</span>
+        </a>
+    </nav>
+</aside>
+
+<main class="pl-72 pr-8 pt-12 pb-12 min-h-screen font-sans">
+    <div class="max-w-7xl mx-auto" th:object="${coachDetail}">
+        <div class="mb-12">
+            <a th:href="@{/admin/coaches}" class="inline-flex items-center gap-2 text-xs font-black text-slate-400 hover:text-blue-700 transition-colors mb-6 uppercase tracking-widest">
+                <span class="material-symbols-outlined text-sm">arrow_back</span> Quay lại danh sách
+            </a>
+            <div class="flex justify-between items-end">
+                <div>
+                    <h1 class="text-5xl font-black tracking-tight text-blue-900 mb-2">Chi tiết xe: <span th:text="*{plateNumber}">29A-12345</span></h1>
+                    <p class="text-slate-500 font-medium">Hồ sơ phương tiện & Lịch sử vận hành</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <!-- Vehicle Info -->
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                <div class="w-14 h-14 bg-blue-50 text-blue-700 rounded-2xl flex items-center justify-center mb-6">
+                    <span class="material-symbols-outlined text-3xl">rv_hookup</span>
+                </div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cấu hình xe</p>
+                <h3 class="text-2xl font-black text-blue-900 mb-2" th:text="*{coachType}">Limousine 22 Giường</h3>
+                <div class="flex items-center gap-2 text-slate-500 font-semibold italic">
+                    <span class="material-symbols-outlined text-sm">airline_seat_recline_normal</span>
+                    <span th:text="*{totalSeats + ' Ghế ngồi'}">22 Ghế</span>
+                </div>
+            </div>
+
+            <!-- Current Driver -->
+            <div class="bg-blue-900 p-8 rounded-[2.5rem] shadow-xl shadow-blue-200 text-white relative overflow-hidden">
+                <span class="material-symbols-outlined absolute -right-4 -bottom-4 text-white/5 text-9xl">person</span>
+                <div class="w-14 h-14 bg-white/10 backdrop-blur text-white rounded-2xl flex items-center justify-center mb-6">
+                    <span class="material-symbols-outlined text-3xl">badge</span>
+                </div>
+                <p class="text-[10px] font-black text-blue-300 uppercase tracking-widest mb-1">Tài xế hiện tại</p>
+                <h3 class="text-2xl font-black mb-2" th:text="*{currentDriverName}">Nguyễn Văn Lái</h3>
+                <div class="flex items-center gap-2 text-blue-100 font-semibold">
+                    <span class="material-symbols-outlined text-sm">call</span>
+                    <span th:text="*{currentDriverPhone}">0912345678</span>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                <div class="w-14 h-14 bg-emerald-50 text-emerald-700 rounded-2xl flex items-center justify-center mb-6">
+                    <span class="material-symbols-outlined text-3xl">history</span>
+                </div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Thống kê vận hành</p>
+                <h3 class="text-2xl font-black text-emerald-900 mb-2" th:text="*{#lists.size(tripHistory) + ' Chuyến'}">25 Chuyến</h3>
+                <div class="text-slate-500 font-semibold italic">Tổng lượt hành trình đã thực hiện</div>
+            </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+            <div class="p-8 border-b border-slate-50 flex justify-between items-center">
+                <h2 class="text-2xl font-black text-blue-900">Lịch sử Chuyến đi</h2>
+                <div class="flex gap-2">
+                    <button class="px-4 py-2 bg-slate-50 text-slate-500 rounded-xl text-xs font-black hover:bg-slate-100 transition-all">Lọc theo ngày</button>
+                    <button class="px-4 py-2 bg-slate-50 text-slate-500 rounded-xl text-xs font-black hover:bg-slate-100 transition-all">Xuất báo cáo</button>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-slate-50/50 text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">
+                            <th class="px-8 py-6">Lộ trình</th>
+                            <th class="px-8 py-6">Khởi hành</th>
+                            <th class="px-8 py-6">Kết thúc (Dự kiến)</th>
+                            <th class="px-8 py-6">Tài xế</th>
+                            <th class="px-8 py-6">Lượng khách</th>
+                            <th class="px-8 py-6 text-right">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        <tr th:each="trip : *{tripHistory}" class="hover:bg-slate-50/30 transition-colors">
+                            <td class="px-8 py-6">
+                                <a th:href="@{/admin/trips/detail/{id}(id=${trip.tripId})}" class="block font-black text-blue-900 text-sm hover:text-blue-700 transition-colors" th:text="${trip.routeName}">
+                                    Hà Nội - Sài Gòn
+                                </a>
+                            </td>
+                            <td class="px-8 py-6 text-slate-500 font-semibold text-xs" th:text="${trip.departureTime}">10:00 20/04/2026</td>
+                            <td class="px-8 py-6 text-slate-500 font-semibold text-xs" th:text="${trip.arrivalTime}">18:00 20/04/2026</td>
+                            <td class="px-8 py-6 font-bold text-slate-700 text-xs" th:text="${trip.driverName}">Nguyễn Văn Lái</td>
+                            <td class="px-8 py-6">
+                                <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-black" th:text="${trip.totalOccupiedSeats + ' Khách'}">12 Khách</span>
+                            </td>
+                            <td class="px-8 py-6 text-right">
+                                <span th:if="${trip.status == 'SCHEDULED'}" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-black uppercase tracking-widest">Sắp chạy</span>
+                                <span th:if="${trip.status == 'DEPARTED'}" class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-[10px] font-black uppercase tracking-widest">Đang đi</span>
+                                <span th:if="${trip.status == 'COMPLETED'}" class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-widest">Hoàn thành</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(coachDetail.tripHistory)}">
+                            <td colspan="6" class="px-8 py-20 text-center text-slate-300 italic font-medium">
+                                Chưa có dữ liệu lịch sử vận hành cho phương tiện này.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

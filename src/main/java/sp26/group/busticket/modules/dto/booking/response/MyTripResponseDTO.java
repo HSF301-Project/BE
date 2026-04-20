@@ -24,4 +24,18 @@ public class MyTripResponseDTO {
     private String toCity;
     private String arrivalStation;
     private String arrivalTime;
+    private String bookingDate;
+
+    public String getStatusLabel() {
+        if (status == null) {
+            return "Không xác định";
+        }
+
+        return switch (status) {
+            case CONFIRMED -> "Đã xác nhận";
+            case COMPLETED -> "Đã hoàn thành";
+            case CANCELLED -> "Đã hủy";
+            case PENDING -> "Chờ thanh toán";
+        };
+    }
 }

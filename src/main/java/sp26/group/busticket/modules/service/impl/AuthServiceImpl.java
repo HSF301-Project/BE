@@ -13,6 +13,7 @@ import sp26.group.busticket.modules.enumType.StatusEnum;
 import sp26.group.busticket.modules.mapper.AuthMapper;
 import sp26.group.busticket.modules.repository.AccountRepository;
 import sp26.group.busticket.modules.service.AuthService;
+import sp26.group.busticket.modules.service.BookingService;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +22,7 @@ public class AuthServiceImpl implements AuthService {
     private final AccountRepository accountRepository;
     private final AuthMapper authMapper;
     private final PasswordEncoder passwordEncoder;
+    private final BookingService bookingService;
 
     @Override
     @Transactional
@@ -39,6 +41,9 @@ public class AuthServiceImpl implements AuthService {
         account.setStatus(StatusEnum.ACTIVE);
         account.setRole("USER");
 
-        accountRepository.save(account);
+        account = accountRepository.save(account);
+
+        // Sau khi tạo account mới, quét các vé offline cũ để liên kết lịch sử
+        bookingService.linkGuestBookingsToAccount(account);
     }
 }
