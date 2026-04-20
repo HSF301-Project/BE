@@ -57,7 +57,7 @@
                     <!-- Legend -->
                     <div class="flex flex-wrap gap-6 mb-8 p-4 bg-surface-container-low rounded-xl">
                         <div class="flex items-center space-x-2">
-                            <div class="w-6 h-6 bg-surface-container-highest rounded-md"></div>
+                            <div class="w-6 h-6 bg-[#AACDDC] rounded-md border border-slate-200"></div>
                             <span class="text-sm font-medium">Trống</span>
                         </div>
                         <div class="flex items-center space-x-2">
@@ -80,12 +80,12 @@
                                 <div class="absolute top-3 right-4 opacity-20">
                                     <span class="material-symbols-outlined text-4xl">airline_seat_recline_extra</span>
                                 </div>
-                                <div class="grid grid-cols-4 gap-3">
+                                <div class="grid grid-cols-2 gap-x-12 gap-y-3">
                                     <th:block th:each="seat : ${lowerDeckSeats}">
                                         <!-- Available seat -->
                                         <button th:if="${seat.status.name() == 'AVAILABLE'}"
                                                 type="button"
-                                                class="seat-btn aspect-square bg-surface-container-highest hover:bg-surface-bright rounded-md flex items-center justify-center transition-all"
+                                                class="seat-btn w-12 h-12 mx-auto bg-[#AACDDC] hover:bg-surface-bright rounded-md flex items-center justify-center transition-all border border-transparent hover:border-primary/20"
                                                 th:data-seat-id="${seat.seatId}"
                                                 data-deck="lower"
                                                 data-status="AVAILABLE">
@@ -94,12 +94,10 @@
                                         <!-- Booked seat -->
                                         <button th:if="${seat.status.name() == 'BOOKED'}"
                                                 type="button"
-                                                class="aspect-square bg-surface-dim opacity-40 rounded-md flex items-center justify-center cursor-not-allowed"
+                                                class="w-12 h-12 mx-auto bg-surface-dim opacity-40 rounded-md flex items-center justify-center cursor-not-allowed"
                                                 disabled>
                                             <span class="text-xs font-bold" th:text="${seat.seatId}">L01</span>
                                         </button>
-                                        <!-- Aisle spacer -->
-                                        <div th:if="${seat.aisleAfter}" class="col-span-1"></div>
                                     </th:block>
                                 </div>
                             </div>
@@ -112,11 +110,11 @@
                                 <div class="absolute top-3 right-4 opacity-20">
                                     <span class="material-symbols-outlined text-4xl">panorama</span>
                                 </div>
-                                <div class="grid grid-cols-4 gap-3">
+                                <div class="grid grid-cols-2 gap-x-12 gap-y-3">
                                     <th:block th:each="seat : ${upperDeckSeats}">
                                         <button th:if="${seat.status.name() == 'AVAILABLE'}"
                                                 type="button"
-                                                class="seat-btn aspect-square bg-surface-container-highest hover:bg-surface-bright rounded-md flex items-center justify-center transition-all"
+                                                class="seat-btn w-12 h-12 mx-auto bg-[#AACDDC] hover:bg-surface-bright rounded-md flex items-center justify-center transition-all border border-transparent hover:border-secondary/20"
                                                 th:data-seat-id="${seat.seatId}"
                                                 data-deck="upper"
                                                 data-status="AVAILABLE">
@@ -124,11 +122,10 @@
                                         </button>
                                         <button th:if="${seat.status.name() == 'BOOKED'}"
                                                 type="button"
-                                                class="aspect-square bg-surface-dim opacity-40 rounded-md flex items-center justify-center cursor-not-allowed"
+                                                class="w-12 h-12 mx-auto bg-surface-dim opacity-40 rounded-md flex items-center justify-center cursor-not-allowed"
                                                 disabled>
                                             <span class="text-xs font-bold" th:text="${seat.seatId}">U01</span>
                                         </button>
-                                        <div th:if="${seat.aisleAfter}" class="col-span-1"></div>
                                     </th:block>
                                 </div>
                             </div>
@@ -192,19 +189,25 @@
 
                     <!-- Price summary -->
                     <div class="space-y-3 mb-8">
-                        <p class="text-xs font-bold text-on-surface-variant uppercase">Ghế đã chọn: <span id="summary-seat-count" class="text-primary">x0</span></p>
+                        <div class="flex flex-col gap-1">
+                            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Ghế đã chọn</p>
+                            <p id="summary-seat-ids" class="font-bold text-primary text-sm">Chưa chọn ghế</p>
+                        </div>
                     </div>
 
-                    <div class="bg-primary/5 rounded-2xl p-4 flex items-center justify-between mb-6">
-                        <div>
-                            <p class="text-xs font-bold text-primary uppercase">Tổng cộng</p>
-                            <p class="text-2xl font-black text-secondary" id="summary-total">0đ</p>
+                    <div class="bg-primary/5 rounded-2xl p-6 mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-xs font-bold text-primary uppercase tracking-widest">Tổng cộng</p>
+                            <span class="material-symbols-outlined text-secondary" style="font-variation-settings:'FILL' 1">payments</span>
                         </div>
-                        <span class="material-symbols-outlined text-3xl text-secondary" style="font-variation-settings:'FILL' 1">payments</span>
+                        <div class="flex flex-col">
+                            <p class="text-2xl font-black text-secondary leading-none mb-1" id="summary-total">0đ</p>
+                            <p class="text-[10px] font-bold text-on-surface-variant italic" id="summary-calculation"></p>
+                        </div>
                     </div>
 
                     <!-- Hidden: unit price for JS calculation -->
-                    <span id="unit-price-value" data-price="0" class="hidden"></span>
+                    <span id="unit-price-value" th:data-price="${unitPrice}" class="hidden"></span>
                 </div>
 
                 <button type="submit" id="btn-continue-payment"

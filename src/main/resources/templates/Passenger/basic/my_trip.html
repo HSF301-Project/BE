@@ -105,86 +105,100 @@
             </div>
 
             <!-- Trip cards -->
-            <div class="space-y-5" th:if="${!#lists.isEmpty(trips)}">
-                <div th:each="trip : ${trips}"
-                     class="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-[0_8px_24px_rgba(26,27,33,0.06)] border border-outline-variant/15 hover:border-primary/20 transition-all group">
-
-                    <!-- Status bar -->
-                    <div class="px-6 py-3 flex items-center justify-between border-b border-outline-variant/20"
-                         th:classappend="${trip.status == 'CONFIRMED'} ? 'bg-primary/5' : (${trip.status == 'COMPLETED'} ? 'bg-secondary/5' : 'bg-error/5')">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full"
-                                  th:classappend="${trip.status == 'CONFIRMED'} ? 'bg-primary animate-pulse' : (${trip.status == 'COMPLETED'} ? 'bg-secondary' : 'bg-error')"></span>
-                            <span class="text-xs font-bold uppercase tracking-wider"
-                                  th:classappend="${trip.status == 'CONFIRMED'} ? 'text-primary' : (${trip.status == 'COMPLETED'} ? 'text-secondary' : 'text-error')"
-                                  th:text="${trip.statusLabel}">Đã xác nhận</span>
+            <div class="space-y-10" th:if="${!#lists.isEmpty(trips)}">
+                <div th:each="trip : ${trips}" class="relative">
+                    
+                    <!-- Booking Time Label (Outside the card) -->
+                    <div class="flex items-center gap-3 mb-3 ml-2">
+                        <div class="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
+                            <span class="material-symbols-outlined text-[18px]">event_available</span>
                         </div>
-                        <span class="text-xs font-bold text-on-surface-variant font-mono"
-                              th:text="${'#' + trip.bookingCode}">#PTA-0001</span>
+                        <div>
+                            <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.2em] leading-none mb-1">Thời gian đặt vé</p>
+                            <p class="text-sm font-black text-primary" th:text="${trip.bookingDate}">20/04/2026 09:17</p>
+                        </div>
+                        <div class="h-px flex-1 bg-gradient-to-r from-outline-variant/30 to-transparent ml-4"></div>
                     </div>
 
-                    <!-- Card body -->
-                    <div class="p-6 flex flex-col md:flex-row gap-6 items-start">
+                    <div class="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-[0_8px_24px_rgba(26,27,33,0.06)] border border-outline-variant/15 hover:border-primary/20 transition-all group">
 
-                        <!-- Bus type icon -->
-                        <div class="w-16 h-16 rounded-2xl bg-primary/8 flex items-center justify-center flex-shrink-0">
-                            <span class="material-symbols-outlined text-primary text-3xl">directions_bus</span>
+                        <!-- Status bar -->
+                        <div class="px-6 py-3 flex items-center justify-between border-b border-outline-variant/20"
+                             th:classappend="${trip.status == 'CONFIRMED'} ? 'bg-primary/5' : (${trip.status == 'COMPLETED'} ? 'bg-secondary/5' : 'bg-error/5')">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full"
+                                      th:classappend="${trip.status == 'CONFIRMED'} ? 'bg-primary animate-pulse' : (${trip.status == 'COMPLETED'} ? 'bg-secondary' : 'bg-error')"></span>
+                                <span class="text-xs font-bold uppercase tracking-wider"
+                                      th:classappend="${trip.status == 'CONFIRMED'} ? 'text-primary' : (${trip.status == 'COMPLETED'} ? 'text-secondary' : 'text-error')"
+                                      th:text="${trip.statusLabel}">Đã xác nhận</span>
+                            </div>
+                            <span class="text-xs font-bold text-on-surface-variant font-mono"
+                                  th:text="${'#' + trip.bookingCode}">#PTA-0001</span>
                         </div>
 
-                        <!-- Route info -->
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="px-2.5 py-0.5 bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-black uppercase rounded tracking-tighter"
-                                      th:text="${trip.busTypeLabel}">Limousine</span>
-                                <span th:if="${trip.daysUntilDeparture != null and trip.daysUntilDeparture >= 0 and trip.status == 'CONFIRMED'}"
-                                      class="px-2.5 py-0.5 bg-secondary/10 text-secondary text-[10px] font-bold rounded-full">
-                                    Còn <span th:text="${trip.daysUntilDeparture}">3</span> ngày
-                                </span>
+                        <!-- Card body -->
+                        <div class="p-6 flex flex-col md:flex-row gap-6 items-start">
+
+                            <!-- Bus type icon -->
+                            <div class="w-16 h-16 rounded-2xl bg-primary/8 flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-primary text-3xl">directions_bus</span>
                             </div>
 
-                            <!-- Route visualization -->
-                            <div class="flex items-center gap-3">
-                                <div class="text-center min-w-[80px]">
-                                    <p class="text-2xl font-black text-primary" style="font-family:'Plus Jakarta Sans',sans-serif"
-                                       th:text="${trip.fromCity}">HCM</p>
-                                    <p class="text-xs text-on-surface-variant font-medium mt-0.5 truncate"
-                                       th:text="${trip.departureStation}">Bến xe Miền Đông</p>
-                                    <p class="text-sm font-bold text-on-surface mt-1"
-                                       th:text="${trip.departureTime}">08:30</p>
+                            <!-- Route info -->
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <span class="px-2.5 py-0.5 bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-black uppercase rounded tracking-tighter"
+                                          th:text="${trip.busTypeLabel}">Limousine</span>
+                                    <span th:if="${trip.daysUntilDeparture != null and trip.daysUntilDeparture >= 0 and trip.status == 'CONFIRMED'}"
+                                          class="px-2.5 py-0.5 bg-secondary/10 text-secondary text-[10px] font-bold rounded-full">
+                                        Còn <span th:text="${trip.daysUntilDeparture}">3</span> ngày
+                                    </span>
                                 </div>
 
-                                <div class="flex-1 flex flex-col items-center">
-                                    <div class="w-full h-[2px] bg-outline-variant/50 relative">
-                                        <div class="absolute -top-1 left-0 w-2 h-2 rounded-full bg-primary"></div>
-                                        <span class="material-symbols-outlined text-primary text-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface-container-lowest px-1">directions_bus</span>
-                                        <div class="absolute -top-1 right-0 w-2 h-2 rounded-full bg-outline-variant"></div>
+                                <!-- Route visualization -->
+                                <div class="flex items-center gap-3">
+                                    <div class="text-center min-w-[80px]">
+                                        <p class="text-2xl font-black text-primary" style="font-family:'Plus Jakarta Sans',sans-serif"
+                                           th:text="${trip.fromCity}">HCM</p>
+                                        <p class="text-xs text-on-surface-variant font-medium mt-0.5 truncate"
+                                           th:text="${trip.departureStation}">Bến xe Miền Đông</p>
+                                        <p class="text-sm font-bold text-on-surface mt-1"
+                                           th:text="${trip.departureTime}">08:30</p>
+                                    </div>
+
+                                    <div class="flex-1 flex flex-col items-center">
+                                        <div class="w-full h-[2px] bg-outline-variant/50 relative">
+                                            <div class="absolute -top-1 left-0 w-2 h-2 rounded-full bg-primary"></div>
+                                            <span class="material-symbols-outlined text-primary text-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface-container-lowest px-1">directions_bus</span>
+                                            <div class="absolute -top-1 right-0 w-2 h-2 rounded-full bg-outline-variant"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-center min-w-[80px]">
+                                        <p class="text-2xl font-black text-primary" style="font-family:'Plus Jakarta Sans',sans-serif"
+                                           th:text="${trip.toCity}">DLT</p>
+                                        <p class="text-xs text-on-surface-variant font-medium mt-0.5 truncate"
+                                           th:text="${trip.arrivalStation}">Bến xe Đà Lạt</p>
+                                        <p class="text-sm font-bold text-on-surface mt-1"
+                                           th:text="${trip.arrivalTime}">14:00</p>
                                     </div>
                                 </div>
-
-                                <div class="text-center min-w-[80px]">
-                                    <p class="text-2xl font-black text-primary" style="font-family:'Plus Jakarta Sans',sans-serif"
-                                       th:text="${trip.toCity}">DLT</p>
-                                    <p class="text-xs text-on-surface-variant font-medium mt-0.5 truncate"
-                                       th:text="${trip.arrivalStation}">Bến xe Đà Lạt</p>
-                                    <p class="text-sm font-bold text-on-surface mt-1"
-                                       th:text="${trip.arrivalTime}">14:00</p>
-                                </div>
                             </div>
-                        </div>
 
-                        <!-- Actions -->
-                        <div class="flex flex-col gap-2 flex-shrink-0 w-full md:w-auto">
-                            <a th:href="@{'/booking/ticket/' + ${trip.bookingCode}}"
-                               class="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:opacity-90 transition-all active:scale-95">
-                                <span class="material-symbols-outlined text-[18px]">confirmation_number</span>
-                                Vé điện tử
-                            </a>
-                            <button th:if="${trip.status == 'CONFIRMED'}"
-                                    type="button"
-                                    class="flex items-center justify-center gap-2 px-5 py-2.5 border border-outline-variant text-on-surface rounded-xl text-sm font-semibold hover:bg-surface-container-high transition-all active:scale-95">
-                                <span class="material-symbols-outlined text-[18px]">sync_alt</span>
-                                Đổi chuyến
-                            </button>
+                            <!-- Actions -->
+                            <div class="flex flex-col gap-2 flex-shrink-0 w-full md:w-auto">
+                                <a th:href="@{'/booking/ticket/' + ${trip.bookingCode}}"
+                                   class="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:opacity-90 transition-all active:scale-95">
+                                    <span class="material-symbols-outlined text-[18px]">confirmation_number</span>
+                                    Vé điện tử
+                                </a>
+                                <button th:if="${trip.status == 'CONFIRMED'}"
+                                        type="button"
+                                        class="flex items-center justify-center gap-2 px-5 py-2.5 border border-outline-variant text-on-surface rounded-xl text-sm font-semibold hover:bg-surface-container-high transition-all active:scale-95">
+                                    <span class="material-symbols-outlined text-[18px]">sync_alt</span>
+                                    Đổi chuyến
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

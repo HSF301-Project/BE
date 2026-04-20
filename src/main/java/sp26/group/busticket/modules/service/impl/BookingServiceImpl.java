@@ -249,19 +249,36 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public TicketConfirmationDTO getBookingSuccessInfo(UUID bookingId) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
-        Ticket ticket = ticketRepository.findAll().stream()
+        List<Ticket> tickets = ticketRepository.findAll().stream()
                 .filter(t -> t.getBooking().getId().equals(bookingId))
-                .findFirst().orElseThrow();
+                .collect(Collectors.toList());
+        
+        if (tickets.isEmpty()) {
+            throw new AppException(ErrorCode.PRODUCT_NOT_FOUND, "Không tìm thấy thông tin vé");
+        }
+
+        Ticket firstTicket = tickets.get(0);
         Trip trip = booking.getTrip();
         Locale localeVN = new Locale("vi", "VN");
         NumberFormat vnFormat = NumberFormat.getCurrencyInstance(localeVN);
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", localeVN);
+        DateTimeFormatter fullDateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+        // Gộp tất cả số ghế
+        String allSeats = tickets.stream()
+                .map(t -> t.getSeat().getSeatNumber())
+                .collect(Collectors.joining(", "));
+
+        // Lấy thời gian đặt (thanh toán thành công)
+        String bookingDate = paymentRepository.findByBooking_Id(bookingId)
+                .map(p -> p.getPaidAt() != null ? p.getPaidAt().format(fullDateTimeFormatter) : booking.getCreatedAt().format(fullDateTimeFormatter))
+                .orElse(booking.getCreatedAt().format(fullDateTimeFormatter));
 
         return TicketConfirmationDTO.builder()
-                .id(ticket.getId())
+                .id(firstTicket.getId())
                 .statusLabel("Đã xác nhận")
-                .bookingCode(ticket.getTicketCode())
+                .bookingCode(firstTicket.getTicketCode())
                 .fromCityShort(trip.getRoute().getDepartureLocation().getName().toUpperCase())
                 .toCityShort(trip.getRoute().getArrivalLocation().getName().toUpperCase())
                 .departureStation(trip.getRoute().getDepartureLocation().getName())
@@ -269,11 +286,12 @@ public class BookingServiceImpl implements BookingService {
                 .departureTime(trip.getDepartureTime().format(timeFormatter))
                 .arrivalTime(trip.getArrivalTime().format(timeFormatter))
                 .departureDateLabel(trip.getDepartureTime().format(dateFormatter))
-                .seatLabel(ticket.getSeat().getSeatNumber() + " (Tầng " + ticket.getSeat().getFloor() + ")")
+                .seatLabel(allSeats)
                 .licensePlate(trip.getCoach().getPlateNumber())
                 .serviceType(trip.getCoach().getCoachType())
-                .passengerName(ticket.getPassengerName())
+                .passengerName(firstTicket.getPassengerName())
                 .totalFormatted(vnFormat.format(booking.getTotalAmount()))
+                .bookingDate(bookingDate)
                 .build();
     }
 
@@ -281,6 +299,7 @@ public class BookingServiceImpl implements BookingService {
     public List<MyTripResponseDTO> getMyTrips(UUID accountId, String tab) {
         List<Booking> bookings = bookingRepository.findByUser_IdOrderByCreatedAtDesc(accountId);
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        DateTimeFormatter fullDateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         LocalDateTime now = LocalDateTime.now();
 
         return bookings.stream()
@@ -292,6 +311,11 @@ public class BookingServiceImpl implements BookingService {
                     if (status == BookingStatusEnum.CONFIRMED && trip.getArrivalTime().isBefore(now)) {
                         status = BookingStatusEnum.COMPLETED;
                     }
+
+                    // Lấy thời gian thanh toán từ Payment, nếu không có thì lấy thời gian tạo Booking
+                    String bookingDate = paymentRepository.findByBooking_Id(b.getId())
+                            .map(p -> p.getPaidAt() != null ? p.getPaidAt().format(fullDateTimeFormatter) : b.getCreatedAt().format(fullDateTimeFormatter))
+                            .orElse(b.getCreatedAt().format(fullDateTimeFormatter));
 
                     return MyTripResponseDTO.builder()
                             .id(b.getId())
@@ -307,6 +331,7 @@ public class BookingServiceImpl implements BookingService {
                             .toCity(trip.getRoute().getArrivalLocation().getName())
                             .arrivalStation(trip.getRoute().getArrivalLocation().getName())
                             .arrivalTime(trip.getArrivalTime().format(timeFormatter))
+                            .bookingDate(bookingDate)
                             .build();
                 })
                 .filter(dto -> {

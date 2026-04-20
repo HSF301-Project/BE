@@ -99,7 +99,8 @@ public class StaffBookingController {
         NumberFormat vnCurrency = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
 
         model.addAttribute("tripId", tripId);
-        model.addAttribute("seats", seatService.getSeatsByTripId(tripId));
+        model.addAttribute("lowerDeckSeats", seatService.getSeatsByTripAndFloor(tripId, 1));
+        model.addAttribute("upperDeckSeats", seatService.getSeatsByTripAndFloor(tripId, 2));
         model.addAttribute("unitPrice", unitPrice);
         model.addAttribute("unitPriceFormatted", vnCurrency.format(unitPrice));
     }

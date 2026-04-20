@@ -99,17 +99,17 @@
                         <span class="material-symbols-outlined text-primary">event_seat</span>
                         Chọn ghế
                     </h2>
-                    <p class="text-sm text-slate-400 mb-6 font-medium">Có thể chọn nhiều ghế. Ghế xám là đã được đặt.</p>
+                    <p class="text-sm text-slate-400 mb-6 font-medium">Chọn không gian hành trình cho khách hàng.</p>
 
                     <!-- Legend -->
-                    <div class="flex items-center gap-6 mb-6 p-4 bg-slate-50 rounded-xl text-sm font-semibold">
+                    <div class="flex items-center gap-6 mb-8 p-4 bg-slate-50 rounded-xl text-sm font-semibold">
                         <div class="flex items-center gap-2">
-                            <div class="w-5 h-5 bg-slate-200 rounded-md"></div>
+                            <div class="w-5 h-5 bg-[#AACDDC] rounded-md border border-slate-200"></div>
                             <span class="text-slate-500">Trống</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <div class="w-5 h-5 bg-primary rounded-md"></div>
-                            <span class="text-slate-500">Đã chọn</span>
+                            <span class="text-slate-500">Đang chọn</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <div class="w-5 h-5 bg-slate-200 opacity-40 rounded-md"></div>
@@ -117,24 +117,54 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
-                        <div th:each="seat : ${seats}" class="aspect-square">
-                            <label th:if="${seat.status.name() == 'AVAILABLE'}"
-                                   th:for="${'seat-' + seat.seatId}"
-                                   class="w-full h-full bg-slate-100 hover:bg-primary/20 rounded-xl flex items-center justify-center cursor-pointer transition-all has-[:checked]:bg-primary has-[:checked]:text-white border-2 border-transparent has-[:checked]:border-primary/50 text-slate-600">
-                                <input type="checkbox" name="selectedSeats" th:value="${seat.seatId}"
-                                       th:id="${'seat-' + seat.seatId}" class="hidden"/>
-                                <span class="text-xs font-black" th:text="${seat.seatId}">L01</span>
-                            </label>
-                            <div th:if="${seat.status.name() == 'BOOKED'}"
-                                 class="w-full h-full bg-slate-100 opacity-40 rounded-xl flex items-center justify-center cursor-not-allowed">
-                                <span class="text-xs font-black text-slate-400" th:text="${seat.seatId}">L01</span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <!-- Lower Deck -->
+                        <div class="space-y-4">
+                            <h3 class="text-center text-xs font-black uppercase tracking-widest text-primary bg-primary/5 py-2 rounded-lg">Tầng dưới</h3>
+                            <div class="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100">
+                                <div class="grid grid-cols-2 gap-x-12 gap-y-3">
+                                    <th:block th:each="seat : ${lowerDeckSeats}">
+                                        <label th:if="${seat.status.name() == 'AVAILABLE'}"
+                                               th:for="${'seat-' + seat.seatId}"
+                                               class="w-12 h-12 mx-auto bg-[#AACDDC] hover:bg-primary/10 rounded-xl flex items-center justify-center cursor-pointer transition-all has-[:checked]:bg-primary has-[:checked]:text-white border-2 border-transparent has-[:checked]:border-primary/50 text-slate-700">
+                                            <input type="checkbox" name="selectedSeats" th:value="${seat.seatId}"
+                                                   th:id="${'seat-' + seat.seatId}" class="hidden"/>
+                                            <span class="text-xs font-black" th:text="${seat.seatId}">L01</span>
+                                        </label>
+                                        <div th:if="${seat.status.name() == 'BOOKED'}"
+                                             class="w-12 h-12 mx-auto bg-slate-200 opacity-40 rounded-xl flex items-center justify-center cursor-not-allowed">
+                                            <span class="text-xs font-black text-slate-400" th:text="${seat.seatId}">L01</span>
+                                        </div>
+                                    </th:block>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upper Deck -->
+                        <div class="space-y-4">
+                            <h3 class="text-center text-xs font-black uppercase tracking-widest text-primary bg-primary/5 py-2 rounded-lg">Tầng trên</h3>
+                            <div class="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100">
+                                <div class="grid grid-cols-2 gap-x-12 gap-y-3">
+                                    <th:block th:each="seat : ${upperDeckSeats}">
+                                        <label th:if="${seat.status.name() == 'AVAILABLE'}"
+                                               th:for="${'seat-' + seat.seatId}"
+                                               class="w-12 h-12 mx-auto bg-[#AACDDC] hover:bg-primary/10 rounded-xl flex items-center justify-center cursor-pointer transition-all has-[:checked]:bg-primary has-[:checked]:text-white border-2 border-transparent has-[:checked]:border-primary/50 text-slate-700">
+                                            <input type="checkbox" name="selectedSeats" th:value="${seat.seatId}"
+                                                   th:id="${'seat-' + seat.seatId}" class="hidden"/>
+                                            <span class="text-xs font-black" th:text="${seat.seatId}">U01</span>
+                                        </label>
+                                        <div th:if="${seat.status.name() == 'BOOKED'}"
+                                             class="w-12 h-12 mx-auto bg-slate-200 opacity-40 rounded-xl flex items-center justify-center cursor-not-allowed">
+                                            <span class="text-xs font-black text-slate-400" th:text="${seat.seatId}">U01</span>
+                                        </div>
+                                    </th:block>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <p th:if="${#fields.hasErrors('selectedSeats')}" th:errors="*{selectedSeats}"
-                       class="mt-3 text-xs text-red-500 font-medium"></p>
+                       class="mt-6 text-xs text-red-500 font-medium text-center"></p>
                 </section>
 
                 <!-- Payment method -->
