@@ -23,15 +23,15 @@
         const idx = selectedSeats.findIndex(s => s.seatId === seatId);
 
         if (idx >= 0) {
-            // Deselect
-            selectedSeats.splice(idx, 1);
-            btn.classList.remove('bg-secondary', 'text-white', 'scale-105', 'shadow-lg');
-            btn.classList.add('bg-surface-container-highest', 'hover:bg-surface-bright');
+            // Deselect seat
+            selectedSeats = selectedSeats.filter(s => s.seatId !== seatId);
+            btn.classList.remove('bg-secondary', 'text-white');
+            btn.classList.add('bg-[#AACDDC]');
         } else {
-            // Select
+            // Select seat
             selectedSeats.push({ seatId, deck });
-            btn.classList.add('bg-secondary', 'text-white', 'scale-105', 'shadow-lg');
-            btn.classList.remove('bg-surface-container-highest', 'hover:bg-surface-bright');
+            btn.classList.add('bg-secondary', 'text-white');
+            btn.classList.remove('bg-[#AACDDC]');
         }
 
         refreshPassengerForms();
@@ -104,13 +104,33 @@
         const unitPriceEl = $('#unit-price-value');
         const unitPrice   = unitPriceEl ? parseInt(unitPriceEl.dataset.price || '0') : 0;
         const totalEl     = $('#summary-total');
-        const countEl     = $('#summary-seat-count');
+        const seatIdsEl   = $('#summary-seat-ids');
+        const calculationEl = $('#summary-calculation');
 
-        if (countEl) countEl.textContent = `x${selectedSeats.length}`;
+        if (seatIdsEl) {
+            if (selectedSeats.length > 0) {
+                seatIdsEl.textContent = selectedSeats.map(s => s.seatId).join(', ');
+                seatIdsEl.classList.remove('text-on-surface-variant');
+                seatIdsEl.classList.add('text-primary');
+            } else {
+                seatIdsEl.textContent = 'Chưa chọn ghế';
+                seatIdsEl.classList.add('text-on-surface-variant');
+                seatIdsEl.classList.remove('text-primary');
+            }
+        }
 
         const total = unitPrice * selectedSeats.length;
         if (totalEl) {
             totalEl.textContent = total.toLocaleString('vi-VN') + 'đ';
+        }
+
+        if (calculationEl) {
+            if (selectedSeats.length > 0) {
+                const formattedPrice = unitPrice.toLocaleString('vi-VN');
+                calculationEl.textContent = `${formattedPrice}đ x ${selectedSeats.length}`;
+            } else {
+                calculationEl.textContent = '';
+            }
         }
 
         // Enable/disable the continue button

@@ -92,6 +92,7 @@ public class TripServiceImpl implements TripService {
                     dto.setDuration(calculateDuration(trip.getDepartureTime(), trip.getArrivalTime()));
                     return dto;
                 })
+                .filter(dto -> dto.getSeatsLeft() > 0) // Tự động ẩn các chuyến đã hết chỗ
                 .collect(Collectors.toList());
 
         return TripSearchResultDTO.builder()
