@@ -26,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -198,6 +199,7 @@ public class BookingServiceImpl implements BookingService {
     public PaymentResponseDTO getPaymentInfo(UUID bookingId) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
         Trip trip = booking.getTrip();
+        LocalDateTime expiryAt = booking.getCreatedAt().plusMinutes(CLEANUP_MINUTES);
         Locale localeVN = new Locale("vi", "VN");
         NumberFormat vnFormat = NumberFormat.getCurrencyInstance(localeVN);
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
@@ -205,7 +207,8 @@ public class BookingServiceImpl implements BookingService {
 
         return PaymentResponseDTO.builder()
                 .bookingId(bookingId)
-                .expiryTime(booking.getCreatedAt().plusMinutes(CLEANUP_MINUTES).format(timeFormatter))
+                .expiryTime(expiryAt.format(timeFormatter))
+                .expiryTimestamp(expiryAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
                 .fromCity(trip.getRoute().getDepartureLocation().getName())
                 .toCity(trip.getRoute().getArrivalLocation().getName())
                 .departureTime(trip.getDepartureTime().format(timeFormatter))

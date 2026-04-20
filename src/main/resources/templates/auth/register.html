@@ -7,7 +7,6 @@
 
 <div class="min-h-screen grid grid-cols-1 lg:grid-cols-2">
 
-    <!-- ── Left: Hero image panel ─────────────────────────── -->
     <div class="hidden lg:flex flex-col justify-between relative overflow-hidden bg-gradient-to-br from-primary to-primary-container p-12">
         <div class="absolute inset-0 opacity-15 pointer-events-none">
             <img class="w-full h-full object-cover"
@@ -47,10 +46,8 @@
         </div>
     </div>
 
-    <!-- ── Right: Register form ────────────────────────────── -->
     <div class="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-24 overflow-y-auto">
 
-        <!-- Mobile brand -->
         <div class="flex items-center gap-2 mb-8 lg:hidden">
             <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
                 <span class="material-symbols-outlined text-white text-lg" style="font-variation-settings:'FILL' 1">directions_bus</span>
@@ -64,17 +61,20 @@
             </h1>
             <p class="text-on-surface-variant mb-8">Điền thông tin để bắt đầu hành trình cùng chúng tôi.</p>
 
-            <!-- Error message -->
+            <div th:if="${successMessage}"
+                 class="mb-6 p-4 bg-green-100 text-green-800 rounded-xl flex items-center gap-3 text-sm">
+                <span class="material-symbols-outlined flex-shrink-0" style="font-variation-settings:'FILL' 1">check_circle</span>
+                <p th:text="${successMessage}"></p>
+            </div>
+
             <div th:if="${errorMessage}"
                  class="mb-6 p-4 bg-error-container text-on-error-container rounded-xl flex items-center gap-3 text-sm">
                 <span class="material-symbols-outlined flex-shrink-0" style="font-variation-settings:'FILL' 1">error</span>
                 <p th:text="${errorMessage}"></p>
             </div>
 
-            <!-- Register form -->
             <form th:action="@{/register}" th:object="${registerDTO}" method="post" class="space-y-4">
 
-                <!-- Full name -->
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Họ và tên</label>
                     <div class="relative">
@@ -89,7 +89,6 @@
                        class="text-xs text-error font-medium pl-1"></p>
                 </div>
 
-                <!-- Email (Optional) -->
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Email (Tùy chọn)</label>
                     <div class="relative">
@@ -104,7 +103,6 @@
                        class="text-xs text-error font-medium pl-1"></p>
                 </div>
 
-                <!-- Phone -->
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Số điện thoại</label>
                     <div class="relative">
@@ -119,7 +117,6 @@
                        class="text-xs text-error font-medium pl-1"></p>
                 </div>
 
-                <!-- Password -->
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Mật khẩu</label>
                     <div class="relative">
@@ -142,7 +139,6 @@
                        class="text-xs text-error font-medium pl-1"></p>
                 </div>
 
-                <!-- Confirm password -->
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Xác nhận mật khẩu</label>
                     <div class="relative">
@@ -165,7 +161,6 @@
                        class="text-xs text-error font-medium pl-1"></p>
                 </div>
 
-                <!-- Terms -->
                 <p class="text-xs text-on-surface-variant leading-relaxed">
                     Bằng cách đăng ký, bạn đồng ý với
                     <a href="#" class="font-semibold text-primary hover:underline">Điều khoản dịch vụ</a>
@@ -174,7 +169,6 @@
                     của chúng tôi.
                 </p>
 
-                <!-- Submit -->
                 <button type="submit"
                         class="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:opacity-95 active:scale-[0.99] transition-all flex items-center justify-center gap-2 group">
                     Tạo tài khoản
@@ -182,14 +176,12 @@
                 </button>
             </form>
 
-            <!-- Divider -->
             <div class="my-6 flex items-center gap-3">
                 <div class="flex-1 h-px bg-outline-variant/40"></div>
                 <span class="text-xs text-on-surface-variant font-medium">HOẶC</span>
                 <div class="flex-1 h-px bg-outline-variant/40"></div>
             </div>
 
-            <!-- Login link -->
             <p class="text-center text-sm text-on-surface-variant">
                 Đã có tài khoản?
                 <a th:href="@{/login}" class="font-bold text-primary hover:underline">Đăng nhập ngay</a>

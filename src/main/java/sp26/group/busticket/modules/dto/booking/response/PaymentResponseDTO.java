@@ -14,6 +14,7 @@ import java.util.UUID;
 public class PaymentResponseDTO {
     private UUID bookingId;
     private String expiryTime;
+    private Long expiryTimestamp;
     private String selectedMethod;
     private String fromCity;
     private String toCity;

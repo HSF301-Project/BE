@@ -33,7 +33,6 @@
 
 <main class="max-w-7xl mx-auto px-4 md:px-8 py-8">
 
-    <!-- Search context header -->
     <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
             <h1 class="text-4xl font-extrabold tracking-tight text-primary mb-2">
@@ -53,10 +52,8 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-        <!-- ── Sidebar Filters ─────────────────────────────── -->
         <aside class="lg:col-span-3 space-y-8 sticky top-24">
             <form th:action="@{/search}" th:object="${filterForm}" method="get">
-                <!-- Keep from/to/date values -->
                 <input type="hidden" th:field="*{from}" />
                 <input type="hidden" th:field="*{to}" />
                 <input type="hidden" th:field="*{date}" />
@@ -70,7 +67,6 @@
                         </a>
                     </div>
 
-                    <!-- Time slots -->
                     <div>
                         <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Giờ xuất
                             phát</p>
@@ -106,7 +102,6 @@
                         </div>
                     </div>
 
-                    <!-- Bus type -->
                     <div>
                         <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Loại xe
                         </p>
@@ -132,7 +127,6 @@
                         </div>
                     </div>
 
-                    <!-- Price range -->
                     <div>
                         <div class="flex justify-between items-center mb-4">
                             <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Khoảng
@@ -154,10 +148,8 @@
             </form>
         </aside>
 
-        <!-- ── Results ─────────────────────────────────────── -->
         <div class="lg:col-span-9 space-y-6">
 
-            <!-- Sort & summary bar -->
             <div
                     class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-surface-container-low rounded-2xl">
                 <p class="text-on-surface-variant font-semibold">
@@ -188,7 +180,6 @@
                 </div>
             </div>
 
-            <!-- Empty state -->
             <div th:if="${#lists.isEmpty(searchResult.trips)}"
                  class="text-center py-24 bg-surface-container-low rounded-3xl">
                 <span class="material-symbols-outlined text-6xl text-outline mb-4 block">search_off</span>
@@ -196,13 +187,11 @@
                 <p class="text-on-surface-variant">Vui lòng thử tìm kiếm với ngày hoặc điểm đến khác.</p>
             </div>
 
-            <!-- Trip cards -->
             <div class="space-y-6" th:if="${!#lists.isEmpty(searchResult.trips)}">
                 <div th:each="trip : ${searchResult.trips}"
                      class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-[0_12px_32px_rgba(26,27,33,0.06)] hover:bg-surface-bright transition-all group border border-transparent hover:border-primary/10">
                     <div class="flex flex-col md:flex-row gap-8">
 
-                        <!-- Bus type badge -->
                         <div class="md:w-1/4 relative">
                             <div
                                     class="rounded-2xl overflow-hidden h-full min-h-[140px] bg-surface-container flex items-center justify-center">
@@ -217,30 +206,33 @@
                             </div>
                         </div>
 
-                        <!-- Route details -->
                         <div class="flex-1 flex flex-col justify-between">
-                            <div class="flex justify-between items-start">
-                                <div>
+
+                            <div class="flex justify-between items-center w-full">
+                                <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-2">
-                                        <h3 class="text-xl font-bold text-primary" th:text="${trip.name}">Tên hãng
-                                            xe</h3>
-                                        <span
-                                                class="px-2 py-0.5 bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-black uppercase rounded tracking-tighter"
-                                                th:text="${trip.busTypeLabel}">
-                                                Limousine
-                                            </span>
+                                        <h3 class="text-xl font-bold text-primary">
+                                            <span>Chuyến xe</span><br/>
+                                            <span th:text="${trip.name.replaceFirst('Chuyến xe ', '')}">51B-12345</span>
+                                        </h3>
                                     </div>
-                                    <p class="text-sm text-on-surface-variant" th:text="${trip.amenities}">WiFi •
-                                        Sạc • Nước uống</p>
+                                    <p class="text-sm text-on-surface-variant" th:text="${trip.amenities}">WiFi • Sạc • Nước uống</p>
                                 </div>
-                                <div class="text-right">
-                                    <div class="text-2xl font-black text-secondary"
-                                         th:text="${trip.priceFormatted}">450.000đ</div>
-                                    <p class="text-[11px] font-bold text-on-surface-variant uppercase">Mỗi hành
-                                        khách</p>
+
+                                <div class="flex-1 flex justify-center">
+                                    <span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant text-xs font-black uppercase rounded-md tracking-wide"
+                                          th:text="${trip.busTypeLabel}">
+                                        Limousine
+                                    </span>
+                                </div>
+
+                                <div class="flex-1 text-right flex flex-col items-end justify-center">
+                                    <div class="text-2xl font-black text-secondary leading-none mb-1.5" th:text="${trip.priceFormatted}">
+                                        450.000đ
+                                    </div>
+                                    <p class="text-[11px] font-bold text-on-surface-variant uppercase">Mỗi hành khách</p>
                                 </div>
                             </div>
-
                             <div class="mt-6 flex items-center gap-6">
                                 <div class="text-center">
                                     <div class="text-2xl font-bold font-headline" th:text="${trip.departureTime}">
@@ -265,17 +257,15 @@
                             </div>
                         </div>
 
-                        <!-- Action column -->
-                        <div
-                                class="md:w-1/5 flex flex-col justify-end gap-3 border-t md:border-t-0 md:border-l border-outline-variant/30 pt-4 md:pt-0 md:pl-6">
-                            <div class="text-center md:text-right">
-                                <p class="text-xs font-medium text-on-surface-variant mb-1">
+                        <div class="md:w-1/5 flex flex-col items-center justify-center gap-3 border-t md:border-t-0 md:border-l border-outline-variant/30 pt-4 md:pt-0 md:pl-6">
+                            <div class="text-center w-full">
+                                <p class="text-base font-medium text-on-surface-variant mb-2">
                                     Còn trống
-                                    <span class="text-secondary font-bold" th:text="${trip.seatsLeft}">8</span>
+                                    <span class="text-secondary font-bold text-lg" th:text="${trip.seatsLeft}">8</span>
                                     ghế
                                 </p>
                                 <a th:href="@{'/booking/' + ${trip.id}}"
-                                   class="block w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-center">
+                                   class="block w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-center mx-auto max-w-[200px]">
                                     Chọn chuyến
                                 </a>
                             </div>
@@ -284,21 +274,6 @@
                 </div>
             </div>
 
-            <!-- Group travel promo -->
-            <div class="bg-primary overflow-hidden rounded-[2rem] relative group cursor-pointer">
-                <div class="relative z-10 px-10 py-12 flex flex-col md:flex-row items-center justify-between gap-8">
-                    <div class="text-center md:text-left">
-                        <h3 class="text-white text-3xl font-black italic tracking-tighter mb-2">DU LỊCH THEO ĐOÀN?
-                        </h3>
-                        <p class="text-white/80 font-medium max-w-sm">Liên hệ ngay để nhận giá ưu đãi đặc biệt cho
-                            đoàn trên 10 người.</p>
-                    </div>
-                    <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
-                        <span class="text-white text-xl font-bold">Hotline 24/7:</span>
-                        <span class="text-white text-2xl font-black block">1900 6789</span>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </main>
