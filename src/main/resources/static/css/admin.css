@@ -1,0 +1,62 @@
+/* Admin Dashboard Specific Styles */
+
+:root {
+    --primary: #003178;
+    --primary-container: #0d47a1;
+    --on-primary: #ffffff;
+    --secondary: #b02e00;
+    --tertiary: #003f0b;
+    --background: #faf8ff;
+    --surface-container: #ededf5;
+    --surface-container-low: #f3f3fb;
+    --surface-container-lowest: #ffffff;
+    --on-surface: #1a1b21;
+    --on-surface-variant: #434652;
+}
+
+.admin-sidebar {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.admin-main {
+    background-color: var(--background);
+}
+
+.card-stat {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-stat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary-gradient {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+    box-shadow: 0 4px 15px rgba(13, 71, 161, 0.2);
+}
+
+.table-row-hover:hover {
+    background-color: #faf8ff;
+}
+
+/* Custom scrollbar for sidebar */
+.admin-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+.admin-sidebar::-webkit-scrollbar-thumb {
+    background: #e2e2ea;
+    border-radius: 10px;
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 700;
+}

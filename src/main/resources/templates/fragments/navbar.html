@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!--
+    Fragment: navbar
+    Usage: th:replace="~{fragments/navbar :: navbar}"
+    Renders the top navigation bar for passenger-facing pages.
+-->
+<nav th:fragment="navbar"
+     class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl top-0 sticky z-50 shadow-[0_12px_32px_rgba(26,27,33,0.06)]">
+    <div class="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
+
+        <!-- Logo / Brand -->
+        <div class="flex items-center gap-8">
+            <a th:href="@{/home}" class="text-2xl font-black italic text-blue-900 dark:text-white editorial-heading">
+                Premium Transit
+            </a>
+            <div class="hidden md:flex gap-6">
+                <a th:href="@{/booking/my-trips}"
+                   class="font-semibold tracking-tight text-slate-500 dark:text-slate-400 hover:text-blue-800 transition-colors"
+                   style="font-family:'Plus Jakarta Sans',sans-serif">
+                    Chuyến đi của tôi
+                </a>
+                <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/dashboard}"
+                   class="font-semibold tracking-tight text-blue-700 hover:text-blue-900 transition-colors"
+                   style="font-family:'Plus Jakarta Sans',sans-serif">
+                    Trang quản trị
+                </a>
+            </div>
+        </div>
+
+        <!-- Right actions -->
+        <div class="flex items-center gap-4">
+            <button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all text-blue-900 dark:text-blue-400">
+                <span class="material-symbols-outlined">notifications</span>
+            </button>
+
+            <!-- Show user info or login link depending on auth state -->
+            <div sec:authorize="isAuthenticated()" class="flex items-center gap-2">
+                <button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all text-blue-900 dark:text-blue-400">
+                    <span class="material-symbols-outlined">account_circle</span>
+                </button>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button type="submit"
+                            class="text-sm font-semibold text-slate-500 hover:text-red-600 transition-colors">
+                        Đăng xuất
+                    </button>
+                </form>
+            </div>
+            <div sec:authorize="!isAuthenticated()" class="flex items-center gap-2">
+                <a th:href="@{/login}"
+                   class="px-4 py-2 text-sm font-semibold text-primary hover:underline">
+                    Đăng nhập
+                </a>
+                <a th:href="@{/register}"
+                   class="px-4 py-2 bg-primary text-white text-sm font-bold rounded-full hover:opacity-90 transition-all">
+                    Đăng ký
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+</body>
+</html>

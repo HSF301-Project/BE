@@ -7,12 +7,27 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ErrorCode {
     // Lỗi hệ thống
-    UNEXPECTED_ERROR(500, "Đã xảy ra lỗi hệ thống cục bộ. Vui lòng thử lại sau."),
+    UNEXPECTED_ERROR(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau."),
+
+    // Lỗi tài khoản
+    USER_NOT_FOUND(404, "Không tìm thấy thông tin người dùng!"),
+    EMAIL_ALREADY_EXISTS(409, "Email này đã được sử dụng!"),
+    PASSWORD_NOT_MATCH(400, "Mật khẩu xác nhận không khớp!"),
+    ROLE_NOT_FOUND(404, "Không tìm thấy vai trò này!"),
+
+    // Lỗi nghiệp vụ Xe (Coach)
+    COACH_NOT_FOUND(404, "Không tìm thấy xe trong hệ thống!"),
+    PLATE_NUMBER_ALREADY_EXISTS(409, "Biển số xe này đã tồn tại!"),
+
+    // Lỗi nghiệp vụ Chuyến đi & Đặt vé
+    TRIP_NOT_FOUND(404, "Chuyến xe không tồn tại hoặc đã bị hủy!"),
+    ROUTE_NOT_FOUND(404, "Không tìm thấy tuyến đường này!"),
+    BOOKING_NOT_FOUND(404, "Không tìm thấy thông tin đặt vé!"),
+    SEAT_NOT_AVAILABLE(400, "Ghế bạn chọn hiện không còn trống!"),
+    SEAT_NOT_FOUND(404, "Không tìm thấy vị trí ghế!"),
     
-    // Lỗi nghiệp vụ (Business)
-    USER_NOT_FOUND(404, "Không tìm thấy người dùng này trong hệ thống!"),
-    EMAIL_ALREADY_EXISTS(409, "Email này đã được sử dụng, vui lòng chọn email khác!"),
-    PRODUCT_NOT_FOUND(404, "Sản phẩm không tồn tại hoặc đã bị xóa!");
+    // Lỗi chung
+    INVALID_INPUT(400, "Dữ liệu nhập vào không hợp lệ!");
 
     private final int code;
     private final String defaultMessage;

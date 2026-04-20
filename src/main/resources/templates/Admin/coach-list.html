@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Transit Admin - Danh sách xe</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"/>
+    <link rel="stylesheet" th:href="@{/css/common.css}"/>
+    <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body class="admin-main text-on-surface antialiased overflow-x-hidden">
+
+<aside class="admin-sidebar fixed left-0 top-0 h-full z-40 flex flex-col w-64 bg-slate-50 font-semibold tracking-tight shadow-lg">
+    <div class="p-6 flex flex-col gap-1 border-b border-slate-200">
+        <a th:href="@{/admin/dashboard}" class="text-xl font-black tracking-tighter text-blue-900">PREMIUM TRANSIT</a>
+        <span class="text-[10px] text-blue-600 uppercase tracking-[0.2em] font-black">Admin Panel</span>
+    </div>
+    <nav class="flex-1 px-4 py-8 space-y-2">
+        <a th:href="@{/admin/dashboard}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
+            <span class="material-symbols-outlined">dashboard</span><span>Bảng điều khiển</span>
+        </a>
+        <a th:href="@{/admin/coaches}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-700 text-white shadow-md shadow-blue-200 transition-all">
+            <span class="material-symbols-outlined">rv_hookup</span><span>Quản lý Xe</span>
+        </a>
+        <a th:href="@{/admin/trips}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
+            <span class="material-symbols-outlined">directions_bus</span><span>Lịch trình</span>
+        </a>
+    </nav>
+</aside>
+
+<main class="pl-72 pr-8 pt-12 pb-12 min-h-screen">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex justify-between items-end mb-12">
+            <div>
+                <h1 class="text-5xl font-black tracking-tight text-blue-900 mb-2">Quản lý Đội xe</h1>
+                <p class="text-slate-500 font-medium">Toàn bộ phương tiện vận tải siêu sang của hệ thống.</p>
+            </div>
+            <a th:href="@{/admin/coaches/create}" class="btn-primary-gradient px-8 py-4 text-white rounded-2xl font-black flex items-center gap-2 hover:scale-[0.98] transition-transform">
+                <span class="material-symbols-outlined">add</span> THÊM XE MỚI
+            </a>
+        </div>
+
+        <div th:if="${successMessage}" class="mb-8 p-6 bg-emerald-50 text-emerald-700 rounded-3xl font-black border border-emerald-100 shadow-sm" th:text="${successMessage}"></div>
+
+        <section class="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-100">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-slate-50 text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] border-b border-slate-100">
+                        <th class="px-8 py-6">Biển số</th>
+                        <th class="px-8 py-6">Dòng xe</th>
+                        <th class="px-8 py-6">Cấu hình ghế</th>
+                        <th class="px-8 py-6 text-right">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    <tr th:each="coach : ${coaches}" class="table-row-hover transition-colors">
+                        <td class="px-8 py-6">
+                            <span class="font-mono font-black text-blue-900 bg-blue-50 px-3 py-1 rounded-lg" th:text="${coach.plateNumber}">29A-12345</span>
+                        </td>
+                        <td class="px-8 py-6">
+                            <span class="status-badge bg-slate-100 text-slate-600 uppercase tracking-tighter" th:text="${coach.coachType}">Limousine</span>
+                        </td>
+                        <td class="px-8 py-6 font-black text-slate-600" th:text="${coach.totalSeats + ' Chỗ ngồi'}">34 Chỗ</td>
+                        <td class="px-8 py-6 text-right flex justify-end gap-3">
+                            <a th:href="@{/admin/coaches/edit/{id}(id=${coach.id})}" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-blue-100 hover:text-blue-700 transition-all">
+                                <span class="material-symbols-outlined text-[20px]">edit</span>
+                            </a>
+                            <form th:action="@{/admin/coaches/delete/{id}(id=${coach.id})}" method="post" onsubmit="return confirm('Xóa xe này khỏi hệ thống?')">
+                                <button type="submit" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-red-100 hover:text-red-600 transition-all">
+                                    <span class="material-symbols-outlined text-[20px]">delete</span>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+</main>
+
+</body>
+</html>
