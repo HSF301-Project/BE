@@ -25,8 +25,12 @@ public class CustomUserDetailsService implements UserDetailsService {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy tài khoản với email: " + email));
 
+        if (account.getStatus() == StatusEnum.BLOCKED) {
+            throw new org.springframework.security.authentication.LockedException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+        }
+        
         if (account.getStatus() != StatusEnum.ACTIVE) {
-            throw new UsernameNotFoundException("Tài khoản đang bị khóa hoặc chưa kích hoạt");
+            throw new org.springframework.security.authentication.DisabledException("Tài khoản chưa được kích hoạt.");
         }
 
         return new User(

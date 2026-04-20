@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${title}">Quản lý Người dùng</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" th:href="@{/css/admin.css}" />
+</head>
+
+<body class="admin-main text-on-surface antialiased">
+
+    <aside
+        class="admin-sidebar fixed left-0 top-0 h-full z-40 flex flex-col w-64 bg-slate-50 font-semibold tracking-tight shadow-lg">
+        <div class="p-6 flex flex-col gap-1 border-b border-slate-200">
+            <a th:href="@{/admin/dashboard}" class="text-xl font-black tracking-tighter text-blue-900">PREMIUM
+                TRANSIT</a>
+            <span class="text-[10px] text-blue-600 uppercase tracking-[0.2em] font-black">Admin Panel</span>
+        </div>
+        <nav class="flex-1 px-4 py-8 space-y-2">
+            <a th:href="@{/admin/dashboard}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
+                <span class="material-symbols-outlined">dashboard</span><span>Bảng điều khiển</span>
+            </a>
+            <a th:href="@{/admin/coaches}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
+                <span class="material-symbols-outlined">rv_hookup</span><span>Quản lý Xe</span>
+            </a>
+            <a th:href="@{/admin/trips}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
+                <span class="material-symbols-outlined">directions_bus</span><span>Lịch trình</span>
+            </a>
+            <a th:href="@{/admin/users}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-700 text-white shadow-md shadow-blue-200 transition-all font-bold">
+                <span class="material-symbols-outlined">group</span><span> Quản lý Người dùng</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="pl-72 pr-8 pt-12 pb-12 min-h-screen font-sans">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-12">
+                <h1 class="text-5xl font-black tracking-tight text-blue-900 mb-2 italic">Hệ thống Tài khoản</h1>
+                <p class="text-slate-500 font-medium italic">Quản lý phân quyền và trạng thái người dùng toàn hệ thống.
+                </p>
+            </div>
+
+            <div th:if="${successMessage}"
+                class="mb-8 p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl flex items-center gap-3 font-bold animate-pulse">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span th:text="${successMessage}"></span>
+            </div>
+
+            <!-- Search & Filter Bar -->
+            <div class="mb-8 bg-white/50 backdrop-blur-md p-5 rounded-[2rem] border border-slate-100 shadow-sm">
+                <form th:action="@{/admin/users}" method="get" class="flex flex-wrap items-center gap-4">
+                    <div class="flex-1 min-w-[300px] relative">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                        <input type="text" name="keyword" th:value="${currentKeyword}"
+                            placeholder="Tìm theo tên, email hoặc số điện thoại..."
+                            class="w-full pl-12 pr-4 py-3 bg-white rounded-2xl border-none focus:ring-2 focus:ring-blue-500 shadow-inner-sm font-medium text-slate-600 placeholder:text-slate-400/70" />
+                    </div>
+
+                    <div class="w-48 relative group">
+                        <select name="role" 
+                            style="appearance: none; -webkit-appearance: none; -moz-appearance: none;"
+                            class="w-full pl-5 pr-12 py-3 bg-white rounded-2xl border-none focus:ring-2 focus:ring-blue-500 shadow-inner-sm font-bold text-slate-600 cursor-pointer transition-all outline-none">
+                            <option value="ALL">Tất cả Vai trò</option>
+                            <option value="USER" th:selected="${currentRole == 'USER'}">Khách hàng</option>
+                            <option value="DRIVER" th:selected="${currentRole == 'DRIVER'}">Tài xế</option>
+                            <option value="STAFF" th:selected="${currentRole == 'STAFF'}">Nhân viên</option>
+                        </select>
+                        <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-blue-500 transition-colors">expand_more</span>
+                    </div>
+
+                    <button type="submit" class="bg-blue-700 text-white px-8 py-3 rounded-2xl font-black shadow-lg shadow-blue-200 hover:scale-[0.98] active:scale-95 transition-all outline-none">
+                        LỌC DỮ LIỆU
+                    </button>
+                    
+                    <a th:href="@{/admin/users}" th:if="${currentKeyword != null or currentRole != null}" class="text-slate-400 hover:text-red-500 transition-colors p-2 flex items-center justify-center">
+                        <span class="material-symbols-outlined">restart_alt</span>
+                    </a>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-slate-50/50 text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">
+                                <th class="px-8 py-6">Người dùng</th>
+                                <th class="px-8 py-6">Liên hệ</th>
+                                <th class="px-8 py-6">Vai trò</th>
+                                <th class="px-8 py-6">Trạng thái</th>
+                                <th class="px-8 py-6 text-right">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <tr th:each="user : ${users}" class="hover:bg-slate-50/30 transition-colors">
+                                <td class="px-8 py-6">
+                                    <div class="flex items-center gap-4">
+                                        <div
+                                            class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
+                                            <span class="material-symbols-outlined">person</span>
+                                        </div>
+                                        <div>
+                                            <span class="block font-black text-blue-900 text-sm"
+                                                th:text="${user.fullName}">Nguyễn Văn A</span>
+                                            <span class="block text-[10px] font-bold text-slate-400"
+                                                th:text="${user.email}">user@gmail.com</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-8 py-6 font-semibold text-slate-500 text-sm" th:text="${user.phone}">
+                                    0912345678</td>
+                                <td class="px-8 py-6">
+                                    <span
+                                        th:class="${user.role == 'ADMIN' ? 'bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg text-[10px] font-black' : 
+                                                 user.role == 'DRIVER' ? 'bg-orange-50 text-orange-700 px-3 py-1 rounded-lg text-[10px] font-black' :
+                                                 'bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-[10px] font-black'}"
+                                        th:text="${user.role}">ADMIN</span>
+                                </td>
+                                <td class="px-8 py-6">
+                                    <span th:if="${user.status.name() == 'ACTIVE'}"
+                                        class="flex items-center gap-1.5 text-emerald-600 font-bold text-xs uppercase tracking-tighter">
+                                        <span
+                                            class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                                        Đang hoạt động
+                                    </span>
+                                    <span th:if="${user.status.name() == 'BLOCKED'}"
+                                        class="flex items-center gap-1.5 text-red-400 font-bold text-xs uppercase tracking-tighter">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span> Đã khóa
+                                    </span>
+                                </td>
+                                <td class="px-8 py-6 text-right">
+                                    <form th:action="@{/admin/users/status/{id}(id=${user.id})}" method="post"
+                                        class="inline">
+                                        <button type="submit"
+                                            th:class="${user.status.name() == 'ACTIVE' ? 'p-2 text-red-400 hover:bg-red-50 rounded-xl transition-all' : 'p-2 text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all'}"
+                                            th:title="${user.status.name() == 'ACTIVE' ? 'Khóa tài khoản' : 'Kích hoạt tài khoản'}">
+                                            <span class="material-symbols-outlined"
+                                                th:text="${user.status.name() == 'ACTIVE' ? 'lock' : 'lock_open'}">lock</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+
+</html>

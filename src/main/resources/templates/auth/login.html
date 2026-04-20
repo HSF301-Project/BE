@@ -68,7 +68,8 @@
             <div th:if="${param.error}"
                  class="mb-6 p-4 bg-error-container text-on-error-container rounded-xl flex items-center gap-3 text-sm">
                 <span class="material-symbols-outlined flex-shrink-0" style="font-variation-settings:'FILL' 1">error</span>
-                <p>Email hoặc mật khẩu không chính xác. Vui lòng thử lại.</p>
+                <p th:if="${session.SPRING_SECURITY_LAST_EXCEPTION != null}" th:text="${session.SPRING_SECURITY_LAST_EXCEPTION.message}">Lỗi đăng nhập</p>
+                <p th:unless="${session.SPRING_SECURITY_LAST_EXCEPTION != null}">Email hoặc mật khẩu không chính xác. Vui lòng thử lại.</p>
             </div>
             <div th:if="${param.logout}"
                  class="mb-6 p-4 bg-secondary/10 text-secondary rounded-xl flex items-center gap-3 text-sm">
