@@ -71,7 +71,7 @@
             <a th:href="@{/admin/help}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
                 <span class="material-symbols-outlined">help_center</span><span>Hỗ trợ</span>
             </a>
-            <!-- admin profile card -->
+            <!-- Admin profile card -->
             <div class="mt-4 p-4 bg-primary rounded-xl text-white">
                 <img th:src="${adminUser.avatarUrl != null ? adminUser.avatarUrl : '/images/default-admin.png'}"
                      th:alt="${adminUser.fullName}"
