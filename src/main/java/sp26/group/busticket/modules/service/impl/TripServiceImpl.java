@@ -122,4 +122,6 @@ public class TripServiceImpl implements TripService {
         long minutes = durationMinutes % 60;
         return String.format("%dh %02dm", hours, minutes);
     }
+
+
 }

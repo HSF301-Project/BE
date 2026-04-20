@@ -32,5 +32,8 @@ public class AdminController {
         
         return "Admin/dashboard";
     }
-    
+    @GetMapping("/trips")
+    public String trip() {
+        return "Admin/trip";
+    }
 }

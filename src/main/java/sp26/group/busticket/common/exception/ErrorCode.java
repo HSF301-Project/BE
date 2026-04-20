@@ -27,7 +27,7 @@ public enum ErrorCode {
     SEAT_NOT_FOUND(404, "Không tìm thấy vị trí ghế!"),
     
     // Lỗi chung
-    INVALID_INPUT(400, "Dữ liệu nhập vào không hợp lệ!");
+    INVALID_INPUT(400, "Dữ liệu nhập vào không hợp lệ!"), PRODUCT_NOT_FOUND(404, "Không tìm thấy sản phẩm!"), ORDER_NOT_FOUND(404, "Không tìm thấy đơn hàng!"), PAYMENT_FAILED(400, "Thanh toán thất bại!"), INSUFFICIENT_STOCK(400, "Số lượng sản phẩm không đủ!"), UNAUTHORIZED(401, "Bạn không có quyền truy cập tài nguyên này!"), FORBIDDEN(403, "Bạn không có quyền thực hiện hành động này!");
 
     private final int code;
     private final String defaultMessage;

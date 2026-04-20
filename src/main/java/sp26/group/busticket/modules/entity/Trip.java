@@ -47,5 +47,5 @@ public class Trip extends BaseEntity {
     private BigDecimal priceBase;
 
     @Column(name = "contact_phone_number", nullable = false)
-    private String contact_phoneNumber;
+    private String contactPhoneNumber;
 }
