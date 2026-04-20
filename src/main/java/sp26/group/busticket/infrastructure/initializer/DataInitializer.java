@@ -48,13 +48,17 @@ public class DataInitializer implements CommandLineRunner {
         Route sgDn = initRoute(saigon, danang, 900f, 960);
 
         // 4. Initialize Coaches & Seats
-        Coach limousine = initCoach("51B-12345", "LIMOUSINE 22 GIƯỜNG", 22);
-        Coach sleeper = initCoach("51B-67890", "XE GIƯỜNG NẰM 40 CHỖ", 40);
+        Coach limousine = initCoach("51B-12345", "Xe Limousine", 22);
+        Coach sleeper = initCoach("51B-67890", "Xe khách", 40);
 
         // 5. Initialize Trips
-        Trip trip1 = initTrip(sgDl, limousine, LocalDateTime.now().plusHours(1), "0912345678", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED);
-        Trip trip2 = initTrip(sgDl, limousine, LocalDateTime.now().minusHours(5), "0912345678", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.DEPARTED);
-        Trip trip3 = initTrip(sgDn, sleeper, LocalDateTime.now().plusHours(5), "0987654321", 500000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED);
+        Account d1 = accountRepository.findByEmail("driver@gmail.com").get();
+        Account d2 = accountRepository.findByEmail("driver2@gmail.com").get();
+        Account d3 = accountRepository.findByEmail("driver3@gmail.com").get();
+
+        Trip trip1 = initTrip(sgDl, limousine, LocalDateTime.now().plusHours(1), "0912345678", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d1);
+        Trip trip2 = initTrip(sgDl, limousine, LocalDateTime.now().minusHours(5), "0912345678", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.DEPARTED, d2);
+        Trip trip3 = initTrip(sgDn, sleeper, LocalDateTime.now().plusHours(5), "0987654321", 500000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d3);
 
         // 6. Initialize Bookings & Tickets for testing
         initBooking(trip1, user, List.of("A01", "A02"), "Nguyễn Văn A", "0901234567");
@@ -90,6 +94,36 @@ public class DataInitializer implements CommandLineRunner {
                     .phone("0988888888")
                     .status(StatusEnum.ACTIVE)
                     .role("STAFF")
+                    .build());
+        }
+        if (!accountRepository.existsByEmail("driver@gmail.com")) {
+            accountRepository.save(Account.builder()
+                    .email("driver@gmail.com")
+                    .password(passwordEncoder.encode("driver123"))
+                    .fullName("Tài xế Nguyễn Văn Lái")
+                    .phone("0912121212")
+                    .status(StatusEnum.ACTIVE)
+                    .role("DRIVER")
+                    .build());
+        }
+        if (!accountRepository.existsByEmail("driver2@gmail.com")) {
+            accountRepository.save(Account.builder()
+                    .email("driver2@gmail.com")
+                    .password(passwordEncoder.encode("driver123"))
+                    .fullName("Tài xế Trần Văn Đường")
+                    .phone("0913131313")
+                    .status(StatusEnum.ACTIVE)
+                    .role("DRIVER")
+                    .build());
+        }
+        if (!accountRepository.existsByEmail("driver3@gmail.com")) {
+            accountRepository.save(Account.builder()
+                    .email("driver3@gmail.com")
+                    .password(passwordEncoder.encode("driver123"))
+                    .fullName("Tài xế Lê Công Thành")
+                    .phone("0914141414")
+                    .status(StatusEnum.ACTIVE)
+                    .role("DRIVER")
                     .build());
         }
         if (!accountRepository.existsByEmail("guest@busticket.com")) {
@@ -147,7 +181,7 @@ public class DataInitializer implements CommandLineRunner {
                 });
     }
 
-    private Trip initTrip(Route route, Coach coach, LocalDateTime depTime, String phone, int price, sp26.group.busticket.modules.enumType.TripStatusEnum status) {
+    private Trip initTrip(Route route, Coach coach, LocalDateTime depTime, String phone, int price, sp26.group.busticket.modules.enumType.TripStatusEnum status, Account driver) {
         return tripRepository.save(Trip.builder()
                 .route(route)
                 .coach(coach)
@@ -156,6 +190,7 @@ public class DataInitializer implements CommandLineRunner {
                 .priceBase(BigDecimal.valueOf(price))
                 .contact_phoneNumber(phone)
                 .tripStatus(status)
+                .driver(driver)
                 .build());
     }
 

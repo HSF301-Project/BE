@@ -13,4 +13,5 @@ public interface CoachService {
     CoachResponseDTO updateCoach(UUID id, CoachRequestDTO request);
     void deleteCoach(UUID id);
     sp26.group.busticket.modules.dto.coach.response.CoachDetailResponseDTO getCoachDetails(UUID id);
+    sp26.group.busticket.modules.dto.trip.response.AdminTripDetailResponseDTO getAdminTripDetail(UUID tripId);
 }

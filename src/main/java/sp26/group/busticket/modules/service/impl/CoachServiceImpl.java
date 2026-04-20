@@ -9,10 +9,15 @@ import sp26.group.busticket.modules.dto.coach.response.CoachResponseDTO;
 import sp26.group.busticket.modules.dto.coach.response.CoachDetailResponseDTO;
 import sp26.group.busticket.modules.dto.coach.response.PassengerDetailDTO;
 import sp26.group.busticket.modules.dto.coach.response.TripDetailDTO;
+import sp26.group.busticket.modules.dto.coach.response.TripHistoryDTO;
+import sp26.group.busticket.modules.dto.trip.response.AdminSeatStatusDTO;
+import sp26.group.busticket.modules.dto.trip.response.AdminTripDetailResponseDTO;
 import sp26.group.busticket.modules.entity.Coach;
+import sp26.group.busticket.modules.entity.Seat;
 import sp26.group.busticket.modules.entity.Ticket;
 import sp26.group.busticket.modules.mapper.CoachMapper;
 import sp26.group.busticket.modules.repository.CoachRepository;
+import sp26.group.busticket.modules.repository.SeatRepository;
 import sp26.group.busticket.modules.repository.TicketRepository;
 import sp26.group.busticket.modules.repository.TripRepository;
 import sp26.group.busticket.modules.service.CoachService;
@@ -28,6 +33,7 @@ public class CoachServiceImpl implements CoachService {
     private final CoachRepository coachRepository;
     private final TripRepository tripRepository;
     private final TicketRepository ticketRepository;
+    private final SeatRepository seatRepository;
     private final CoachMapper coachMapper;
 
     @Override
@@ -95,36 +101,31 @@ public class CoachServiceImpl implements CoachService {
         Coach coach = coachRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.COACH_NOT_FOUND));
 
-        // 1. Lấy tất cả các Chuyến (Trip) mà chiếc xe này đang/đã thực hiện
         List<sp26.group.busticket.modules.entity.Trip> trips = tripRepository.findByCoach_Id(id);
         
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
 
-        List<TripDetailDTO> tripDetails = trips.stream()
-                .map(trip -> {
-                    // 2. Với mỗi chuyến, lấy danh sách vé (khách hàng)
-                    List<Ticket> tickets = ticketRepository.findByBooking_Trip_Id(trip.getId());
-                    
-                    List<PassengerDetailDTO> passengers = tickets.stream()
-                            .map(t -> PassengerDetailDTO.builder()
-                                    .name(t.getPassengerName())
-                                    .phone(t.getPassengerPhone())
-                                    .seatNumber(t.getSeat().getSeatNumber())
-                                    .ticketCode(t.getTicketCode())
-                                    .tripInfo(trip.getRoute().getDepartureLocation().getName() + " -> " + 
-                                              trip.getRoute().getArrivalLocation().getName())
-                                    .build())
-                            .collect(Collectors.toList());
+        // Tìm tài xế hiện tại (Lấy từ chuyến gần nhất chưa kết thúc hoặc chuyến mới nhất)
+        sp26.group.busticket.modules.entity.Trip latestTrip = trips.stream()
+                .sorted((t1, t2) -> t2.getDepartureTime().compareTo(t1.getDepartureTime()))
+                .findFirst()
+                .orElse(null);
 
-                    return TripDetailDTO.builder()
-                            .routeName(trip.getRoute().getDepartureLocation().getName() + " - " + 
-                                       trip.getRoute().getArrivalLocation().getName())
-                            .departureTime(trip.getDepartureTime().format(formatter))
-                            .status(trip.getTripStatus().name())
-                            .passengerCount(passengers.size())
-                            .passengers(passengers)
-                            .build();
-                })
+        String driverName = (latestTrip != null && latestTrip.getDriver() != null) ? latestTrip.getDriver().getFullName() : "Chưa phân công";
+        String driverPhone = (latestTrip != null && latestTrip.getDriver() != null) ? latestTrip.getDriver().getPhone() : "N/A";
+
+        List<TripHistoryDTO> history = trips.stream()
+                .sorted((t1, t2) -> t2.getDepartureTime().compareTo(t1.getDepartureTime()))
+                .map(trip -> TripHistoryDTO.builder()
+                        .tripId(trip.getId())
+                        .routeName(trip.getRoute().getDepartureLocation().getName() + " - " + 
+                                   trip.getRoute().getArrivalLocation().getName())
+                        .departureTime(trip.getDepartureTime().format(formatter))
+                        .arrivalTime(trip.getArrivalTime().format(formatter))
+                        .status(trip.getTripStatus().name())
+                        .driverName(trip.getDriver() != null ? trip.getDriver().getFullName() : "N/A")
+                        .totalOccupiedSeats(ticketRepository.findByBooking_Trip_Id(trip.getId()).size())
+                        .build())
                 .collect(Collectors.toList());
 
         return CoachDetailResponseDTO.builder()
@@ -132,7 +133,49 @@ public class CoachServiceImpl implements CoachService {
                 .plateNumber(coach.getPlateNumber())
                 .coachType(coach.getCoachType())
                 .totalSeats(coach.getTotalSeats())
-                .activeTrips(tripDetails)
+                .currentDriverName(driverName)
+                .currentDriverPhone(driverPhone)
+                .tripHistory(history)
+                .build();
+    }
+
+    @Override
+    public AdminTripDetailResponseDTO getAdminTripDetail(UUID tripId) {
+        sp26.group.busticket.modules.entity.Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+
+        Coach coach = trip.getCoach();
+        List<Seat> allSeats = seatRepository.findByCoach_IdOrderBySeatNumberAsc(coach.getId());
+        List<Ticket> tickets = ticketRepository.findByBooking_Trip_Id(tripId);
+
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+
+        List<AdminSeatStatusDTO> seatStatuses = allSeats.stream()
+                .map(seat -> {
+                    Ticket ticket = tickets.stream()
+                            .filter(t -> t.getSeat().getId().equals(seat.getId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    return AdminSeatStatusDTO.builder()
+                            .seatNumber(seat.getSeatNumber())
+                            .floor(seat.getFloor())
+                            .isOccupied(ticket != null)
+                            .passengerName(ticket != null ? ticket.getPassengerName() : null)
+                            .passengerPhone(ticket != null ? ticket.getPassengerPhone() : null)
+                            .ticketCode(ticket != null ? ticket.getTicketCode() : null)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return AdminTripDetailResponseDTO.builder()
+                .tripId(tripId)
+                .routeName(trip.getRoute().getDepartureLocation().getName() + " - " + 
+                           trip.getRoute().getArrivalLocation().getName())
+                .departureTime(trip.getDepartureTime().format(formatter))
+                .coachPlate(coach.getPlateNumber())
+                .driverName(trip.getDriver() != null ? trip.getDriver().getFullName() : "N/A")
+                .seats(seatStatuses)
                 .build();
     }
 }

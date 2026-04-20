@@ -13,5 +13,11 @@ public class CoachDetailResponseDTO {
     private String plateNumber;
     private String coachType;
     private Integer totalSeats;
-    private List<TripDetailDTO> activeTrips;
+    
+    // Thông tin tài xế hiện tại
+    private String currentDriverName;
+    private String currentDriverPhone;
+    
+    // Lịch sử chuyến đi
+    private List<TripHistoryDTO> tripHistory;
 }
