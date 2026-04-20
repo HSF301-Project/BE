@@ -12,6 +12,7 @@ public enum ErrorCode {
     // Lỗi tài khoản
     USER_NOT_FOUND(404, "Không tìm thấy thông tin người dùng!"),
     EMAIL_ALREADY_EXISTS(409, "Email này đã được sử dụng!"),
+    PHONE_ALREADY_EXISTS(409, "Số điện thoại này đã được sử dụng!"),
     PASSWORD_NOT_MATCH(400, "Mật khẩu xác nhận không khớp!"),
     ROLE_NOT_FOUND(404, "Không tìm thấy vai trò này!"),
 

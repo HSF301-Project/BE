@@ -30,8 +30,8 @@ public class AuthServiceImpl implements AuthService {
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
         }
-        if (accountRepository.existsByEmail(request.getEmail())) {
-            throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        if (accountRepository.existsByPhone(request.getPhone())) {
+            throw new AppException(ErrorCode.PHONE_ALREADY_EXISTS);
         }
 
         Account account = authMapper.toAccount(request);

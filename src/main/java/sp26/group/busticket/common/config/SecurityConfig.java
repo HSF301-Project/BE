@@ -45,7 +45,7 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/process-login")
-                        .usernameParameter("email")
+                        .usernameParameter("phone")
                         .passwordParameter("password")
                         .successHandler((request, response, authentication) -> {
                             Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());

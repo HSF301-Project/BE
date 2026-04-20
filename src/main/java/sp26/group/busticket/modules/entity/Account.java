@@ -22,7 +22,10 @@ import sp26.group.busticket.modules.enumType.StatusEnum;
 @NoArgsConstructor
 public class Account extends BaseEntity {
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
+    private String phone;
+
+    @Column
     private String email;
 
     @Column(nullable = false)
@@ -30,9 +33,6 @@ public class Account extends BaseEntity {
 
     @Column(name = "full_name", columnDefinition = "NVARCHAR(255)")
     private String fullName;
-
-    @Column(name = "phone")
-    private String phone;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
