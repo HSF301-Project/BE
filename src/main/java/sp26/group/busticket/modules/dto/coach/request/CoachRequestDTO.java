@@ -16,13 +16,13 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CoachRequestDTO {
-    @NotBlank(message = "biển số xe không được để trống")
+    @NotBlank(message = "Biển số xe không được để trống")
     String plateNumber;
 
-    @NotBlank(message = "loại xe không được để trống")
+    @NotBlank(message = "Loại xe không được để trống")
     String coachType;
 
-    @NotNull(message = "tổng số ghế không được để trống")
-    @Positive(message = "tổng số ghế phải lớn hơn 0")
+    @NotNull(message = "Tổng số ghế không được để trống")
+    @Positive(message = "Tổng số ghế phải lớn hơn 0")
     Integer totalSeats;
 }

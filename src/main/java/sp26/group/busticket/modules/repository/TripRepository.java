@@ -13,7 +13,7 @@ import java.util.UUID;
 public interface TripRepository extends JpaRepository<Trip, UUID> {
     List<Trip> findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeBetween(
             String from, String to, LocalDateTime startOfDay, LocalDateTime endOfDay);
-    
+
     boolean existsByCoach_Id(UUID coachId);
 
     // Tìm kiếm phân trang theo điểm khởi hành hoặc mã chuyến
@@ -26,4 +26,5 @@ public interface TripRepository extends JpaRepository<Trip, UUID> {
     // Lấy tất cả chuyến đi trong ngày hôm nay
     @Query("SELECT t FROM Trip t WHERE t.departureTime >= :startOfDay AND t.departureTime <= :endOfDay")
     List<Trip> findAllTripsToday(LocalDateTime startOfDay, LocalDateTime endOfDay);
+    List<Trip> findByCoach_Id(UUID coachId);
 }

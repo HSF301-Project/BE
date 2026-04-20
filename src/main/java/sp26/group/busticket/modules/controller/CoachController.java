@@ -101,4 +101,11 @@ public class CoachController {
         }
         return "redirect:/admin/coaches";
     }
+
+    @GetMapping("/detail/{id}")
+    public String getCoachDetail(@PathVariable UUID id, Model model) {
+        model.addAttribute("coachDetail", coachService.getCoachDetails(id));
+        model.addAttribute("title", "Chi tiết phương tiện");
+        return "Admin/coach-detail";
+    }
 }

@@ -32,6 +32,13 @@ public class AdminController {
         
         return "Admin/dashboard";
     }
+
+    @GetMapping("/trips/detail/{id}")
+    public String getTripDetail(@org.springframework.web.bind.annotation.PathVariable java.util.UUID id, Model model) {
+        model.addAttribute("trip", coachService.getAdminTripDetail(id));
+        model.addAttribute("title", "Sơ đồ hành khách");
+        return "Admin/trip-details";
+    }
     @GetMapping("/trips")
     public String trip() {
         return "Admin/trip";

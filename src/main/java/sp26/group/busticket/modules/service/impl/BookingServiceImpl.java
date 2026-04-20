@@ -254,7 +254,7 @@ public class BookingServiceImpl implements BookingService {
                 .collect(Collectors.toList());
         
         if (tickets.isEmpty()) {
-            throw new AppException(ErrorCode.PRODUCT_NOT_FOUND, "Không tìm thấy thông tin vé");
+            throw new AppException(ErrorCode.BOOKING_NOT_FOUND, "Không tìm thấy thông tin vé");
         }
 
         Ticket firstTicket = tickets.get(0);
