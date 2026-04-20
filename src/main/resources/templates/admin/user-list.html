@@ -82,8 +82,8 @@
                         <select name="role"
                             class="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 transition-all font-bold text-sm text-blue-900 appearance-none">
                             <option value="ALL" th:selected="${role == 'ALL' || role == null}">Tất cả nhân viên</option>
-                            <option value="STAFF" th:selected="${role == 'STAFF'}">Nhân viên quầy</option>
-                            <option value="ASSISTANT" th:selected="${role == 'ASSISTANT'}">Phụ tá</option>
+                            <option value="STAFF" th:selected="${role == 'STAFF'}">Nhân viên</option>
+                            <option value="ASSISTANT" th:selected="${role == 'ASSISTANT'}">Phụ xe</option>
                             <option value="DRIVER" th:selected="${role == 'DRIVER'}">Tài xế</option>
                         </select>
                     </div>
@@ -111,11 +111,10 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-50">
-                            <tr th:each="user : ${users}" class="hover:bg-blue-50/30 transition-colors group cursor-pointer employee-row"
-                                th:data-name="${user.fullName}"
-                                th:data-email="${user.email}"
-                                th:data-phone="${user.phone}"
-                                th:data-role="${user.role}"
+                            <tr th:each="user : ${users}"
+                                class="hover:bg-blue-50/30 transition-colors group cursor-pointer employee-row"
+                                th:data-name="${user.fullName}" th:data-email="${user.email}"
+                                th:data-phone="${user.phone}" th:data-role="${user.role}"
                                 th:data-status="${user.status}"
                                 th:data-created="${user.createdAt != null ? #temporals.format(user.createdAt, 'dd/MM/yyyy HH:mm') : 'N/A'}"
                                 th:data-updated="${user.updatedAt != null ? #temporals.format(user.updatedAt, 'dd/MM/yyyy HH:mm') : 'N/A'}">
@@ -174,21 +173,27 @@
     </main>
 
     <!-- Detail Modal -->
-    <div id="detailModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="detailModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 transition-opacity bg-blue-900/40 backdrop-blur-sm" aria-hidden="true" onclick="closeModal()"></div>
+            <div class="fixed inset-0 transition-opacity bg-blue-900/40 backdrop-blur-sm" aria-hidden="true"
+                onclick="closeModal()"></div>
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            
-            <div class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white rounded-[3rem] shadow-2xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-blue-50">
+
+            <div
+                class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white rounded-[3rem] shadow-2xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-blue-50">
                 <div class="p-10">
                     <div class="flex justify-between items-start mb-8">
                         <div class="flex items-center gap-4">
-                            <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                            <div
+                                class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
                                 <span class="material-symbols-outlined text-4xl font-light">account_circle</span>
                             </div>
                             <div>
-                                <h3 class="text-2xl font-black text-blue-900 leading-tight" id="modalName">Nguyễn Văn Lái</h3>
-                                <p class="text-xs font-black uppercase tracking-[0.2em] text-blue-400" id="modalRoleBadge">DRIVER</p>
+                                <h3 class="text-2xl font-black text-blue-900 leading-tight" id="modalName">Nguyễn Văn
+                                    Lái</h3>
+                                <p class="text-xs font-black uppercase tracking-[0.2em] text-blue-400"
+                                    id="modalRoleBadge">DRIVER</p>
                             </div>
                         </div>
                         <button onclick="closeModal()" class="p-2 text-slate-300 hover:text-red-400 transition-colors">
@@ -199,33 +204,39 @@
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4 text-sm font-medium">
                             <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">Email</p>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">
+                                    Email</p>
                                 <p class="text-blue-900 truncate font-semibold" id="modalEmail">driver@gmail.com</p>
                             </div>
                             <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">Điện thoại</p>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">
+                                    Điện thoại</p>
                                 <p class="text-blue-900 font-semibold" id="modalPhone">0123456789</p>
                             </div>
                         </div>
 
                         <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-4">
-                             <div class="flex justify-between items-center">
-                                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Trạng thái</span>
-                                 <span id="modalStatus" class="font-black text-xs uppercase tracking-tighter">ĐANG HOẠT ĐỘNG</span>
-                             </div>
-                             <div class="flex justify-between items-center text-xs">
-                                 <span class="font-bold text-slate-400 italic">Ngày tạo tài khoản</span>
-                                 <span id="modalCreatedAt" class="font-black text-blue-800">20/04/2026 10:00</span>
-                             </div>
-                             <div class="flex justify-between items-center text-xs pt-4 border-t border-slate-200">
-                                 <span class="font-bold text-slate-400 italic">Cập nhật cuối cùng</span>
-                                 <span id="modalUpdatedAt" class="font-black text-blue-800">20/04/2026 15:00</span>
-                             </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Trạng
+                                    thái</span>
+                                <span id="modalStatus" class="font-black text-xs uppercase tracking-tighter">ĐANG HOẠT
+                                    ĐỘNG</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-bold text-slate-400 italic">Ngày tạo tài khoản</span>
+                                <span id="modalCreatedAt" class="font-black text-blue-800">20/04/2026 10:00</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs pt-4 border-t border-slate-200">
+                                <span class="font-bold text-slate-400 italic">Cập nhật cuối cùng</span>
+                                <span id="modalUpdatedAt" class="font-black text-blue-800">20/04/2026 15:00</span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="mt-8">
-                        <button onclick="closeModal()" class="w-full py-4 bg-blue-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-blue-100">Đóng thông tin</button>
+                        <button onclick="closeModal()"
+                            class="w-full py-4 bg-blue-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-blue-100">Đóng
+                            thông tin</button>
                     </div>
                 </div>
             </div>
@@ -234,7 +245,7 @@
 
     <script th:inline="javascript">
         document.querySelectorAll('.employee-row').forEach(row => {
-            row.addEventListener('click', function() {
+            row.addEventListener('click', function () {
                 const name = this.getAttribute('data-name');
                 const email = this.getAttribute('data-email');
                 const phone = this.getAttribute('data-phone');
@@ -242,7 +253,7 @@
                 const status = this.getAttribute('data-status');
                 const created = this.getAttribute('data-created');
                 const updated = this.getAttribute('data-updated');
-                
+
                 openModal(name, email, phone, role, status, created, updated);
             });
         });
@@ -254,7 +265,7 @@
             document.getElementById('modalRoleBadge').innerText = role;
             document.getElementById('modalCreatedAt').innerText = createdAt || 'N/A';
             document.getElementById('modalUpdatedAt').innerText = updatedAt || 'N/A';
-            
+
             const statusEl = document.getElementById('modalStatus');
             if (status === 'ACTIVE') {
                 statusEl.innerText = 'ĐANG HOẠT ĐỘNG';
