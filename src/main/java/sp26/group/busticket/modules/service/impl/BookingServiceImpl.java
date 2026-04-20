@@ -332,6 +332,7 @@ public class BookingServiceImpl implements BookingService {
                             .arrivalStation(trip.getRoute().getArrivalLocation().getName())
                             .arrivalTime(trip.getArrivalTime().format(timeFormatter))
                             .bookingDate(bookingDate)
+                            .isCancellable(status == BookingStatusEnum.CONFIRMED && trip.getDepartureTime().minusHours(2).isAfter(now))
                             .build();
                 })
                 .filter(dto -> {
@@ -357,6 +358,39 @@ public class BookingServiceImpl implements BookingService {
                 .totalTrips((int) totalTrips)
                 .membershipLabel("Premium Voyager")
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void cancelBooking(UUID bookingId, UUID accountId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+        if (!booking.getUser().getId().equals(accountId)) {
+            throw new AppException(ErrorCode.FORBIDDEN, "Bạn không có quyền hủy đặt vé này.");
+        }
+
+        if (booking.getStatus() == BookingStatusEnum.CANCELLED || booking.getStatus() == BookingStatusEnum.COMPLETED) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Không thể hủy đặt vé đã bị hủy hoặc đã hoàn thành.");
+        }
+
+        // Kiểm tra nếu chuyến đi đã khởi hành
+        if (booking.getTrip().getDepartureTime().isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Không thể hủy đặt vé cho chuyến đi đã khởi hành.");
+        }
+
+        // Kiểm tra thời gian hủy: phải trước giờ khởi hành ít nhất 2 tiếng
+        if (booking.getTrip().getDepartureTime().minusHours(2).isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Chỉ có thể hủy đặt vé trước giờ khởi hành ít nhất 2 tiếng.");
+        }
+
+        booking.setStatus(BookingStatusEnum.CANCELLED);
+        bookingRepository.save(booking);
+
+        paymentRepository.findByBooking_Id(bookingId).ifPresent(payment -> {
+            payment.setStatus(PaymentStatusEnum.CANCELLED);
+            paymentRepository.save(payment);
+        });
     }
 
     @Scheduled(fixedRate = 60000) // Chạy mỗi phút
