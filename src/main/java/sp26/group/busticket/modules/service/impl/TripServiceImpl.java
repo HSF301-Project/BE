@@ -111,7 +111,7 @@ public class TripServiceImpl implements TripService {
     @Override
     public BigDecimal getBasePriceByTripId(java.util.UUID tripId) {
         Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
         return trip.getPriceBase();
     }
 

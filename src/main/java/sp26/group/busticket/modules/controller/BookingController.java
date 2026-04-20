@@ -46,7 +46,7 @@ public class BookingController {
     @GetMapping("/{tripId}")
     public String showChooseSeat(@PathVariable UUID tripId, Model model) {
         Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
 
         List<SeatDisplayDTO> lowerDeckSeats = seatService.getSeatsByTripAndFloor(tripId, 1);
         List<SeatDisplayDTO> upperDeckSeats = seatService.getSeatsByTripAndFloor(tripId, 2);

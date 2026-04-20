@@ -33,7 +33,7 @@ public class SeatServiceImpl implements SeatService {
     @Override
     public List<SeatDisplayDTO> getSeatsByTripAndFloor(UUID tripId, Integer floor) {
         Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
 
         List<Seat> allSeats = seatRepository.findByCoach_IdOrderBySeatNumberAsc(trip.getCoach().getId());
         
@@ -58,7 +58,7 @@ public class SeatServiceImpl implements SeatService {
     @Override
     public List<SeatDisplayDTO> getSeatsByTripId(UUID tripId) {
         Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
 
         List<Seat> allSeats = seatRepository.findByCoach_IdOrderBySeatNumberAsc(trip.getCoach().getId());
         

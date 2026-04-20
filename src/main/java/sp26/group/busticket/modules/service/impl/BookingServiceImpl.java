@@ -52,7 +52,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public UUID createBooking(UUID tripId, BookingFormDTO form, Account currentAccount) {
         Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
 
         // Kiểm tra trùng ghế (Concurrency Check)
         List<String> selectedSeatNumbers = form.getPassengers().stream()
@@ -92,7 +92,7 @@ public class BookingServiceImpl implements BookingService {
             Seat seat = seatRepository.findByCoach_IdOrderBySeatNumberAsc(trip.getCoach().getId()).stream()
                     .filter(s -> s.getSeatNumber().equals(p.getSeatId()))
                     .findFirst()
-                    .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                    .orElseThrow(() -> new AppException(ErrorCode.SEAT_NOT_FOUND));
 
             Ticket ticket = Ticket.builder()
                     .booking(booking)
@@ -110,7 +110,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public UUID createStaffBooking(UUID tripId, StaffBookingRequestDTO form, Account staffAccount) {
         Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
 
         // 1. Xử lý Account (Ưu tiên tìm Account thật theo SĐT, nếu không có mới dùng GUEST)
         Account userAccount = accountRepository.findByPhone(form.getCustomerPhone())
@@ -155,7 +155,7 @@ public class BookingServiceImpl implements BookingService {
             Seat seat = seatRepository.findByCoach_IdOrderBySeatNumberAsc(trip.getCoach().getId()).stream()
                     .filter(s -> s.getSeatNumber().equals(seatNumber))
                     .findFirst()
-                    .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                    .orElseThrow(() -> new AppException(ErrorCode.SEAT_NOT_FOUND));
 
             Ticket ticket = Ticket.builder()
                     .booking(booking)
@@ -232,7 +232,7 @@ public class BookingServiceImpl implements BookingService {
         bookingRepository.save(booking);
 
         Payment payment = paymentRepository.findByBooking_Id(bookingId)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.UNEXPECTED_ERROR, "Không tìm thấy thông tin thanh toán!"));
         
         // Kiểm tra nếu payment đã bị hủy
         if (payment.getStatus() == PaymentStatusEnum.CANCELLED) {

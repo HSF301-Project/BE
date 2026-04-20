@@ -23,6 +23,11 @@
                    style="font-family:'Plus Jakarta Sans',sans-serif">
                     Chuyến đi của tôi
                 </a>
+                <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/dashboard}"
+                   class="font-semibold tracking-tight text-blue-700 hover:text-blue-900 transition-colors"
+                   style="font-family:'Plus Jakarta Sans',sans-serif">
+                    Trang quản trị
+                </a>
             </div>
         </div>
 
