@@ -55,13 +55,13 @@
                     <div>
                         <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Giờ xuất phát</p>
                         <div class="grid grid-cols-1 gap-2">
-                            <label th:each="slot, stat : #{'early_morning':'Sáng sớm (00:00 - 06:00)', 'morning':'Buổi sáng (06:00 - 12:00)', 'afternoon':'Buổi chiều (12:00 - 18:00)', 'evening':'Buổi tối (18:00 - 24:00)'}"
+                            <label th:each="slot : ${ {'early_morning':'Sáng sớm (00:00 - 06:00)', 'morning':'Buổi sáng (06:00 - 12:00)', 'afternoon':'Buổi chiều (12:00 - 18:00)', 'evening':'Buổi tối (18:00 - 24:00)'} }"
                                    class="flex items-center gap-3 p-3 bg-surface-container-lowest rounded-xl cursor-pointer border-2 border-transparent hover:border-primary/20 transition-all">
                                 <input type="checkbox" name="timeSlots"
-                                       th:value="${stat.current.key}"
-                                       th:checked="${filterForm.timeSlots != null && filterForm.timeSlots.contains(stat.current.key)}"
+                                       th:value="${slot.key}"
+                                       th:checked="${filterForm.timeSlots != null && filterForm.timeSlots.contains(slot.key)}"
                                        class="w-5 h-5 rounded border-outline text-primary focus:ring-primary"/>
-                                <span class="text-sm font-semibold" th:text="${stat.current.value}"></span>
+                                <span class="text-sm font-semibold" th:text="${slot.value}"></span>
                             </label>
                         </div>
                     </div>
@@ -175,9 +175,9 @@
                         <div class="flex-1 flex flex-col justify-between">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <div class="flex items-center gap-2 mb-2">
+                                    <div class="flex items-center gap-3 mb-2">
                                         <h3 class="text-xl font-bold text-primary" th:text="${trip.name}">Tên hãng xe</h3>
-                                        <span class="px-2 py-0.5 bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-black uppercase rounded tracking-tighter"
+                                        <span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-black uppercase rounded-lg tracking-tighter"
                                               th:text="${trip.busTypeLabel}">
                                             Limousine
                                         </span>
@@ -210,15 +210,15 @@
                         </div>
 
                         <!-- Action column -->
-                        <div class="md:w-1/5 flex flex-col justify-end gap-3 border-t md:border-t-0 md:border-l border-outline-variant/30 pt-4 md:pt-0 md:pl-6">
-                            <div class="text-center md:text-right">
+                        <div class="md:w-1/5 flex flex-col justify-center gap-3 border-t md:border-t-0 md:border-l border-outline-variant/30 pt-4 md:pt-0 md:pl-6">
+                            <div class="text-center">
                                 <p class="text-xs font-medium text-on-surface-variant mb-1">
                                     Còn trống
                                     <span class="text-secondary font-bold" th:text="${trip.seatsLeft}">8</span>
                                     ghế
                                 </p>
                                 <a th:href="@{'/booking/' + ${trip.id}}"
-                                   class="block w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-center">
+                                   class="block w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-center text-sm">
                                     Chọn chuyến
                                 </a>
                             </div>

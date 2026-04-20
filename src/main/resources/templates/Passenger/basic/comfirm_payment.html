@@ -74,7 +74,12 @@
                     </div>
 
                     <!-- Details grid -->
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8 border-t border-dashed border-outline-variant/30">
+                    <!-- Details grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-6 pt-8 border-t border-dashed border-outline-variant/30">
+                        <div>
+                            <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Thời gian đặt</span>
+                            <p class="font-bold text-on-surface" th:text="${ticket.bookingDate}">20/04/2026 09:17</p>
+                        </div>
                         <div>
                             <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Ngày đi</span>
                             <p class="font-bold text-on-surface" th:text="${ticket.departureDateLabel}">24 Th10, 2024</p>

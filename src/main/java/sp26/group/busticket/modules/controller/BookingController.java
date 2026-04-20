@@ -58,6 +58,7 @@ public class BookingController {
         tripDTO.setArrivalDateTimeLabel(trip.getArrivalTime().format(dateTimeFormatter));
         
         model.addAttribute("trip", tripDTO);
+        model.addAttribute("unitPrice", trip.getPriceBase());
         model.addAttribute("lowerDeckSeats", lowerDeckSeats);
         model.addAttribute("upperDeckSeats", upperDeckSeats);
         model.addAttribute("bookingForm", new BookingFormDTO());
@@ -84,6 +85,7 @@ public class BookingController {
             tripDTO.setArrivalDateTimeLabel(trip.getArrivalTime().format(dateTimeFormatter));
 
             model.addAttribute("trip", tripDTO);
+            model.addAttribute("unitPrice", trip.getPriceBase());
             model.addAttribute("lowerDeckSeats", lowerDeckSeats);
             model.addAttribute("upperDeckSeats", upperDeckSeats);
             model.addAttribute("bookingForm", form);

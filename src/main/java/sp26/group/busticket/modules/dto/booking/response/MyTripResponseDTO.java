@@ -24,6 +24,7 @@ public class MyTripResponseDTO {
     private String toCity;
     private String arrivalStation;
     private String arrivalTime;
+    private String bookingDate;
 
     public String getStatusLabel() {
         if (status == null) {
