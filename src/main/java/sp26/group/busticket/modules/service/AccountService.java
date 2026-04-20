@@ -5,6 +5,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface AccountService {
-    List<AccountResponseDTO> getAllAccounts(String role, String keyword);
+    List<AccountResponseDTO> getAllAccounts(String search, String role);
     void changeStatus(UUID id);
 }

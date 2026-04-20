@@ -27,14 +27,26 @@ public class AdminController {
     private final AccountService accountService;
 
     @GetMapping("/users")
-    public String listUsers(@org.springframework.web.bind.annotation.RequestParam(required = false) String role,
-                            @org.springframework.web.bind.annotation.RequestParam(required = false) String keyword,
+    public String listUsers(@org.springframework.web.bind.annotation.RequestParam(required = false) String search,
+                            @org.springframework.web.bind.annotation.RequestParam(required = false) String role,
                             Model model) {
-        model.addAttribute("users", accountService.getAllAccounts(role, keyword));
-        model.addAttribute("currentRole", role);
-        model.addAttribute("currentKeyword", keyword);
-        model.addAttribute("title", "Quản lý Người dùng");
+        model.addAttribute("users", accountService.getAllAccounts(search, role));
+        model.addAttribute("search", search);
+        model.addAttribute("role", role);
+        model.addAttribute("title", "Quản lý Nhân viên");
+        model.addAttribute("activePage", "staff");
         return "Admin/user-list";
+    }
+
+    @GetMapping("/customers")
+    public String listCustomers(@org.springframework.web.bind.annotation.RequestParam(required = false) String search,
+                                Model model) {
+        // Force role to USER
+        model.addAttribute("users", accountService.getAllAccounts(search, "USER"));
+        model.addAttribute("search", search);
+        model.addAttribute("title", "Quản lý Khách hàng");
+        model.addAttribute("activePage", "customer");
+        return "Admin/customer-list";
     }
 
     @PostMapping("/users/status/{id}")

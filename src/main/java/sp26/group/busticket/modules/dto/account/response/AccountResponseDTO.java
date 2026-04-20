@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import sp26.group.busticket.modules.enumType.StatusEnum;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -18,4 +19,6 @@ public class AccountResponseDTO {
     private String phone;
     private String role;
     private StatusEnum status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

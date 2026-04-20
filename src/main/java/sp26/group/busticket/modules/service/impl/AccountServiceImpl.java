@@ -21,23 +21,30 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
 
     @Override
-    public List<AccountResponseDTO> getAllAccounts(String role, String keyword) {
+    public List<AccountResponseDTO> getAllAccounts(String search, String role) {
         return accountRepository.findAll().stream()
-                .filter(account -> account.getRole() != null && !account.getRole().equalsIgnoreCase("ADMIN"))
                 .filter(account -> {
-                    if (role != null && !role.trim().isEmpty() && !role.equalsIgnoreCase("ALL")) {
-                        return account.getRole().trim().equalsIgnoreCase(role.trim());
+                    String r = account.getRole();
+                    // 1. Role Filter
+                    if ("USER".equals(role)) {
+                        if (!"USER".equalsIgnoreCase(r)) return false;
+                    } else if (role == null || role.trim().isEmpty() || "ALL".equals(role)) {
+                        // Default staff list: exclude USER and ADMIN
+                        if ("USER".equalsIgnoreCase(r) || "ADMIN".equalsIgnoreCase(r)) return false;
+                    } else {
+                        // Specific staff role selected (STAFF, DRIVER, etc.)
+                        if (!role.equalsIgnoreCase(r)) return false;
                     }
-                    return true;
-                })
-                .filter(account -> {
-                    if (keyword != null && !keyword.isEmpty()) {
-                        String k = keyword.toLowerCase();
-                        return account.getFullName().toLowerCase().contains(k) ||
-                               account.getEmail().toLowerCase().contains(k) ||
-                               account.getPhone().contains(k);
-                    }
-                    return true;
+
+                    // 2. Search Filter
+                    if (search == null || search.trim().isEmpty()) return true;
+                    String s = search.trim().toLowerCase();
+                    
+                    String name = (account.getFullName() != null) ? account.getFullName().toLowerCase() : "";
+                    String email = (account.getEmail() != null) ? account.getEmail().toLowerCase() : "";
+                    String phone = (account.getPhone() != null) ? account.getPhone() : "";
+                    
+                    return name.contains(s) || email.contains(s) || phone.contains(s);
                 })
                 .map(account -> AccountResponseDTO.builder()
                         .id(account.getId())
@@ -46,6 +53,8 @@ public class AccountServiceImpl implements AccountService {
                         .phone(account.getPhone())
                         .role(account.getRole())
                         .status(account.getStatus())
+                        .createdAt(account.getCreatedAt())
+                        .updatedAt(account.getUpdatedAt())
                         .build())
                 .collect(Collectors.toList());
     }

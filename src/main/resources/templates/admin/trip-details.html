@@ -24,11 +24,20 @@
         <a th:href="@{/admin/dashboard}" class="text-xl font-black tracking-tighter text-blue-900">PREMIUM TRANSIT</a>
     </div>
     <nav class="flex-1 px-4 py-8 space-y-2">
-        <a th:href="@{/admin/coaches}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-700 text-white shadow-md shadow-blue-200 transition-all">
+        <a th:href="@{/admin/dashboard}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all font-bold">
+            <span class="material-symbols-outlined">dashboard</span><span>Bảng điều khiển</span>
+        </a>
+        <a th:href="@{/admin/coaches}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all font-bold">
             <span class="material-symbols-outlined">rv_hookup</span><span>Quản lý Xe</span>
         </a>
-        <a th:href="@{/admin/users}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
-            <span class="material-symbols-outlined">group</span><span>Người dùng</span>
+        <a th:href="@{/admin/trips}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-700 text-white shadow-md shadow-blue-200 transition-all font-bold">
+            <span class="material-symbols-outlined">directions_bus</span><span>Lịch trình</span>
+        </a>
+        <a th:href="@{/admin/users}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all font-bold">
+            <span class="material-symbols-outlined">badge</span><span>Quản lý Nhân viên</span>
+        </a>
+        <a th:href="@{/admin/customers}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all font-bold">
+            <span class="material-symbols-outlined">group</span><span>Quản lý Khách hàng</span>
         </a>
     </nav>
 </aside>
