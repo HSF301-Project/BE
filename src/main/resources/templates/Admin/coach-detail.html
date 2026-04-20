@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${title}">Chi tiết xe</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"/>
+    <link rel="stylesheet" th:href="@{/css/common.css}"/>
+    <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body class="admin-main text-on-surface antialiased overflow-x-hidden">
+
+<aside class="admin-sidebar fixed left-0 top-0 h-full z-40 flex flex-col w-64 bg-slate-50 font-semibold tracking-tight shadow-lg">
+    <div class="p-6 flex flex-col gap-1 border-b border-slate-200">
+        <a th:href="@{/admin/dashboard}" class="text-xl font-black tracking-tighter text-blue-900">PREMIUM TRANSIT</a>
+        <span class="text-[10px] text-blue-600 uppercase tracking-[0.2em] font-black">Admin Panel</span>
+    </div>
+    <nav class="flex-1 px-4 py-8 space-y-2">
+        <a th:href="@{/admin/dashboard}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
+            <span class="material-symbols-outlined">dashboard</span><span>Bảng điều khiển</span>
+        </a>
+        <a th:href="@{/admin/coaches}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-700 text-white shadow-md shadow-blue-200 transition-all">
+            <span class="material-symbols-outlined">rv_hookup</span><span>Quản lý Xe</span>
+        </a>
+        <a th:href="@{/admin/trips}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
+            <span class="material-symbols-outlined">directions_bus</span><span>Lịch trình</span>
+        </a>
+    </nav>
+</aside>
+
+<main class="pl-72 pr-8 pt-12 pb-12 min-h-screen">
+    <div class="max-w-7xl mx-auto" th:object="${coachDetail}">
+        <div class="mb-12">
+            <a th:href="@{/admin/coaches}" class="inline-flex items-center gap-2 text-xs font-black text-slate-400 hover:text-blue-700 transition-colors mb-6 uppercase tracking-widest">
+                <span class="material-symbols-outlined text-sm">arrow_back</span> Quay lại danh sách
+            </a>
+            <div class="flex justify-between items-end">
+                <div>
+                    <h1 class="text-5xl font-black tracking-tight text-blue-900 mb-2">Chi tiết: <span th:text="*{plateNumber}">29A-12345</span></h1>
+                    <p class="text-slate-500 font-medium">Thông tin dòng xe <span class="font-black text-blue-700" th:text="*{coachType}">Limousine</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-12">
+            <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex items-center gap-8 w-fit">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-blue-50 text-blue-700 rounded-xl">
+                        <span class="material-symbols-outlined">airline_seat_recline_extra</span>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sức chứa</p>
+                        <p class="text-xl font-black text-blue-900" th:text="*{totalSeats + ' Ghế'}">40 Ghế</p>
+                    </div>
+                </div>
+                <div class="w-px h-10 bg-slate-100"></div>
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-emerald-50 text-emerald-700 rounded-xl">
+                        <span class="material-symbols-outlined">route</span>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Số chuyến đi</p>
+                        <p class="text-xl font-black text-blue-900" th:text="*{#lists.size(activeTrips)}">3</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-12">
+            <div th:each="trip : *{activeTrips}" class="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-100">
+                <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                    <div class="flex items-center gap-6">
+                        <div>
+                            <span class="text-[10px] font-black text-blue-600/50 uppercase tracking-[0.2em] block mb-1">Chuyến xe</span>
+                            <h2 class="text-2xl font-black text-blue-900" th:text="${trip.routeName}">Hà Nội - Sài Gòn</h2>
+                        </div>
+                        <div class="h-10 w-px bg-slate-200"></div>
+                        <div>
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-1">Khởi hành</span>
+                            <span class="font-black text-slate-700" th:text="${trip.departureTime}">10:00 20/04/2026</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span th:if="${trip.status == 'SCHEDULED'}" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-xs font-black uppercase tracking-widest">Sắp khởi hành</span>
+                        <span th:if="${trip.status == 'DEPARTED'}" class="px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-xs font-black uppercase tracking-widest">Đang di chuyển</span>
+                        <span th:if="${trip.status == 'COMPLETED'}" class="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-xs font-black uppercase tracking-widest">Đã hoàn thành</span>
+                        <span class="bg-blue-700 text-white px-4 py-2 rounded-xl font-black text-sm" th:text="${trip.passengerCount + ' Khách'}">12 Khách</span>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-slate-50 text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] border-b border-slate-100">
+                                <th class="px-8 py-6">Mã vé</th>
+                                <th class="px-8 py-6">Hành khách</th>
+                                <th class="px-8 py-6">Số điện thoại</th>
+                                <th class="px-8 py-6 text-center">Ghế</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <tr th:each="p : ${trip.passengers}" class="table-row-hover transition-colors">
+                                <td class="px-8 py-6 font-mono font-black text-blue-700" th:text="${p.ticketCode}">INIT-ABC</td>
+                                <td class="px-8 py-6 font-black text-blue-900" th:text="${p.name}">Nguyen Van A</td>
+                                <td class="px-8 py-6 text-slate-500 font-medium" th:text="${p.phone}">0901234567</td>
+                                <td class="px-8 py-6 text-center">
+                                    <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-black" th:text="${p.seatNumber}">A01</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(trip.passengers)}">
+                                <td colspan="4" class="px-8 py-10 text-center text-slate-400 font-medium italic">
+                                    Không có khách hàng nào đặt vé cho chuyến này.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(coachDetail.activeTrips)}" class="bg-slate-50 rounded-[2.5rem] p-20 text-center border-2 border-dashed border-slate-200">
+                <span class="material-symbols-outlined text-6xl text-slate-300 mb-4">bus_alert</span>
+                <p class="text-xl font-black text-slate-400 italic">Hiện phương tiện này chưa được gán cho chuyến đi nào.</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

@@ -10,11 +10,6 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import sp26.group.busticket.infrastructure.persistence.BaseEntity;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.OneToMany;
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
 @Table(name = "coaches")
 @Getter
@@ -32,7 +27,4 @@ public class Coach extends BaseEntity {
 
     @Column(name = "total_seats", nullable = false)
     private Integer totalSeats;
-
-    @OneToMany(mappedBy = "coach", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Seat> seats = new ArrayList<>();
 }

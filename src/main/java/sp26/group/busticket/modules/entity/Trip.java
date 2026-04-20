@@ -5,10 +5,13 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import sp26.group.busticket.modules.enumType.TripStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -48,4 +51,8 @@ public class Trip extends BaseEntity {
 
     @Column(name = "contact_phone_number", nullable = false)
     private String contact_phoneNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private TripStatusEnum tripStatus = TripStatusEnum.SCHEDULED;
 }
