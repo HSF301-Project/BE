@@ -50,8 +50,18 @@ public class BookingServiceImpl implements BookingService {
     private final LocationRepository locationRepository;
     private final TripService tripService;
     private final PasswordEncoder passwordEncoder;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     private static final int CLEANUP_MINUTES = 7;
+
+    public String toJson(Object obj) {
+        try {
+            return objectMapper.writeValueAsString(obj);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            log.error("Error converting object to JSON", e);
+            return "[]";
+        }
+    }
 
     @Override
     @Transactional
@@ -473,7 +483,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public void cancelBooking(UUID bookingId, UUID accountId) {
+    public UUID cancelBooking(UUID bookingId, UUID accountId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
 
@@ -485,14 +495,18 @@ public class BookingServiceImpl implements BookingService {
             throw new AppException(ErrorCode.INVALID_INPUT, "Không thể hủy đặt vé đã bị hủy hoặc đã hoàn thành.");
         }
 
-        // Kiểm tra nếu chuyến đi đã khởi hành
-        if (booking.getTrip().getDepartureTime().isBefore(LocalDateTime.now())) {
-            throw new AppException(ErrorCode.INVALID_INPUT, "Không thể hủy đặt vé cho chuyến đi đã khởi hành.");
-        }
+        // Chỉ áp dụng quy tắc 2 tiếng cho vé đã thanh toán (CONFIRMED)
+        // Với vé đang chờ thanh toán (PENDING), cho phép hủy ngay lập tức
+        if (booking.getStatus() == BookingStatusEnum.CONFIRMED) {
+            // Kiểm tra nếu chuyến đi đã khởi hành
+            if (booking.getTrip().getDepartureTime().isBefore(LocalDateTime.now())) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Không thể hủy đặt vé cho chuyến đi đã khởi hành.");
+            }
 
-        // Kiểm tra thời gian hủy: phải trước giờ khởi hành ít nhất 2 tiếng
-        if (booking.getTrip().getDepartureTime().minusHours(2).isBefore(LocalDateTime.now())) {
-            throw new AppException(ErrorCode.INVALID_INPUT, "Chỉ có thể hủy đặt vé trước giờ khởi hành ít nhất 2 tiếng.");
+            // Kiểm tra thời gian hủy: phải trước giờ khởi hành ít nhất 2 tiếng
+            if (booking.getTrip().getDepartureTime().minusHours(2).isBefore(LocalDateTime.now())) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Chỉ có thể hủy đặt vé trước giờ khởi hành ít nhất 2 tiếng.");
+            }
         }
 
         booking.setStatus(BookingStatusEnum.CANCELLED);
@@ -502,6 +516,36 @@ public class BookingServiceImpl implements BookingService {
             payment.setStatus(PaymentStatusEnum.CANCELLED);
             paymentRepository.save(payment);
         });
+
+        return booking.getTrip().getId();
+    }
+
+    @Override
+    public BookingFormDTO getBookingFormFromBooking(UUID bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+        List<Ticket> tickets = ticketRepository.findByBooking_Trip_Id(booking.getTrip().getId())
+                .stream()
+                .filter(t -> t.getBooking().getId().equals(bookingId))
+                .toList();
+
+        List<PassengerInfoDTO> passengers = tickets.stream()
+                .map(t -> PassengerInfoDTO.builder()
+                        .seatId(t.getSeat().getSeatNumber())
+                        .seatLabel(t.getSeat().getSeatNumber())
+                        .deck(t.getSeat().getFloor() == 1 ? "lower" : "upper")
+                        .fullName(t.getPassengerName())
+                        .phoneNumber(t.getPassengerPhone())
+                        .email(t.getPassengerEmail())
+                        .build())
+                .collect(Collectors.toList());
+
+        return BookingFormDTO.builder()
+                .passengers(passengers)
+                .pickupLocationId(booking.getPickupLocation() != null ? booking.getPickupLocation().getId() : null)
+                .dropoffLocationId(booking.getDropoffLocation() != null ? booking.getDropoffLocation().getId() : null)
+                .build();
     }
 
     @Scheduled(fixedRate = 60000) // Chạy mỗi phút

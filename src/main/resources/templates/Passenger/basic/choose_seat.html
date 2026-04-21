@@ -227,6 +227,12 @@
                           th:data-phone-number="${currentUser != null ? currentUser.phone : ''}"
                           th:data-email="${currentUser != null ? currentUser.email : ''}">
                      </div>
+
+                     <!-- Dữ liệu điền sẵn nếu có (từ Flash Attributes) -->
+                     <div id="prefilled-booking-data" class="hidden"
+                          th:if="${bookingForm != null and not #lists.isEmpty(bookingForm.passengers)}"
+                          th:data-passengers="${@bookingServiceImpl.toJson(bookingForm.passengers)}">
+                     </div>
                 </div>
 
                 <button type="submit" id="btn-continue-payment"

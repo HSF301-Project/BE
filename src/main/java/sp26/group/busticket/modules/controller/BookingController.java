@@ -64,7 +64,11 @@ public class BookingController {
         model.addAttribute("unitPrice", trip.getPriceBase());
         model.addAttribute("lowerDeckSeats", lowerDeckSeats);
         model.addAttribute("upperDeckSeats", upperDeckSeats);
-        model.addAttribute("bookingForm", new BookingFormDTO());
+        
+        // Chỉ thêm mới nếu chưa có từ Flash Attribute (lúc hủy thanh toán)
+        if (!model.containsAttribute("bookingForm")) {
+            model.addAttribute("bookingForm", new BookingFormDTO());
+        }
 
         // Thêm thông tin user vào model để FE tự động điền
         try {
@@ -150,14 +154,28 @@ public class BookingController {
     }
 
     @PostMapping("/{bookingId}/cancel")
-    public String cancelBooking(@PathVariable UUID bookingId, RedirectAttributes redirectAttributes) {
+    public String cancelBooking(@PathVariable UUID bookingId, 
+                               @RequestParam(required = false, defaultValue = "false") boolean isPaymentPage,
+                               RedirectAttributes redirectAttributes) {
         try {
             Account currentAccount = getCurrentAccount();
-            bookingService.cancelBooking(bookingId, currentAccount.getId());
-            redirectAttributes.addFlashAttribute("successMessage", "Hủy đặt vé thành công!");
+            
+            if (isPaymentPage) {
+                // Lấy thông tin form trước khi hủy để người dùng có thể chỉnh sửa lại
+                BookingFormDTO prefilledForm = bookingService.getBookingFormFromBooking(bookingId);
+                UUID tripId = bookingService.cancelBooking(bookingId, currentAccount.getId());
+                
+                redirectAttributes.addFlashAttribute("bookingForm", prefilledForm);
+                redirectAttributes.addFlashAttribute("successMessage", "Đã hủy giao dịch thanh toán. Bạn có thể chọn lại ghế hoặc chỉnh sửa thông tin.");
+                return "redirect:/booking/" + tripId;
+            } else {
+                bookingService.cancelBooking(bookingId, currentAccount.getId());
+                redirectAttributes.addFlashAttribute("successMessage", "Hủy đặt vé thành công!");
+                return "redirect:/booking/my-trips";
+            }
         } catch (AppException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/booking/my-trips";
         }
-        return "redirect:/booking/my-trips";
     }
 }
