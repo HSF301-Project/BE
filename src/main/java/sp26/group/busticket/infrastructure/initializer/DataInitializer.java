@@ -58,7 +58,7 @@ public class DataInitializer implements CommandLineRunner {
         initRouteStop(sgDn, initLocation("Trạm nghỉ Quy Nhơn", "Bình Định"), 3, StopTypeEnum.BOTH, 650, 680f);
 
         // 4. Initialize Coaches & Seats
-        Coach limousine = initCoach("51B-12345", "Xe Limousine", 22);
+        Coach limousine = initCoach("51B-12345", "Xe Limousine", 22  );
         Coach sleeper = initCoach("51B-67890", "Xe khách", 40);
 
         // 5. Initialize Trips
@@ -178,6 +178,7 @@ public class DataInitializer implements CommandLineRunner {
                             .plateNumber(plate)
                             .coachType(type)
                             .totalSeats(seats)
+                            .status(sp26.group.busticket.modules.enumType.CoachStatusEnum.AVAILABLE)
                             .build());
                     
                     // Generate Seats

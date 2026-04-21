@@ -58,7 +58,9 @@ public class TripRequestDTO {
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime departureTime;
 
-    @NotNull(message = "Thời gian đến dự kiến không được để trống")
+    private Integer travelTimeHours;
+    private Integer travelTimeMinutes;
+
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime arrivalTime;
 

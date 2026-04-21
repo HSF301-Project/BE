@@ -228,6 +228,12 @@ public class TripServiceImpl implements TripService {
     // =====================================================================
 
     private void validateTripBusinessRules(TripRequestDTO req, boolean enforceFutureDeparture) {
+        // Calculate arrivalTime if duration is provided
+        if (req.getArrivalTime() == null && req.getDepartureTime() != null && req.getTravelTimeHours() != null) {
+            int totalMins = req.getTravelTimeHours() * 60 + (req.getTravelTimeMinutes() != null ? req.getTravelTimeMinutes() : 0);
+            req.setArrivalTime(req.getDepartureTime().plusMinutes(totalMins));
+        }
+
         if (req.getDepartureTime() == null || req.getArrivalTime() == null) {
             throw new AppException(ErrorCode.INVALID_INPUT, "Thiếu thời gian khởi hành hoặc thời gian đến.");
         }
@@ -236,6 +242,36 @@ public class TripServiceImpl implements TripService {
         }
         if (enforceFutureDeparture && !req.getDepartureTime().isAfter(LocalDateTime.now())) {
             throw new AppException(ErrorCode.INVALID_INPUT, "Thời gian khởi hành phải ở tương lai.");
+        }
+
+        // Overlapping trip validation using in-memory check (avoids adding new repository method)
+        LocalDateTime dep = req.getDepartureTime();
+        LocalDateTime arr = req.getArrivalTime();
+        UUID excludeId = req.getId();
+
+        if (req.getCoachId() != null) {
+            List<Trip> coachTrips = tripRepository.findByCoach_Id(req.getCoachId());
+            boolean coachConflict = coachTrips.stream().anyMatch(t ->
+                !t.getTripStatus().equals(TripStatusEnum.COMPLETED)
+                && (excludeId == null || !t.getId().equals(excludeId))
+                && t.getDepartureTime().isBefore(arr)
+                && t.getArrivalTime().isAfter(dep)
+            );
+            if (coachConflict) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Xe này đã được xếp vào một chuyến đi khác trong khoảng thời gian này.");
+            }
+        }
+
+        if (req.getDriverId() != null) {
+            List<Trip> driverTrips = tripRepository.findAll().stream()
+                .filter(t -> t.getDriver() != null && t.getDriver().getId().equals(req.getDriverId()))
+                .filter(t -> !t.getTripStatus().equals(TripStatusEnum.COMPLETED))
+                .filter(t -> excludeId == null || !t.getId().equals(excludeId))
+                .filter(t -> t.getDepartureTime().isBefore(arr) && t.getArrivalTime().isAfter(dep))
+                .collect(Collectors.toList());
+            if (!driverTrips.isEmpty()) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Tài xế này đã được xếp vào một chuyến đi khác trong khoảng thời gian này.");
+            }
         }
     }
 
@@ -379,6 +415,7 @@ public class TripServiceImpl implements TripService {
                 .routeTimeline(timeline)
                 .nextStopLabel(nextStop)
                 .minutesUntilDeparture(minutesUntilDeparture)
+                .formattedDepartureCountdown(minutesUntilDeparture != null ? formatDuration(minutesUntilDeparture) : null)
                 .build();
     }
 
@@ -443,6 +480,7 @@ public class TripServiceImpl implements TripService {
                     .pointType(pointType.toUpperCase())
                     .pointTypeLabel(pointTypeLabel)
                     .offsetMinutes((int) offsetMinutes)
+                    .formattedOffset(formatDuration((int) offsetMinutes))
                     .build());
         }
         return result;
@@ -535,6 +573,19 @@ public class TripServiceImpl implements TripService {
 
     private String calculateDuration(LocalDateTime start, LocalDateTime end) {
         java.time.Duration duration = java.time.Duration.between(start, end);
-        return String.format("%dh %02dm", duration.toHours(), duration.toMinutesPart());
+        return formatDuration((int) duration.toMinutes());
+    }
+
+    private String formatDuration(int totalMinutes) {
+        if (totalMinutes <= 0) return "0 phút";
+        int days = totalMinutes / (24 * 60);
+        int hours = (totalMinutes % (24 * 60)) / 60;
+        int mins = totalMinutes % 60;
+
+        StringBuilder sb = new StringBuilder();
+        if (days > 0) sb.append(days).append(" ngày ");
+        if (hours > 0) sb.append(hours).append(" giờ ");
+        if (mins > 0 || sb.length() == 0) sb.append(mins).append(" phút");
+        return sb.toString().trim();
     }
 }

@@ -173,7 +173,7 @@
                                                 <div class="text-right">
                                                     <div class="text-xs font-bold text-ink bg-surface-hover border border-surface-border rounded-lg px-2 py-1"
                                                          th:text="${stop.etaTime}">08:45</div>
-                                                    <div class="text-[11px] font-semibold text-ink-muted mt-1" th:text="'+' + ${stop.offsetMinutes} + ' phút'">+45 phút</div>
+                                                    <div class="text-[11px] font-semibold text-ink-muted mt-1" th:text="'+' + ${stop.formattedOffset}">+45 phút</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -192,9 +192,9 @@
                         <!-- Xuất phát -->
                         <td class="td">
                             <p class="font-semibold text-ink" th:text="${trip.departureDateTime}">09:45 20/04</p>
-                            <p th:if="${trip.status == 'SCHEDULED' and trip.minutesUntilDeparture != null and trip.minutesUntilDeparture > 0}"
+                            <p th:if="${trip.status == 'SCHEDULED' and trip.formattedDepartureCountdown != null}"
                                class="text-[11px] font-semibold text-orange-500 mt-0.5"
-                               th:text="'→ ' + ${trip.minutesUntilDeparture} + ' phút nữa'"></p>
+                               th:text="'→ ' + ${trip.formattedDepartureCountdown} + ' nữa'"></p>
                             <p th:if="${trip.status == 'SCHEDULED' and trip.minutesUntilDeparture != null and trip.minutesUntilDeparture <= 0}"
                                class="text-[11px] font-semibold text-red-500 mt-0.5">→ Đến giờ</p>
                         </td>

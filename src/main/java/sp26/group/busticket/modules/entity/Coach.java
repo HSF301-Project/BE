@@ -8,6 +8,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import sp26.group.busticket.modules.enumType.CoachStatusEnum;
 import sp26.group.busticket.infrastructure.persistence.BaseEntity;
 
 @Entity
@@ -27,4 +30,9 @@ public class Coach extends BaseEntity {
 
     @Column(name = "total_seats", nullable = false)
     private Integer totalSeats;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private CoachStatusEnum status;
 }

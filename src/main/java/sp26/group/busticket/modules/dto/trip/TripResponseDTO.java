@@ -42,6 +42,7 @@ public class TripResponseDTO {
 
     private boolean hasIssue;
     private Integer minutesUntilDeparture;
+    private String formattedDepartureCountdown;
 
     /** Timeline các điểm theo tuyến + ETA để hiển thị trong bảng quản lý. */
     private List<TripStopEtaDTO> routeTimeline;

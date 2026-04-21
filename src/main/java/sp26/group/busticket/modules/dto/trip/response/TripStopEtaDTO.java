@@ -20,4 +20,5 @@ public class TripStopEtaDTO {
     private String pointTypeLabel;
     /** offset phút kể từ lúc xuất bến, nếu được cấu hình trực tiếp */
     private Integer offsetMinutes;
+    private String formattedOffset;
 }

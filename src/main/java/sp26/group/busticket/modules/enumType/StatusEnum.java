@@ -3,5 +3,6 @@ package sp26.group.busticket.modules.enumType;
 public enum StatusEnum {
     ACTIVE,
     BLOCKED,
-    PENDING
+    PENDING,
+    WORKING
 }
