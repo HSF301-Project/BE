@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
 public class RegisterRequestDTO {
 
     @NotBlank(message = "Email không được để trống")
-    @Email(message = "Email không hợp lệ")
     private String email;
 
     @NotBlank(message = "Họ tên không được để trống")

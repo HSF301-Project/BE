@@ -45,7 +45,7 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/process-login")
-                        .usernameParameter("email")
+                        .usernameParameter("phone")
                         .passwordParameter("password")
                         .successHandler((request, response, authentication) -> {
                             Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
@@ -72,10 +72,12 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
+    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+        provider.setHideUserNotFoundExceptions(false);
+        return provider;
     }
 
     @Bean
