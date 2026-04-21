@@ -27,6 +27,9 @@ public class StaffCreateRequestDTO {
     @NotBlank(message = "Mat khau khong duoc de trong")
     private String password;
 
+    // Mac dinh STAFF neu khong chon role
+    private String role;
+
     // Neu khong truyen, he thong mac dinh ACTIVE
     private StatusEnum status;
 }

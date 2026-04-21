@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface StaffService {
     StaffResponseDTO createStaff(StaffCreateRequestDTO request);
 
-    Page<StaffResponseDTO> getStaffPage(String keyword, int page, int size);
+    Page<StaffResponseDTO> getStaffPage(String keyword, String role, int page, int size);
 
     List<StaffResponseDTO> getAllStaff();
 

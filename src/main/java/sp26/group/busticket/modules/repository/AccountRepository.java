@@ -9,7 +9,6 @@ import sp26.group.busticket.modules.entity.Account;
 import sp26.group.busticket.modules.enumType.StatusEnum;
 
 import java.util.List;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -34,7 +33,10 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     @Query("""
             SELECT a
             FROM Account a
-            WHERE a.role = :role
+            WHERE (
+                   (:role = 'ALL' AND UPPER(a.role) IN ('STAFF', 'ASSISTANT', 'DRIVER'))
+                   OR UPPER(a.role) = UPPER(:role)
+              )
               AND (
                    :keyword IS NULL OR :keyword = ''
                    OR LOWER(a.email) LIKE LOWER(CONCAT('%', :keyword, '%'))

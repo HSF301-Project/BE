@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -19,6 +20,7 @@ import sp26.group.busticket.modules.dto.account.response.StaffResponseDTO;
 import sp26.group.busticket.modules.enumType.StatusEnum;
 import sp26.group.busticket.modules.service.StaffService;
 
+import java.util.Locale;
 import java.util.UUID;
 
 @Controller
@@ -29,16 +31,54 @@ public class AdminStaffController {
     private final StaffService staffService;
 
     @GetMapping
-    public String listStaff(@RequestParam(name = "q", required = false) String keyword,
+    public String listStaff(@RequestParam(name = "q", required = false) String q,
+                            @RequestParam(name = "search", required = false) String search,
+                            @RequestParam(name = "role", required = false) String role,
                             @RequestParam(name = "page", defaultValue = "0") int page,
                             @RequestParam(name = "size", defaultValue = "10") int size,
                             Model model) {
-        var staffPage = staffService.getStaffPage(keyword, page, size);
+        String keyword = StringUtils.hasText(search) ? search.trim() : (StringUtils.hasText(q) ? q.trim() : null);
+        String selectedRole = StringUtils.hasText(role) ? role.trim().toUpperCase(Locale.ROOT) : "ALL";
+
+        var staffPage = staffService.getStaffPage(keyword, selectedRole, page, size);
         model.addAttribute("staffPage", staffPage);
+        model.addAttribute("users", staffPage.getContent());
+        model.addAttribute("search", keyword == null ? "" : keyword);
         model.addAttribute("keyword", keyword == null ? "" : keyword);
+        model.addAttribute("role", selectedRole);
         model.addAttribute("currentPage", page);
         model.addAttribute("pageSize", size);
-        return "admin/staff/list";
+        return "admin/user-list";
+    }
+
+    @PostMapping("/status/{staffId}")
+    public String toggleStaffStatus(@PathVariable UUID staffId,
+                                    RedirectAttributes redirectAttributes) {
+        StaffResponseDTO staff = staffService.getStaffById(staffId).orElse(null);
+        if (staff == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Khong tim thay staff");
+            return "redirect:/admin/staff";
+        }
+
+        StatusEnum nextStatus = staff.getStatus() == StatusEnum.ACTIVE ? StatusEnum.BLOCKED : StatusEnum.ACTIVE;
+        StaffUpdateRequestDTO request = StaffUpdateRequestDTO.builder()
+                .email(staff.getEmail())
+                .fullName(staff.getFullName())
+                .phone(staff.getPhone())
+                .status(nextStatus)
+                .build();
+
+        try {
+            boolean updated = staffService.updateStaff(staffId, request).isPresent();
+            if (!updated) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Khong tim thay staff");
+                return "redirect:/admin/staff";
+            }
+            redirectAttributes.addFlashAttribute("successMessage", "Cap nhat trang thai staff thanh cong");
+        } catch (AppException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getErrorCode().getDefaultMessage());
+        }
+        return "redirect:/admin/staff";
     }
 
     @GetMapping("/create")

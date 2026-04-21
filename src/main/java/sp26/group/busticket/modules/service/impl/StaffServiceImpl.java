@@ -20,8 +20,10 @@ import sp26.group.busticket.modules.repository.AccountRepository;
 import sp26.group.busticket.modules.service.StaffService;
 
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -29,6 +31,7 @@ import java.util.UUID;
 public class StaffServiceImpl implements StaffService {
 
     private static final String STAFF_ROLE = "STAFF";
+    private static final Set<String> MANAGEABLE_ROLES = Set.of("STAFF", "ASSISTANT", "DRIVER");
 
     private final AccountRepository accountRepository;
     private final StaffMapper staffMapper;
@@ -42,7 +45,7 @@ public class StaffServiceImpl implements StaffService {
         }
 
         Account staff = staffMapper.toAccount(request);
-        staff.setRole(STAFF_ROLE);
+        staff.setRole(normalizeCreateRole(request.getRole()));
         staff.setStatus(request.getStatus() == null ? StatusEnum.ACTIVE : request.getStatus());
         staff.setPassword(passwordEncoder.encode(request.getPassword()));
 
@@ -51,11 +54,12 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<StaffResponseDTO> getStaffPage(String keyword, int page, int size) {
+    public Page<StaffResponseDTO> getStaffPage(String keyword, String role, int page, int size) {
         int safePage = Math.max(page, 0);
         int safeSize = size <= 0 ? 10 : size;
         Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return accountRepository.searchStaffByKeyword(STAFF_ROLE, keyword, pageable)
+        String normalizedRole = normalizeRole(role);
+        return accountRepository.searchStaffByKeyword(normalizedRole, keyword, pageable)
                 .map(staffMapper::toStaffResponseDTO);
     }
 
@@ -63,7 +67,7 @@ public class StaffServiceImpl implements StaffService {
     @Transactional(readOnly = true)
     public List<StaffResponseDTO> getAllStaff() {
         return accountRepository.findAll().stream()
-                .filter(this::isStaff)
+                .filter(this::isManageableRole)
                 .sorted(Comparator.comparing(Account::getCreatedAt).reversed())
                 .map(staffMapper::toStaffResponseDTO)
                 .toList();
@@ -73,7 +77,7 @@ public class StaffServiceImpl implements StaffService {
     @Transactional(readOnly = true)
     public Optional<StaffResponseDTO> getStaffById(UUID staffId) {
         return accountRepository.findById(staffId)
-                .filter(this::isStaff)
+                .filter(this::isManageableRole)
                 .map(staffMapper::toStaffResponseDTO);
     }
 
@@ -81,7 +85,7 @@ public class StaffServiceImpl implements StaffService {
     @Transactional
     public Optional<StaffResponseDTO> updateStaff(UUID staffId, StaffUpdateRequestDTO request) {
         return accountRepository.findById(staffId)
-                .filter(this::isStaff)
+                .filter(this::isManageableRole)
                 .map(existingStaff -> {
                     Optional<Account> accountWithEmail = accountRepository.findByEmail(request.getEmail());
                     if (accountWithEmail.isPresent() && !accountWithEmail.get().getId().equals(staffId)) {
@@ -103,7 +107,7 @@ public class StaffServiceImpl implements StaffService {
     @Override
     @Transactional
     public boolean deleteStaff(UUID staffId) {
-        Optional<Account> staff = accountRepository.findById(staffId).filter(this::isStaff);
+        Optional<Account> staff = accountRepository.findById(staffId).filter(this::isManageableRole);
         if (staff.isEmpty()) {
             return false;
         }
@@ -112,8 +116,24 @@ public class StaffServiceImpl implements StaffService {
         return true;
     }
 
-    private boolean isStaff(Account account) {
-        return STAFF_ROLE.equalsIgnoreCase(account.getRole());
+    private String normalizeRole(String role) {
+        if (role == null || role.isBlank()) {
+            return "ALL";
+        }
+        String normalized = role.trim().toUpperCase(Locale.ROOT);
+        return MANAGEABLE_ROLES.contains(normalized) ? normalized : "ALL";
+    }
+
+    private boolean isManageableRole(Account account) {
+        return account.getRole() != null && MANAGEABLE_ROLES.contains(account.getRole().toUpperCase(Locale.ROOT));
+    }
+
+    private String normalizeCreateRole(String role) {
+        if (role == null || role.isBlank()) {
+            return STAFF_ROLE;
+        }
+        String normalized = role.trim().toUpperCase(Locale.ROOT);
+        return MANAGEABLE_ROLES.contains(normalized) ? normalized : STAFF_ROLE;
     }
 }
 
