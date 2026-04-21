@@ -44,20 +44,42 @@
         });
     }
 
+    function syncPassengerPhoneCopies(value) {
+        $$('.passenger-phone-copy').forEach(inp => {
+            inp.value = value;
+        });
+    }
+
+    function syncPassengerEmailCopies(value) {
+        $$('.passenger-email-copy').forEach(inp => {
+            inp.value = value;
+        });
+    }
+
     // ── Build passenger form rows dynamically ─────────────────
     function refreshPassengerForms() {
         const container = $('#passenger-forms');
         if (!container) return;
 
-        // Keep the typed name before re-render
+        // Get session data
+        const sessionData = $('#user-session-data');
+        const sessionName = sessionData ? sessionData.dataset.fullName : '';
+        const sessionPhone = sessionData ? sessionData.dataset.phoneNumber : '';
+        const sessionEmail = sessionData ? sessionData.dataset.email : '';
+
+        // Keep the typed info before re-render, or use session data if first time
         const existingPrimaryInput = document.getElementById('primary-passenger-name');
-        const existingName = existingPrimaryInput ? existingPrimaryInput.value : '';
+        const existingPhoneInput = document.getElementById('primary-passenger-phone');
+        const existingEmailInput = document.getElementById('primary-passenger-email');
+
+        const existingName = existingPrimaryInput ? existingPrimaryInput.value : sessionName;
+        const existingPhone = existingPhoneInput ? existingPhoneInput.value : sessionPhone;
+        const existingEmail = existingEmailInput ? existingEmailInput.value : sessionEmail;
 
         container.innerHTML = '';
 
         if (selectedSeats.length > 0) {
             const primarySeat = selectedSeats[0];
-            const primaryDeckLabel = primarySeat.deck === 'lower' ? 'Tầng dưới' : 'Tầng trên';
             const primaryBorderColor = primarySeat.deck === 'lower' ? 'border-primary' : 'border-secondary';
             const primaryBadgeColor = primarySeat.deck === 'lower' ? 'text-primary' : 'text-secondary';
             const selectedSeatLabels = selectedSeats
@@ -67,28 +89,21 @@
             const wrapper = document.createElement('div');
             wrapper.className = `p-6 bg-surface-container-lowest rounded-2xl shadow-[0_12px_32px_rgba(26,27,33,0.06)] border-l-4 ${primaryBorderColor}`;
             wrapper.innerHTML = `
-                <div class="flex flex-col md:flex-row md:items-center gap-6">
-                    <div class="flex-shrink-0 w-12 h-12 bg-primary-fixed flex items-center justify-center rounded-full ${primaryBadgeColor} font-bold">1</div>
-                    <div class="flex-grow space-y-4">
+                <div class="flex flex-col md:flex-row md:items-start gap-6">
+                    <div class="flex-shrink-0 w-12 h-12 bg-primary-fixed flex items-center justify-center rounded-full ${primaryBadgeColor} font-bold mt-2">1</div>
+                    <div class="flex-grow space-y-6">
                         <div class="space-y-1">
                             <label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Ghế đã chọn</label>
                             <div class="flex items-center ${primaryBadgeColor} font-bold">
                                 <span class="material-symbols-outlined mr-1">event_seat</span>
                                 ${selectedSeatLabels}
                             </div>
+                            <input type="hidden" name="passengers[0].seatId" value="${primarySeat.seatId}"/>
+                            <input type="hidden" name="passengers[0].deck" value="${primarySeat.deck}"/>
+                            <input type="hidden" name="passengers[0].seatLabel" value="${primarySeat.seatId}"/>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                            <div class="space-y-1">
-                                <label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Ghế đại diện</label>
-                                <div class="flex items-center ${primaryBadgeColor} font-bold">
-                                    <span class="material-symbols-outlined mr-1">event_seat</span>
-                                    ${primarySeat.seatId} (${primaryDeckLabel})
-                                </div>
-                                <input type="hidden" name="passengers[0].seatId" value="${primarySeat.seatId}"/>
-                                <input type="hidden" name="passengers[0].deck" value="${primarySeat.deck}"/>
-                                <input type="hidden" name="passengers[0].seatLabel" value="${primarySeat.seatId}"/>
-                            </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="space-y-1">
                                 <label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest" for="primary-passenger-name">Họ và tên</label>
                                 <input
@@ -100,9 +115,33 @@
                                     placeholder="Ví dụ: Nguyễn Văn A"
                                     required
                                 />
-                                <p class="text-xs text-on-surface-variant">Tên này sẽ được áp dụng cho toàn bộ ghế đã chọn.</p>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest" for="primary-passenger-phone">Số điện thoại</label>
+                                <input
+                                    id="primary-passenger-phone"
+                                    class="passenger-phone-input w-full bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-surface-tint p-3 text-on-surface placeholder:text-outline"
+                                    type="tel"
+                                    name="passengers[0].phoneNumber"
+                                    value="${existingPhone}"
+                                    placeholder="Ví dụ: 0987654321"
+                                    required
+                                />
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest" for="primary-passenger-email">Email</label>
+                                <input
+                                    id="primary-passenger-email"
+                                    class="passenger-email-input w-full bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-surface-tint p-3 text-on-surface placeholder:text-outline"
+                                    type="email"
+                                    name="passengers[0].email"
+                                    value="${existingEmail}"
+                                    placeholder="Ví dụ: email@example.com"
+                                    required
+                                />
                             </div>
                         </div>
+                        <p class="text-xs text-on-surface-variant italic">Thông tin này sẽ được áp dụng cho toàn bộ vé trong đơn hàng này.</p>
 
                         <div class="hidden" id="passenger-copies">
                             ${selectedSeats.slice(1).map((seat, i) => {
@@ -112,6 +151,8 @@
                                     <input type="hidden" name="passengers[${index}].deck" value="${seat.deck}"/>
                                     <input type="hidden" name="passengers[${index}].seatLabel" value="${seat.seatId}"/>
                                     <input type="hidden" class="passenger-name-copy" name="passengers[${index}].fullName" value="${existingName}"/>
+                                    <input type="hidden" class="passenger-phone-copy" name="passengers[${index}].phoneNumber" value="${existingPhone}"/>
+                                    <input type="hidden" class="passenger-email-copy" name="passengers[${index}].email" value="${existingEmail}"/>
                                 `;
                             }).join('')}
                         </div>
@@ -119,10 +160,19 @@
                 </div>`;
             container.appendChild(wrapper);
 
-            const primaryInput = $('#primary-passenger-name');
-            if (primaryInput) {
-                primaryInput.addEventListener('input', () => syncPassengerNameCopies(primaryInput.value));
-                syncPassengerNameCopies(primaryInput.value);
+            // Add event listeners for syncing
+            const primaryNameInput = $('#primary-passenger-name');
+            const primaryPhoneInput = $('#primary-passenger-phone');
+            const primaryEmailInput = $('#primary-passenger-email');
+
+            if (primaryNameInput) {
+                primaryNameInput.addEventListener('input', () => syncPassengerNameCopies(primaryNameInput.value));
+            }
+            if (primaryPhoneInput) {
+                primaryPhoneInput.addEventListener('input', () => syncPassengerPhoneCopies(primaryPhoneInput.value));
+            }
+            if (primaryEmailInput) {
+                primaryEmailInput.addEventListener('input', () => syncPassengerEmailCopies(primaryEmailInput.value));
             }
         }
 
