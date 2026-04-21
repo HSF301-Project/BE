@@ -223,6 +223,14 @@ public class TripServiceImpl implements TripService {
                 .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
     }
 
+    @Override
+    public List<TripStopEtaDTO> getTripStopEtas(UUID tripId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+        DateTimeFormatter timeOnly = DateTimeFormatter.ofPattern("HH:mm");
+        return buildRouteTimeline(trip, timeOnly);
+    }
+
     // =====================================================================
     // PRIVATE HELPERS
     // =====================================================================
@@ -466,7 +474,7 @@ public class TripServiceImpl implements TripService {
     private List<TripStopEtaDTO> buildRouteTimeline(Trip trip, DateTimeFormatter timeOnly) {
         // Build from proper RouteStop entities (FK → Location)
         List<StopWithKm> stops = new ArrayList<>();
-        stops.add(new StopWithKm(trip.getRoute().getDepartureLocation().getName(), 0f, "START", null));
+        stops.add(new StopWithKm(trip.getRoute().getDepartureLocation().getName(), 0f, "START", null, trip.getRoute().getDepartureLocation().getId()));
 
         // Iterate structured RouteStop list (sorted by stopOrder)
         if (trip.getRoute().getStops() != null) {
@@ -476,13 +484,14 @@ public class TripServiceImpl implements TripService {
                         rs.getLocation().getName(),
                         rs.getDistanceFromStart(),
                         "INTERMEDIATE",
-                        new StopMeta(stopType, rs.getOffsetMinutes())));
+                        new StopMeta(stopType, rs.getOffsetMinutes()),
+                        rs.getLocation().getId()));
             }
         }
 
         Float totalKm = trip.getRoute().getDistance();
         if (totalKm == null || totalKm <= 0) totalKm = 1f;
-        stops.add(new StopWithKm(trip.getRoute().getArrivalLocation().getName(), totalKm, "END", null));
+        stops.add(new StopWithKm(trip.getRoute().getArrivalLocation().getName(), totalKm, "END", null, trip.getRoute().getArrivalLocation().getId()));
 
         long totalMinutes = java.time.Duration.between(trip.getDepartureTime(), trip.getArrivalTime()).toMinutes();
         if (totalMinutes <= 0 && trip.getRoute().getDuration() != null) totalMinutes = trip.getRoute().getDuration();
@@ -518,6 +527,7 @@ public class TripServiceImpl implements TripService {
                 default -> "Đón & trả";
             };
             result.add(TripStopEtaDTO.builder()
+                    .stopId(s.locationId)
                     .stopName(s.name)
                     .etaTime(eta.format(timeOnly))
                     .stopType(stopType)
@@ -556,12 +566,14 @@ public class TripServiceImpl implements TripService {
         final Float km;
         final String type;
         final StopMeta meta;
+        final UUID locationId;
 
-        private StopWithKm(String name, Float km, String type, StopMeta meta) {
+        private StopWithKm(String name, Float km, String type, StopMeta meta, UUID locationId) {
             this.name = name;
             this.km = km;
             this.type = type;
             this.meta = meta;
+            this.locationId = locationId;
         }
     }
 

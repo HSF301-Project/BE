@@ -161,9 +161,9 @@
                                         <p class="text-2xl font-black text-primary" style="font-family:'Plus Jakarta Sans',sans-serif"
                                            th:text="${trip.fromCity}">HCM</p>
                                         <p class="text-xs text-on-surface-variant font-medium mt-0.5 truncate"
-                                           th:text="${trip.departureStation}">Bến xe Miền Đông</p>
+                                           th:text="${trip.pickupLocationName}">Bến xe Miền Đông</p>
                                         <p class="text-sm font-bold text-on-surface mt-1"
-                                           th:text="${trip.departureTime}">08:30</p>
+                                           th:text="${trip.pickupTime}">08:30</p>
                                     </div>
 
                                     <div class="flex-1 flex flex-col items-center">
@@ -178,9 +178,9 @@
                                         <p class="text-2xl font-black text-primary" style="font-family:'Plus Jakarta Sans',sans-serif"
                                            th:text="${trip.toCity}">DLT</p>
                                         <p class="text-xs text-on-surface-variant font-medium mt-0.5 truncate"
-                                           th:text="${trip.arrivalStation}">Bến xe Đà Lạt</p>
+                                           th:text="${trip.dropoffLocationName}">Bến xe Đà Lạt</p>
                                         <p class="text-sm font-bold text-on-surface mt-1"
-                                           th:text="${trip.arrivalTime}">14:00</p>
+                                           th:text="${trip.dropoffTime}">14:00</p>
                                     </div>
                                 </div>
                             </div>

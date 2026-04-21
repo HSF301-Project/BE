@@ -39,6 +39,14 @@ public class Booking extends BaseEntity {
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pickup_location_id", nullable = false)
+    private Location pickupLocation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dropoff_location_id", nullable = false)
+    private Location dropoffLocation;
+
     @Column(name = "total_amount", nullable = false)
     private BigDecimal totalAmount;
 

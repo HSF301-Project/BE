@@ -158,6 +158,15 @@
                             <span class="material-symbols-outlined text-primary mt-1">trip_origin</span>
                         </div>
                         <div class="border-l-2 border-dashed border-outline-variant ml-3 py-2"></div>
+                        <div th:each="stop : ${trip.stopEtas}" th:if="${stop.stopType == 'INTERMEDIATE'}" class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1" th:text="${stop.pointTypeLabel}"></p>
+                                <p class="font-bold text-on-surface" th:text="${stop.stopName}"></p>
+                                <p class="text-sm text-on-surface-variant" th:text="${stop.etaTime}"></p>
+                            </div>
+                            <span class="material-symbols-outlined text-primary mt-1">location_on</span>
+                        </div>
+                        <div class="border-l-2 border-dashed border-outline-variant ml-3 py-2"></div>
                         <div class="flex items-start justify-between">
                             <div>
                                 <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Điểm đến</p>
@@ -169,6 +178,29 @@
                     </div>
 
                     <hr class="border-outline-variant opacity-30 mb-8"/>
+
+                    <div class="space-y-3 mb-8">
+                        <div class="flex flex-col gap-1">
+                            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Điểm đón</p>
+                            <select th:field="*{pickupLocationId}" class="w-full rounded-xl border-surface-border bg-white">
+                        <option th:each="stop : ${trip.stopEtas}"
+                                th:if="${stop.pointType == 'PICKUP' or stop.pointType == 'BOTH'}"
+                                th:value="${stop.stopId}"
+                                th:text="${stop.stopName + ' (' + stop.etaTime + ')'}">
+                        </option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Điểm trả</p>
+                    <select th:field="*{dropoffLocationId}" class="w-full rounded-xl border-surface-border bg-white">
+                        <option th:each="stop : ${trip.stopEtas}"
+                                th:if="${stop.pointType == 'DROPOFF' or stop.pointType == 'BOTH'}"
+                                th:value="${stop.stopId}"
+                                th:text="${stop.stopName + ' (' + stop.etaTime + ')'}">
+                        </option>
+                    </select>
+                        </div>
+                    </div>
 
                     <div class="space-y-3 mb-8">
                         <div class="flex flex-col gap-1">

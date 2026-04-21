@@ -1,5 +1,7 @@
 package sp26.group.busticket.modules.service.impl;
 
+import sp26.group.busticket.modules.dto.trip.response.TripStopEtaDTO;
+import sp26.group.busticket.modules.service.TripService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -45,6 +47,8 @@ public class BookingServiceImpl implements BookingService {
     private final SeatRepository seatRepository;
     private final PaymentRepository paymentRepository;
     private final AccountRepository accountRepository;
+    private final LocationRepository locationRepository;
+    private final TripService tripService;
     private final PasswordEncoder passwordEncoder;
 
     private static final int CLEANUP_MINUTES = 7;
@@ -72,9 +76,38 @@ public class BookingServiceImpl implements BookingService {
 
         BigDecimal totalAmount = trip.getPriceBase().multiply(BigDecimal.valueOf(form.getPassengers().size()));
 
+        Location pickupLocation = locationRepository.findById(form.getPickupLocationId())
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Điểm đón không hợp lệ."));
+        Location dropoffLocation = locationRepository.findById(form.getDropoffLocationId())
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Điểm trả không hợp lệ."));
+
+        if (pickupLocation.getId().equals(dropoffLocation.getId())) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Điểm đón và điểm trả không được trùng nhau.");
+        }
+
+        // Validate pickup time is before dropoff time
+        List<TripStopEtaDTO> tripStopEtas = tripService.getTripStopEtas(tripId);
+        Integer pickupOffset = tripStopEtas.stream()
+                .filter(stop -> stop.getStopId().equals(pickupLocation.getId()))
+                .map(TripStopEtaDTO::getOffsetMinutes)
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy thời gian đón hợp lệ."));
+
+        Integer dropoffOffset = tripStopEtas.stream()
+                .filter(stop -> stop.getStopId().equals(dropoffLocation.getId()))
+                .map(TripStopEtaDTO::getOffsetMinutes)
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy thời gian trả hợp lệ."));
+
+        if (pickupOffset >= dropoffOffset) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Điểm đón phải xảy ra trước điểm trả.");
+        }
+
         Booking booking = Booking.builder()
                 .user(currentAccount)
                 .trip(trip)
+                .pickupLocation(pickupLocation)
+                .dropoffLocation(dropoffLocation)
                 .totalAmount(totalAmount)
                 .status(BookingStatusEnum.PENDING)
                 .build();
@@ -132,10 +165,18 @@ public class BookingServiceImpl implements BookingService {
 
         // 3. Tạo Booking
         BigDecimal totalAmount = trip.getPriceBase().multiply(BigDecimal.valueOf(form.getSelectedSeats().size()));
+
+        Location pickupLocation = locationRepository.findById(form.getPickupLocationId())
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Điểm đón không hợp lệ."));
+        Location dropoffLocation = locationRepository.findById(form.getDropoffLocationId())
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Điểm trả không hợp lệ."));
+
         Booking booking = Booking.builder()
                 .user(userAccount) // Dùng account tìm được
                 .createdBy(staffAccount)
                 .trip(trip)
+                .pickupLocation(pickupLocation)
+                .dropoffLocation(dropoffLocation)
                 .totalAmount(totalAmount)
                 .status(BookingStatusEnum.CONFIRMED)
                 .build();
@@ -205,17 +246,38 @@ public class BookingServiceImpl implements BookingService {
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+        // Calculate pickup and dropoff times
+        List<TripStopEtaDTO> tripStopEtas = tripService.getTripStopEtas(trip.getId());
+        Integer pickupOffset = tripStopEtas.stream()
+                .filter(stop -> stop.getStopId().equals(booking.getPickupLocation().getId()))
+                .map(TripStopEtaDTO::getOffsetMinutes)
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.UNEXPECTED_ERROR, "Không tìm thấy offset cho điểm đón đã lưu."));
+
+        Integer dropoffOffset = tripStopEtas.stream()
+                .filter(stop -> stop.getStopId().equals(booking.getDropoffLocation().getId()))
+                .map(TripStopEtaDTO::getOffsetMinutes)
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.UNEXPECTED_ERROR, "Không tìm thấy offset cho điểm trả đã lưu."));
+
+        LocalDateTime actualPickupTime = trip.getDepartureTime().plusMinutes(pickupOffset);
+        LocalDateTime actualDropoffTime = trip.getDepartureTime().plusMinutes(dropoffOffset);
+
         return PaymentResponseDTO.builder()
                 .bookingId(bookingId)
                 .expiryTime(expiryAt.format(timeFormatter))
                 .expiryTimestamp(expiryAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
-                .fromCity(trip.getRoute().getDepartureLocation().getName())
-                .toCity(trip.getRoute().getArrivalLocation().getName())
+                .fromCity(trip.getRoute().getDepartureLocation().getCity())
+                .toCity(trip.getRoute().getArrivalLocation().getCity())
+                .pickupLocationName(booking.getPickupLocation().getName())
+                .dropoffLocationName(booking.getDropoffLocation().getName())
+                .pickupTime(actualPickupTime.format(timeFormatter))
+                .dropoffTime(actualDropoffTime.format(timeFormatter))
                 .departureTime(trip.getDepartureTime().format(timeFormatter))
                 .arrivalTime(trip.getArrivalTime().format(timeFormatter))
                 .dateLabel(trip.getDepartureTime().format(dateFormatter))
                 .busTypeLabel(trip.getCoach().getCoachType())
-                .ticketCount((int) ticketRepository.findByBooking_Trip_Id(trip.getId()).stream().filter(t -> t.getBooking().getId().equals(bookingId)).count())
+                .ticketCount((int) ticketRepository.findAll().stream().filter(t -> t.getBooking().getId().equals(bookingId)).count())
                 .totalFormatted(vnFormat.format(booking.getTotalAmount()))
                 .build();
     }
@@ -278,14 +340,35 @@ public class BookingServiceImpl implements BookingService {
                 .map(p -> p.getPaidAt() != null ? p.getPaidAt().format(fullDateTimeFormatter) : booking.getCreatedAt().format(fullDateTimeFormatter))
                 .orElse(booking.getCreatedAt().format(fullDateTimeFormatter));
 
+        // Calculate pickup and dropoff times
+        List<TripStopEtaDTO> tripStopEtas = tripService.getTripStopEtas(trip.getId());
+        Integer pickupOffset = tripStopEtas.stream()
+                .filter(stop -> stop.getStopId().equals(booking.getPickupLocation().getId()))
+                .map(TripStopEtaDTO::getOffsetMinutes)
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.UNEXPECTED_ERROR, "Không tìm thấy offset cho điểm đón đã lưu."));
+
+        Integer dropoffOffset = tripStopEtas.stream()
+                .filter(stop -> stop.getStopId().equals(booking.getDropoffLocation().getId()))
+                .map(TripStopEtaDTO::getOffsetMinutes)
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.UNEXPECTED_ERROR, "Không tìm thấy offset cho điểm trả đã lưu."));
+
+        LocalDateTime actualPickupTime = trip.getDepartureTime().plusMinutes(pickupOffset);
+        LocalDateTime actualDropoffTime = trip.getDepartureTime().plusMinutes(dropoffOffset);
+
         return TicketConfirmationDTO.builder()
                 .id(firstTicket.getId())
                 .statusLabel("Đã xác nhận")
                 .bookingCode(firstTicket.getTicketCode())
-                .fromCityShort(trip.getRoute().getDepartureLocation().getName().toUpperCase())
-                .toCityShort(trip.getRoute().getArrivalLocation().getName().toUpperCase())
+                .fromCityShort(trip.getRoute().getDepartureLocation().getCity().toUpperCase())
+                .toCityShort(trip.getRoute().getArrivalLocation().getCity().toUpperCase())
                 .departureStation(trip.getRoute().getDepartureLocation().getName())
                 .arrivalStation(trip.getRoute().getArrivalLocation().getName())
+                .pickupLocationName(booking.getPickupLocation().getName())
+                .dropoffLocationName(booking.getDropoffLocation().getName())
+                .pickupTime(actualPickupTime.format(timeFormatter))
+                .dropoffTime(actualDropoffTime.format(timeFormatter))
                 .departureTime(trip.getDepartureTime().format(timeFormatter))
                 .arrivalTime(trip.getArrivalTime().format(timeFormatter))
                 .departureDateLabel(trip.getDepartureTime().format(dateFormatter))
@@ -320,6 +403,24 @@ public class BookingServiceImpl implements BookingService {
                             .map(p -> p.getPaidAt() != null ? p.getPaidAt().format(fullDateTimeFormatter) : b.getCreatedAt().format(fullDateTimeFormatter))
                             .orElse(b.getCreatedAt().format(fullDateTimeFormatter));
 
+                    // Calculate pickup and dropoff times for MyTripResponseDTO
+                    List<TripStopEtaDTO> tripStopEtas = tripService.getTripStopEtas(trip.getId());
+
+                    Integer pickupOffset = tripStopEtas.stream()
+                            .filter(stop -> stop.getStopId().equals(b.getPickupLocation().getId()))
+                            .map(TripStopEtaDTO::getOffsetMinutes)
+                            .findFirst()
+                            .orElseThrow(() -> new AppException(ErrorCode.UNEXPECTED_ERROR, "Không tìm thấy offset cho điểm đón đã lưu."));
+
+                    Integer dropoffOffset = tripStopEtas.stream()
+                            .filter(stop -> stop.getStopId().equals(b.getDropoffLocation().getId()))
+                            .map(TripStopEtaDTO::getOffsetMinutes)
+                            .findFirst()
+                            .orElseThrow(() -> new AppException(ErrorCode.UNEXPECTED_ERROR, "Không tìm thấy offset cho điểm trả đã lưu."));
+
+                    LocalDateTime actualPickupTime = trip.getDepartureTime().plusMinutes(pickupOffset);
+                    LocalDateTime actualDropoffTime = trip.getDepartureTime().plusMinutes(dropoffOffset);
+
                     return MyTripResponseDTO.builder()
                             .id(b.getId())
                             .bookingCode(ticketRepository.findAll().stream()
@@ -328,12 +429,16 @@ public class BookingServiceImpl implements BookingService {
                             .status(status)
                             .busTypeLabel(trip.getCoach().getCoachType())
                             .daysUntilDeparture(java.time.Duration.between(now, trip.getDepartureTime()).toDays())
-                            .fromCity(trip.getRoute().getDepartureLocation().getName())
-                            .departureStation(trip.getRoute().getDepartureLocation().getName())
+                            .fromCity(trip.getRoute().getDepartureLocation().getCity())
+                            .departureStation(b.getPickupLocation().getName())
                             .departureTime(trip.getDepartureTime().format(timeFormatter))
-                            .toCity(trip.getRoute().getArrivalLocation().getName())
-                            .arrivalStation(trip.getRoute().getArrivalLocation().getName())
+                            .toCity(trip.getRoute().getArrivalLocation().getCity())
+                            .arrivalStation(b.getDropoffLocation().getName())
                             .arrivalTime(trip.getArrivalTime().format(timeFormatter))
+                            .pickupLocationName(b.getPickupLocation().getName())
+                            .dropoffLocationName(b.getDropoffLocation().getName())
+                            .pickupTime(actualPickupTime.format(timeFormatter))
+                            .dropoffTime(actualDropoffTime.format(timeFormatter))
                             .bookingDate(bookingDate)
                             .build();
                 })

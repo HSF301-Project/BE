@@ -28,4 +28,7 @@ public class StaffBookingRequestDTO {
     private List<String> selectedSeats; // List seat numbers (e.g., A1, A2)
 
     private String paymentMethod; // CASH, POS
+
+    private UUID pickupLocationId;
+    private UUID dropoffLocationId;
 }

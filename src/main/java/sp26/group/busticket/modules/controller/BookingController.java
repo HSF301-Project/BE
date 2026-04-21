@@ -25,6 +25,7 @@ import sp26.group.busticket.modules.repository.AccountRepository;
 import sp26.group.busticket.modules.repository.TripRepository;
 import sp26.group.busticket.modules.service.BookingService;
 import sp26.group.busticket.modules.service.SeatService;
+import sp26.group.busticket.modules.service.TripService;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -42,6 +43,7 @@ public class BookingController {
     private final TripMapper tripMapper;
     private final BookingService bookingService;
     private final AccountRepository accountRepository;
+    private final TripService tripService;
 
     @GetMapping("/{tripId}")
     public String showChooseSeat(@PathVariable UUID tripId, Model model) {
@@ -56,6 +58,7 @@ public class BookingController {
         TripBookingResponseDTO tripDTO = tripMapper.toTripBookingResponseDTO(trip);
         tripDTO.setDepartureDateTimeLabel(trip.getDepartureTime().format(dateTimeFormatter));
         tripDTO.setArrivalDateTimeLabel(trip.getArrivalTime().format(dateTimeFormatter));
+        tripDTO.setStopEtas(tripService.getTripStopEtas(tripId));
         
         model.addAttribute("trip", tripDTO);
         model.addAttribute("unitPrice", trip.getPriceBase());
@@ -83,6 +86,7 @@ public class BookingController {
             TripBookingResponseDTO tripDTO = tripMapper.toTripBookingResponseDTO(trip);
             tripDTO.setDepartureDateTimeLabel(trip.getDepartureTime().format(dateTimeFormatter));
             tripDTO.setArrivalDateTimeLabel(trip.getArrivalTime().format(dateTimeFormatter));
+            tripDTO.setStopEtas(tripService.getTripStopEtas(tripId));
 
             model.addAttribute("trip", tripDTO);
             model.addAttribute("unitPrice", trip.getPriceBase());

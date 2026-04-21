@@ -51,9 +51,9 @@
                         <div class="z-10 bg-surface-container-lowest pr-4">
                             <h2 class="text-2xl font-black text-primary" style="font-family:'Plus Jakarta Sans',sans-serif"
                                 th:text="${ticket.fromCityShort?.toUpperCase()}">HCM</h2>
-                            <p class="text-on-surface-variant text-sm font-medium" th:text="${ticket.departureStation}">Bến xe Miền Đông</p>
+                            <p class="text-on-surface-variant text-sm font-medium" th:text="${ticket.pickupLocationName}">Bến xe Miền Đông</p>
                             <p class="text-3xl font-extrabold mt-2 text-on-surface" style="font-family:'Plus Jakarta Sans',sans-serif"
-                               th:text="${ticket.departureTime}">08:30</p>
+                               th:text="${ticket.pickupTime}">08:30</p>
                         </div>
                         <div class="absolute left-0 right-0 h-[2px] bg-surface-variant top-1/2 -translate-y-1/2 -z-0"></div>
                         <div class="bg-surface-container-lowest px-4 z-10 flex flex-col items-center">
@@ -62,9 +62,9 @@
                         <div class="z-10 bg-surface-container-lowest pl-4 text-right">
                             <h2 class="text-2xl font-black text-primary" style="font-family:'Plus Jakarta Sans',sans-serif"
                                 th:text="${ticket.toCityShort?.toUpperCase()}">DLT</h2>
-                            <p class="text-on-surface-variant text-sm font-medium" th:text="${ticket.arrivalStation}">Bến xe Đà Lạt</p>
+                            <p class="text-on-surface-variant text-sm font-medium" th:text="${ticket.dropoffLocationName}">Bến xe Đà Lạt</p>
                             <p class="text-3xl font-extrabold mt-2 text-on-surface" style="font-family:'Plus Jakarta Sans',sans-serif"
-                               th:text="${ticket.arrivalTime}">14:00</p>
+                               th:text="${ticket.dropoffTime}">14:00</p>
                         </div>
                     </div>
 
