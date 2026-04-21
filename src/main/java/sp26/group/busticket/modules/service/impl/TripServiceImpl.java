@@ -250,15 +250,59 @@ public class TripServiceImpl implements TripService {
         UUID excludeId = req.getId();
 
         if (req.getCoachId() != null) {
-            List<Trip> coachTrips = tripRepository.findByCoach_Id(req.getCoachId());
-            boolean coachConflict = coachTrips.stream().anyMatch(t ->
-                !t.getTripStatus().equals(TripStatusEnum.COMPLETED)
-                && (excludeId == null || !t.getId().equals(excludeId))
-                && t.getDepartureTime().isBefore(arr)
-                && t.getArrivalTime().isAfter(dep)
-            );
-            if (coachConflict) {
-                throw new AppException(ErrorCode.INVALID_INPUT, "Xe này đã được xếp vào một chuyến đi khác trong khoảng thời gian này.");
+            List<Trip> coachTrips = tripRepository.findAllTripsByCoach(req.getCoachId());
+            
+            for (Trip existing : coachTrips) {
+                // Nếu là update, bỏ qua chính nó
+                if (excludeId != null && existing.getId().equals(excludeId)) continue;
+
+                // 1. Check xung đột thời gian (Overlap)
+                boolean isOverlapping = dep.isBefore(existing.getArrivalTime()) && 
+                                       arr.isAfter(existing.getDepartureTime());
+                
+                if (isOverlapping) {
+                    throw new AppException(ErrorCode.INVALID_INPUT, "Xe đang trong một lịch trình khác!");
+                }
+
+                // 2. Check thời gian nghỉ (Buffer Time - ít nhất 60 phút)
+                // Nếu chuyến mới khởi hành SAU khi chuyến cũ kết thúc
+                if (dep.isAfter(existing.getArrivalTime())) {
+                    LocalDateTime earliestPossible = existing.getArrivalTime().plusMinutes(60);
+                    if (dep.isBefore(earliestPossible)) {
+                        throw new AppException(ErrorCode.INVALID_INPUT, "Xe cần ít nhất 60 phút nghỉ ngơi giữa 2 chuyến.");
+                    }
+
+                    // 3. Check xung đột vị trí
+                    // Điểm xuất phát của chuyến mới phải là điểm đến của chuyến cũ
+                    String lastStop = existing.getRoute().getArrivalLocation().getName();
+                    String nextStart = routeRepository.findById(req.getRouteId())
+                            .orElseThrow(() -> new AppException(ErrorCode.ROUTE_NOT_FOUND))
+                            .getDepartureLocation().getName();
+                    
+                    if (!lastStop.equalsIgnoreCase(nextStart)) {
+                        throw new AppException(ErrorCode.INVALID_INPUT, 
+                            "Xung đột vị trí: Xe đang ở " + lastStop + ", không thể khởi hành từ " + nextStart);
+                    }
+                }
+                
+                // 4. Check nếu chuyến mới kết thúc TRƯỚC khi một chuyến đã có bắt đầu
+                if (arr.isBefore(existing.getDepartureTime())) {
+                    LocalDateTime latestPossibleEnd = existing.getDepartureTime().minusMinutes(60);
+                    if (arr.isAfter(latestPossibleEnd)) {
+                        throw new AppException(ErrorCode.INVALID_INPUT, "Xe cần ít nhất 60 phút nghỉ ngơi trước chuyến tiếp theo.");
+                    }
+                    
+                    // Điểm đến của chuyến mới phải là điểm xuất phát của chuyến sau
+                    String currentArrival = routeRepository.findById(req.getRouteId())
+                            .orElseThrow(() -> new AppException(ErrorCode.ROUTE_NOT_FOUND))
+                            .getArrivalLocation().getName();
+                    String nextDeparture = existing.getRoute().getDepartureLocation().getName();
+                    
+                    if (!currentArrival.equalsIgnoreCase(nextDeparture)) {
+                        throw new AppException(ErrorCode.INVALID_INPUT,
+                            "Xung đột vị trí: Chuyến tiếp theo khởi hành từ " + nextDeparture + ", xe không thể kết thúc tại " + currentArrival);
+                    }
+                }
             }
         }
 

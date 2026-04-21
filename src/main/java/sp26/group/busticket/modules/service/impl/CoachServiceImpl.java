@@ -105,7 +105,7 @@ public class CoachServiceImpl implements CoachService {
         Coach coach = coachRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.COACH_NOT_FOUND));
 
-        List<sp26.group.busticket.modules.entity.Trip> trips = tripRepository.findByCoach_Id(id);
+        List<sp26.group.busticket.modules.entity.Trip> trips = tripRepository.findAllTripsByCoach(id);
         
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
 
