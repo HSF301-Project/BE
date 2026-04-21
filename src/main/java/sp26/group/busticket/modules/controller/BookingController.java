@@ -66,6 +66,14 @@ public class BookingController {
         model.addAttribute("upperDeckSeats", upperDeckSeats);
         model.addAttribute("bookingForm", new BookingFormDTO());
 
+        // Thêm thông tin user vào model để FE tự động điền
+        try {
+            Account currentAccount = getCurrentAccount();
+            model.addAttribute("currentUser", currentAccount);
+        } catch (AppException e) {
+            // User chưa login, bỏ qua
+        }
+
         return "Passenger/basic/choose_seat";
     }
 

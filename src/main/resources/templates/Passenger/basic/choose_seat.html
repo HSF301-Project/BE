@@ -221,6 +221,12 @@
                     </div>
 
                     <span id="unit-price-value" th:data-price="${unitPrice}" class="hidden"></span>
+                    
+                    <div id="user-session-data" class="hidden"
+                          th:data-full-name="${currentUser != null ? currentUser.fullName : ''}"
+                          th:data-phone-number="${currentUser != null ? currentUser.phone : ''}"
+                          th:data-email="${currentUser != null ? currentUser.email : ''}">
+                     </div>
                 </div>
 
                 <button type="submit" id="btn-continue-payment"
