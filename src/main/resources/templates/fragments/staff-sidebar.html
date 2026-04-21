@@ -2,21 +2,19 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!--
-    Fragment: staff-sidebar
-    Usage: th:replace="~{fragments/staff-sidebar :: staff-sidebar(activeTab='trips')}"
-    activeTab values: 'trips' | 'checkin' | 'schedule' | 'passengers'
--->
 <aside th:fragment="staff-sidebar(activeTab)"
        class="fixed left-0 top-0 h-full flex flex-col pt-4 pb-8 bg-slate-50 dark:bg-slate-950 w-64 border-r border-slate-200 dark:border-slate-800 font-sans text-sm font-medium z-50">
 
-    <!-- Brand header -->
-    <div class="px-6 mb-8">
-        <div class="text-lg font-black text-blue-800 dark:text-blue-300">Driver Portal</div>
-        <div class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Staff Access</div>
+    <div class="px-6 mb-8 flex justify-between items-start">
+        <div>
+            <div class="text-lg font-black text-blue-800 dark:text-blue-300">Staff Portal</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Staff Access</div>
+        </div>
+        <a th:href="@{/}" class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors shadow-sm" title="Về trang chủ">
+            <span class="material-symbols-outlined text-[20px]">home</span>
+        </a>
     </div>
 
-    <!-- Nav links -->
     <nav class="flex-1 space-y-1">
         <a th:href="@{/staff/booking/trips}"
            th:class="${activeTab == 'trips'}
@@ -53,7 +51,6 @@
         </a>
     </nav>
 
-    <!-- Bottom actions -->
     <div class="px-4 mb-6">
         <button class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-orange-500/20 transition-all">
             Bắt đầu ca trực
