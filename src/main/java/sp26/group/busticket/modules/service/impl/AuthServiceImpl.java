@@ -33,17 +33,18 @@ public class AuthServiceImpl implements AuthService {
         if (accountRepository.existsByPhone(request.getPhone())) {
             throw new AppException(ErrorCode.PHONE_ALREADY_EXISTS);
         }
+        if (accountRepository.existsByEmail(request.getEmail())) {
+            throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
 
         Account account = authMapper.toAccount(request);
         account.setPassword(passwordEncoder.encode(request.getPassword()));
         
-        // Mặc định là ACTIVE vì người dùng yêu cầu bỏ OTP
+       
         account.setStatus(StatusEnum.ACTIVE);
         account.setRole("USER");
-
         account = accountRepository.save(account);
-
-        // Sau khi tạo account mới, quét các vé offline cũ để liên kết lịch sử
+       
         bookingService.linkGuestBookingsToAccount(account);
     }
 }
