@@ -5,43 +5,7 @@
 
 <aside th:replace="~{Admin/fragments/layout :: admin-sidebar('dashboard')}"></aside>
 <header th:replace="~{Admin/fragments/layout :: admin-topnav('Bảng điều khiển')}"></header>
-<aside class="admin-sidebar fixed left-0 top-0 h-full z-40 flex flex-col w-64 bg-slate-50 font-semibold tracking-tight shadow-lg">
-    <div class="p-6 flex flex-col gap-1 border-b border-slate-200">
-        <a th:href="@{/admin/dashboard}" class="text-xl font-black tracking-tighter text-blue-900">PREMIUM TRANSIT</a>
-        <span class="text-[10px] text-blue-600 uppercase tracking-[0.2em] font-black">Admin Panel</span>
-    </div>
-    <nav class="flex-1 px-4 py-8 space-y-2">
-        <a th:href="@{/admin/dashboard}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-700 text-white shadow-md shadow-blue-200 transition-all">
-            <span class="material-symbols-outlined">dashboard</span><span>Bảng điều khiển</span>
-        </a>
-        <a th:href="@{/admin/coaches}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
-            <span class="material-symbols-outlined">rv_hookup</span><span>Quản lý Xe</span>
-        </a>
-        <a th:href="@{/admin/trips}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
-            <span class="material-symbols-outlined">directions_bus</span><span>Lịch trình</span>
-        </a>
-        <a th:href="@{/admin/users}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all">
-            <span class="material-symbols-outlined">badge</span><span>Quản lý Nhân viên</span>
-        </a>
-        <a th:href="@{/admin/customers}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all font-bold">
-            <span class="material-symbols-outlined">group</span><span>Quản lý Khách hàng</span>
-        </a>
-    </nav>
-    <div class="p-4 border-t border-slate-200">
-        <div class="bg-white p-4 rounded-2xl flex items-center gap-3 shadow-sm border border-slate-100">
-            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-black">AD</div>
-            <div class="flex-1 overflow-hidden">
-                <p class="text-xs font-black text-blue-900 truncate" th:text="${adminUser.fullName}">Admin Name</p>
-                <p class="text-[10px] text-slate-400 truncate" th:text="${adminUser.role}">System Admin</p>
-            </div>
-            <form th:action="@{/logout}" method="post">
-                <button type="submit" class="text-slate-400 hover:text-error transition-colors">
-                    <span class="material-symbols-outlined text-lg">logout</span>
-                </button>
-            </form>
-        </div>
-    </div>
-</aside>
+
 
 <main class="ml-60 pt-14 min-h-screen">
     <div class="px-8 py-7 max-w-screen-2xl mx-auto">

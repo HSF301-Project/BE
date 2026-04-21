@@ -120,6 +120,20 @@
             Hạ tầng
         </a>
 
+        <a th:href="@{/admin/users}"
+           th:classappend="${activePage == 'users'} ? 'active' : ''"
+           class="nav-link">
+            <span class="ms text-[20px]">badge</span>
+            Quản lý Nhân viên
+        </a>
+
+        <a th:href="@{/admin/customers}"
+           th:classappend="${activePage == 'customers'} ? 'active' : ''"
+           class="nav-link">
+            <span class="ms text-[20px]">group</span>
+            Quản lý Khách hàng
+        </a>
+
         <p class="px-3 pt-4 pb-2 text-[10px] font-bold uppercase tracking-widest text-ink-faint">Tài chính</p>
 
         <a th:href="@{/admin/payments}"

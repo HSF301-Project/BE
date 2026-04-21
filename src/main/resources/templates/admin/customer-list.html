@@ -1,54 +1,15 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title th:text="${title}">Quản lý Khách hàng</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" />
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
-    <link rel="stylesheet" th:href="@{/css/common.css}" />
-    <link rel="stylesheet" th:href="@{/css/admin.css}" />
-</head>
+<head th:replace="~{Admin/fragments/layout :: admin-head('Quản lý Khách hàng')}"></head>
 
-<body class="admin-main text-on-surface antialiased">
+<body class="bg-surface min-h-screen text-ink antialiased">
 
-    <aside
-        class="admin-sidebar fixed left-0 top-0 h-full z-40 flex flex-col w-64 bg-slate-50 font-semibold tracking-tight shadow-lg">
-        <div class="p-6 flex flex-col gap-1 border-b border-slate-200">
-            <a th:href="@{/admin/dashboard}" class="text-xl font-black tracking-tighter text-blue-900">PREMIUM
-                TRANSIT</a>
-            <span class="text-[10px] text-blue-600 uppercase tracking-[0.2em] font-black">Admin Panel</span>
-        </div>
-        <nav class="flex-1 px-4 py-8 space-y-2">
-            <a th:href="@{/admin/dashboard}"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all font-bold">
-                <span class="material-symbols-outlined">dashboard</span><span>Bảng điều khiển</span>
-            </a>
-            <a th:href="@{/admin/coaches}"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all font-bold">
-                <span class="material-symbols-outlined">rv_hookup</span><span>Quản lý Xe</span>
-            </a>
-            <a th:href="@{/admin/trips}"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all font-bold">
-                <span class="material-symbols-outlined">directions_bus</span><span>Lịch trình</span>
-            </a>
-            <a th:href="@{/admin/users}"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all font-bold">
-                <span class="material-symbols-outlined">badge</span><span> Quản lý Nhân viên</span>
-            </a>
-            <a th:href="@{/admin/customers}"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-700 text-white shadow-md shadow-blue-200 transition-all font-bold">
-                <span class="material-symbols-outlined">group</span><span> Quản lý Khách hàng</span>
-            </a>
-        </nav>
-    </aside>
+    <aside th:replace="~{Admin/fragments/layout :: admin-sidebar('customers')}"></aside>
+    <header th:replace="~{Admin/fragments/layout :: admin-topnav('Quản lý Khách hàng')}"></header>
 
-    <main class="pl-72 pr-8 pt-12 pb-12 min-h-screen font-sans">
-        <div class="max-w-7xl mx-auto">
+    <main class="ml-60 pt-14 min-h-screen">
+        <div class="px-8 py-7 max-w-screen-2xl mx-auto">
             <div class="mb-12">
                 <h1 class="text-5xl font-black tracking-tight text-blue-900 mb-2 italic">Quản lý Khách hàng</h1>
                 <p class="text-slate-500 font-medium italic">Theo dõi thông tin và trạng thái hoạt động của khách hàng.
