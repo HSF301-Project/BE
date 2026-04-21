@@ -29,6 +29,7 @@ public class MyTripResponseDTO {
     private String pickupTime;
     private String dropoffTime;
     private String bookingDate;
+    private boolean isCancellable;
 
     public String getStatusLabel() {
         if (status == null) {

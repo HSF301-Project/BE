@@ -148,4 +148,16 @@ public class BookingController {
         return accountRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
+
+    @PostMapping("/{bookingId}/cancel")
+    public String cancelBooking(@PathVariable UUID bookingId, RedirectAttributes redirectAttributes) {
+        try {
+            Account currentAccount = getCurrentAccount();
+            bookingService.cancelBooking(bookingId, currentAccount.getId());
+            redirectAttributes.addFlashAttribute("successMessage", "Hủy đặt vé thành công!");
+        } catch (AppException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/booking/my-trips";
+    }
 }

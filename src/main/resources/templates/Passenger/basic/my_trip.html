@@ -198,6 +198,16 @@
                                     <span class="material-symbols-outlined text-[18px]">sync_alt</span>
                                     Đổi chuyến
                                 </button>
+                                <form th:if="${trip.isCancellable}"
+                                      th:action="@{/booking/{bookingId}/cancel(bookingId=${trip.id})}"
+                                      method="post"
+                                      onsubmit="return confirm('Bạn có chắc chắn muốn hủy chuyến đi này không? Hành động này không thể hoàn tác.');">
+                                    <button type="submit"
+                                            class="flex items-center justify-center gap-2 px-5 py-2.5 bg-error text-white rounded-xl text-sm font-bold hover:opacity-90 transition-all active:scale-95">
+                                        <span class="material-symbols-outlined text-[18px]">cancel</span>
+                                        Hủy chuyến
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
