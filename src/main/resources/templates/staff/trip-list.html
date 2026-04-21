@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:replace="~{fragments/head-common :: head-common(title='Đặt vé tại quầy | Staff')}"></th:block>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen" style="font-family:'Public Sans',sans-serif">
+
+<th:block th:replace="~{fragments/staff-sidebar :: staff-sidebar(activeTab='trips')}"></th:block>
+
+<main class="ml-64 min-h-screen p-8">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between mb-10">
+        <div>
+            <h1 class="text-3xl font-black tracking-tight text-slate-900">Đặt vé tại quầy</h1>
+            <p class="text-slate-500 mt-1 font-medium">Tìm chuyến xe và đặt vé cho hành khách.</p>
+        </div>
+        <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-slate-100 shadow-sm">
+            <span class="material-symbols-outlined text-slate-400">person</span>
+            <span class="text-sm font-bold text-slate-700" sec:authentication="name">Nhân viên</span>
+        </div>
+    </header>
+
+    <!-- Messages -->
+    <div th:if="${successMessage}"
+         class="mb-6 p-4 bg-emerald-50 text-emerald-700 rounded-2xl flex items-center gap-3 border border-emerald-100">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">check_circle</span>
+        <p class="font-semibold" th:text="${successMessage}"></p>
+    </div>
+    <div th:if="${errorMessage}"
+         class="mb-6 p-4 bg-red-50 text-red-700 rounded-2xl flex items-center gap-3 border border-red-100">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">error</span>
+        <p class="font-semibold" th:text="${errorMessage}"></p>
+    </div>
+
+    <!-- Search form -->
+    <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm mb-8">
+        <h2 class="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">search</span>
+            Tìm chuyến xe
+        </h2>
+        <form th:action="@{/staff/booking/trips}" method="get"
+              class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Điểm đi</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">location_on</span>
+                    <select name="from" required
+                            class="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+                        <option value="">-- Chọn điểm đi --</option>
+                        <option th:each="loc : ${locations}" th:value="${loc.name}" th:text="${loc.name}"></option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Điểm đến</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">near_me</span>
+                    <select name="to" required
+                            class="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+                        <option value="">-- Chọn điểm đến --</option>
+                        <option th:each="loc : ${locations}" th:value="${loc.name}" th:text="${loc.name}"></option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Ngày đi</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">calendar_today</span>
+                    <input type="date" name="date" required
+                           class="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"/>
+                </div>
+            </div>
+
+            <button type="submit"
+                    class="py-3 px-6 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">search</span>
+                Tìm chuyến
+            </button>
+        </form>
+    </div>
+
+    <!-- Results -->
+    <div th:if="${trips != null}">
+        <!-- Empty state -->
+        <div th:if="${#lists.isEmpty(trips)}"
+             class="text-center py-20 bg-white rounded-3xl border border-slate-100">
+            <span class="material-symbols-outlined text-5xl text-slate-300 block mb-3">search_off</span>
+            <h3 class="font-bold text-slate-600 text-lg">Không tìm thấy chuyến xe</h3>
+            <p class="text-slate-400 text-sm mt-1">Vui lòng thử với ngày hoặc tuyến đường khác.</p>
+        </div>
+
+        <!-- Trip list table -->
+        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden" th:if="${!#lists.isEmpty(trips)}">
+            <div class="px-8 py-5 border-b border-slate-50 flex items-center justify-between">
+                <h3 class="font-black text-slate-700">Danh sách chuyến xe</h3>
+                <span class="text-xs font-bold text-slate-400"
+                      th:text="${#lists.size(trips)} + ' chuyến tìm thấy'">0 chuyến tìm thấy</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Tuyến đường</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Giờ đi</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Giờ đến</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Loại xe</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Giá vé</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        <tr th:each="trip : ${trips}" class="hover:bg-slate-50/60 transition-colors">
+                            <td class="px-6 py-5">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary text-[18px]">directions_bus</span>
+                                    <div>
+                                        <p class="font-bold text-slate-800 text-sm" th:text="${trip.departureStation}">Bến xe đi</p>
+                                        <p class="text-xs text-slate-400 font-medium">→ <span th:text="${trip.arrivalStation}">Bến xe đến</span></p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <p class="text-lg font-black text-slate-800" th:text="${trip.departureTime}">08:30</p>
+                            </td>
+                            <td class="px-6 py-5">
+                                <p class="text-lg font-black text-slate-800" th:text="${trip.arrivalTime}">14:00</p>
+                            </td>
+                            <td class="px-6 py-5">
+                                <span class="px-3 py-1 bg-blue-50 text-primary text-xs font-bold rounded-full"
+                                      th:text="${trip.busTypeLabel}">Limousine</span>
+                            </td>
+                            <td class="px-6 py-5">
+                                <p class="font-black text-secondary text-base" th:text="${trip.priceFormatted}">450.000đ</p>
+                            </td>
+                            <td class="px-6 py-5 text-right">
+                                <a th:href="@{/staff/booking/create/{id}(id=${trip.id})}"
+                                   class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-all active:scale-95 shadow-sm">
+                                    <span class="material-symbols-outlined text-[16px]">confirmation_number</span>
+                                    Đặt vé
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</main>
+</body>
+</html>

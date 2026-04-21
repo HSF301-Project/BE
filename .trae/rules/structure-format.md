@@ -1,4 +1,4 @@
-"# --- SERVER CONFIG ---
+# --- SERVER CONFIG ---
 server.port=8080
 
 # --- THYMELEAF CONFIG (Bắt buộc khi code UI) ---

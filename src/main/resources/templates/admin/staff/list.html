@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Staff</title>
+</head>
+<body>
+<h2>Danh sách Staff</h2>
+
+<p th:if="${successMessage}" th:text="${successMessage}" style="color: green;"></p>
+<p th:if="${errorMessage}" th:text="${errorMessage}" style="color: red;"></p>
+
+<p>
+    <a th:href="@{/admin/staff/create}">Thêm staff mới</a>
+</p>
+
+<form th:action="@{/admin/staff}" method="get" style="margin-bottom: 12px;">
+    <label for="q">Từ khóa:</label>
+    <input id="q" type="text" name="q" th:value="${keyword}" placeholder="Tìm theo email, tên, số điện thoại">
+    <input type="hidden" name="size" th:value="${pageSize}">
+    <button type="submit">Tìm kiếm</button>
+    <a th:href="@{/admin/staff}">Xóa lọc</a>
+</form>
+
+<table style="border-collapse: collapse; width: 100%;">
+    <thead>
+    <tr>
+        <th style="border: 1px solid #ccc; padding: 6px;">Email</th>
+        <th style="border: 1px solid #ccc; padding: 6px;">Họ tên</th>
+        <th style="border: 1px solid #ccc; padding: 6px;">Số điện thoại</th>
+        <th style="border: 1px solid #ccc; padding: 6px;">Trạng thái</th>
+        <th style="border: 1px solid #ccc; padding: 6px;">Thao tác</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${#lists.isEmpty(staffPage.content)}">
+        <td colspan="5" style="border: 1px solid #ccc; padding: 6px;">Chưa có staff nào</td>
+    </tr>
+    <tr th:each="staff : ${staffPage.content}">
+        <td th:text="${staff.email}" style="border: 1px solid #ccc; padding: 6px;"></td>
+        <td th:text="${staff.fullName}" style="border: 1px solid #ccc; padding: 6px;"></td>
+        <td th:text="${staff.phone}" style="border: 1px solid #ccc; padding: 6px;"></td>
+        <td th:text="${staff.status}" style="border: 1px solid #ccc; padding: 6px;"></td>
+        <td style="border: 1px solid #ccc; padding: 6px;">
+            <a th:href="@{/admin/staff/edit/{id}(id=${staff.id})}">Sửa</a>
+            <form th:action="@{/admin/staff/delete/{id}(id=${staff.id})}" method="post" style="display: inline;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" onclick="return confirm('Bạn chắc chắn muốn xóa staff này?')">Xóa</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<div style="margin-top: 12px;">
+    <span th:text="'Trang ' + ${staffPage.number + 1} + '/' + ${staffPage.totalPages == 0 ? 1 : staffPage.totalPages}"></span>
+    <span th:text="' - Tổng staff: ' + ${staffPage.totalElements}"></span>
+</div>
+
+<div style="margin-top: 8px;">
+    <a th:if="${staffPage.hasPrevious()}"
+       th:href="@{/admin/staff(page=${staffPage.number - 1},size=${pageSize},q=${keyword})}">Trang trước</a>
+    <a th:if="${staffPage.hasNext()}"
+       th:href="@{/admin/staff(page=${staffPage.number + 1},size=${pageSize},q=${keyword})}"
+       style="margin-left: 12px;">Trang sau</a>
+</div>
+
+</body>
+</html>
+
+

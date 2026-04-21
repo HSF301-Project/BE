@@ -123,23 +123,6 @@
                                 <div class="w-5 h-5 rounded-full border-2 border-outline-variant flex-shrink-0"></div>
                             </div>
                         </label>
-
-                        <!-- QR Code -->
-                        <label class="relative flex items-center p-4 bg-surface-container-lowest rounded-xl cursor-pointer border-2 border-transparent has-[:checked]:border-surface-tint transition-all">
-                            <input type="radio" name="paymentMethod" value="QR_CODE"
-                                   th:checked="${payment.selectedMethod == 'QR_CODE'}"
-                                   class="hidden peer"/>
-                            <div class="flex items-center gap-4 w-full">
-                                <div class="w-12 h-12 flex items-center justify-center bg-surface-container rounded-lg">
-                                    <span class="material-symbols-outlined text-primary text-3xl">qr_code_2</span>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold">QR Code</h3>
-                                    <p class="text-sm text-on-surface-variant">Quét mã QR từ ứng dụng ngân hàng</p>
-                                </div>
-                                <div class="w-5 h-5 rounded-full border-2 border-outline-variant flex-shrink-0"></div>
-                            </div>
-                        </label>
                     </div>
                 </section>
 

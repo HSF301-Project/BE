@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Trang chủ</title>
+</head>
+<body>
+    <h1>Chào mừng đến với Bus Ticket App</h1>
+    <div sec:authorize="isAuthenticated()">
+        <p>Xin chào, <span sec:authentication="name">User</span>!</p>
+        <p>Vai trò của bạn: <span sec:authentication="authorities">Roles</span></p>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">Đăng xuất</button>
+        </form>
+    </div>
+    <div sec:authorize="!isAuthenticated()">
+        <p>Vui lòng <a th:href="@{/login}">đăng nhập</a> để tiếp tục.</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:replace="~{fragments/head-common :: head-common(title='Chọn ghế | Premium Transit')}"></th:block>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .brand-font { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+
+<th:block th:replace="~{fragments/navbar :: navbar}"></th:block>
+
+<main class="max-w-7xl mx-auto px-4 md:px-8 py-8">
+
+    <div class="mb-12 flex items-center justify-start space-x-4">
+        <a th:href="@{/search}" class="flex items-center text-primary font-semibold hover:opacity-70 transition-opacity cursor-pointer group">
+            <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center mr-2 text-sm shadow-sm group-hover:scale-105 transition-transform">1</span>
+            <span class="text-sm">Tìm kiếm</span>
+        </a>
+        <div class="h-px w-8 bg-outline-variant"></div>
+        <div class="flex items-center text-primary font-extrabold">
+            <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center mr-2 text-sm">2</span>
+            <span class="text-sm font-bold">Ghế &amp; Thông tin</span>
+        </div>
+        <div class="h-px w-8 bg-outline-variant"></div>
+        <div class="flex items-center text-on-surface-variant opacity-50">
+            <span class="w-8 h-8 rounded-full border-2 border-outline-variant flex items-center justify-center mr-2 text-sm">3</span>
+            <span class="text-sm">Thanh toán</span>
+        </div>
+    </div>
+
+    <div th:if="${errorMessage}"
+         class="mb-8 p-4 bg-error-container text-on-error-container rounded-xl flex items-center gap-3">
+        <span class="material-symbols-outlined">error</span>
+        <p th:text="${errorMessage}"></p>
+    </div>
+
+    <form th:action="@{/booking/confirm}" th:object="${bookingForm}" method="post" id="booking-form">
+        <input type="hidden" name="tripId" th:value="${trip.id}"/>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+            <div class="lg:col-span-8 space-y-12">
+
+                <section>
+                    <div class="mb-6">
+                        <h2 class="text-3xl font-extrabold tracking-tight text-on-surface mb-2">Chọn không gian hành trình</h2>
+                        <p class="text-on-surface-variant">Vui lòng chọn chỗ ngồi yêu thích của bạn.</p>
+                    </div>
+
+                    <div class="flex flex-wrap gap-6 mb-8 p-4 bg-surface-container-low rounded-xl">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-6 h-7 bg-[#AACDDC] rounded-t-lg rounded-b-sm border-b-2 border-black/10"></div>
+                            <span class="text-sm font-medium">Trống</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-6 h-7 bg-secondary rounded-t-lg rounded-b-sm border-b-2 border-black/10"></div>
+                            <span class="text-sm font-medium">Đang chọn</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-6 h-7 bg-surface-dim opacity-40 rounded-t-lg rounded-b-sm border-b-2 border-black/10"></div>
+                            <span class="text-sm font-medium">Đã đặt</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 p-8 bg-surface-container-low rounded-3xl">
+
+                        <div class="space-y-6">
+                            <h3 class="text-lg font-bold text-center text-primary-container">Tầng dưới</h3>
+                            <div class="relative bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm border-l-4 border-primary">
+                                <div class="grid grid-cols-2 gap-x-12 gap-y-4">
+                                    <th:block th:each="seat : ${lowerDeckSeats}">
+                                        <button th:if="${seat.status.name() == 'AVAILABLE'}"
+                                                type="button"
+                                                class="seat-btn relative w-12 h-14 mx-auto bg-[#AACDDC] hover:opacity-80 rounded-t-2xl rounded-b-lg flex flex-col items-center justify-center transition-all border-b-4 border-black/10 shadow-sm hover:-translate-y-0.5 active:translate-y-0"
+                                                th:data-seat-id="${seat.seatId}"
+                                                data-deck="lower"
+                                                data-status="AVAILABLE">
+                                            <div class="absolute top-1.5 w-6 h-1 bg-white/40 rounded-full"></div>
+                                            <span class="text-xs font-bold text-slate-800 mt-2" th:text="${seat.seatId}">L01</span>
+                                        </button>
+                                        <button th:if="${seat.status.name() == 'BOOKED'}"
+                                                type="button"
+                                                class="relative w-12 h-14 mx-auto bg-surface-dim opacity-40 rounded-t-2xl rounded-b-lg flex flex-col items-center justify-center cursor-not-allowed border-b-4 border-black/5"
+                                                disabled>
+                                            <div class="absolute top-1.5 w-6 h-1 bg-white/40 rounded-full"></div>
+                                            <span class="text-xs font-bold text-slate-500 mt-2" th:text="${seat.seatId}">L01</span>
+                                        </button>
+                                    </th:block>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <h3 class="text-lg font-bold text-center text-primary-container">Tầng trên</h3>
+                            <div class="relative bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm border-l-4 border-secondary">
+                                <div class="grid grid-cols-2 gap-x-12 gap-y-4">
+                                    <th:block th:each="seat : ${upperDeckSeats}">
+                                        <button th:if="${seat.status.name() == 'AVAILABLE'}"
+                                                type="button"
+                                                class="seat-btn relative w-12 h-14 mx-auto bg-[#AACDDC] hover:opacity-80 rounded-t-2xl rounded-b-lg flex flex-col items-center justify-center transition-all border-b-4 border-black/10 shadow-sm hover:-translate-y-0.5 active:translate-y-0"
+                                                th:data-seat-id="${seat.seatId}"
+                                                data-deck="upper"
+                                                data-status="AVAILABLE">
+                                            <div class="absolute top-1.5 w-6 h-1 bg-white/40 rounded-full"></div>
+                                            <span class="text-xs font-bold text-slate-800 mt-2" th:text="${seat.seatId}">U01</span>
+                                        </button>
+                                        <button th:if="${seat.status.name() == 'BOOKED'}"
+                                                type="button"
+                                                class="relative w-12 h-14 mx-auto bg-surface-dim opacity-40 rounded-t-2xl rounded-b-lg flex flex-col items-center justify-center cursor-not-allowed border-b-4 border-black/5"
+                                                disabled>
+                                            <div class="absolute top-1.5 w-6 h-1 bg-white/40 rounded-full"></div>
+                                            <span class="text-xs font-bold text-slate-500 mt-2" th:text="${seat.seatId}">U01</span>
+                                        </button>
+                                    </th:block>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-3xl font-extrabold tracking-tight text-on-surface mb-2">Thông tin hành khách</h2>
+                            <p class="text-on-surface-variant">
+                                Đã chọn <span id="selected-count" class="font-bold text-primary">0</span> ghế
+                            </p>
+                        </div>
+                    </div>
+
+                    <div id="passenger-forms">
+                    </div>
+
+                    <p id="passenger-empty-msg" class="text-center text-on-surface-variant py-8 bg-surface-container-low rounded-2xl">
+                        <span class="material-symbols-outlined block text-4xl mb-2">event_seat</span>
+                        Vui lòng chọn ít nhất một ghế để nhập thông tin hành khách.
+                    </p>
+                </section>
+            </div>
+
+            <aside class="lg:col-span-4 sticky top-24 space-y-6">
+                <div class="bg-surface-container-high rounded-[2.5rem] p-8 overflow-hidden relative">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                        <span class="material-symbols-outlined text-[120px]" style="font-variation-settings:'FILL' 1">directions_bus</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-primary mb-6">Chi tiết đặt vé</h3>
+
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Điểm đi</p>
+                                <p class="font-bold text-on-surface" th:text="${trip.departureStation}">Bến xe</p>
+                                <p class="text-sm text-on-surface-variant" th:text="${trip.departureDateTimeLabel}">Thứ 6 • 08:30</p>
+                            </div>
+                            <span class="material-symbols-outlined text-primary mt-1">trip_origin</span>
+                        </div>
+                        <div class="border-l-2 border-dashed border-outline-variant ml-3 py-2"></div>
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Điểm đến</p>
+                                <p class="font-bold text-on-surface" th:text="${trip.arrivalStation}">Bến đến</p>
+                                <p class="text-sm text-on-surface-variant" th:text="${trip.arrivalDateTimeLabel}">Thứ 6 • 14:00</p>
+                            </div>
+                            <span class="material-symbols-outlined text-secondary mt-1">location_on</span>
+                        </div>
+                    </div>
+
+                    <hr class="border-outline-variant opacity-30 mb-8"/>
+
+                    <div class="space-y-3 mb-8">
+                        <div class="flex flex-col gap-1">
+                            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Ghế đã chọn</p>
+                            <p id="summary-seat-ids" class="font-bold text-primary text-sm">Chưa chọn ghế</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-primary/5 rounded-2xl p-6 mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-xs font-bold text-primary uppercase tracking-widest">Tổng cộng</p>
+                            <span class="material-symbols-outlined text-secondary" style="font-variation-settings:'FILL' 1">payments</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <p class="text-2xl font-black text-secondary leading-none mb-1" id="summary-total">0đ</p>
+                            <p class="text-[10px] font-bold text-on-surface-variant italic" id="summary-calculation"></p>
+                        </div>
+                    </div>
+
+                    <span id="unit-price-value" th:data-price="${unitPrice}" class="hidden"></span>
+                </div>
+
+                <button type="submit" id="btn-continue-payment"
+                        disabled
+                        class="w-full bg-gradient-to-r from-primary to-primary-container text-white py-5 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all flex items-center justify-center space-x-3 group active:scale-95 duration-150 opacity-50 cursor-not-allowed">
+                    <span>Tiếp tục thanh toán</span>
+                    <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </button>
+                <p class="text-center text-xs text-on-surface-variant px-4">
+                    Bằng việc nhấn tiếp tục, bạn đồng ý với
+                    <a class="underline font-bold" href="#">Điều khoản vận chuyển</a>.
+                </p>
+            </aside>
+        </div>
+    </form>
+</main>
+
+<th:block th:replace="~{fragments/footer :: footer}"></th:block>
+<th:block th:replace="~{fragments/mobile-nav :: mobile-nav(activeTab='trips')}"></th:block>
+
+<script th:src="@{/js/seat-selection.js}"></script>
+</body>
+</html>

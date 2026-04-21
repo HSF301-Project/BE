@@ -12,9 +12,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.web.SecurityFilterChain;
 
 import lombok.RequiredArgsConstructor;
+
+import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
@@ -27,7 +30,7 @@ public class SecurityConfig {
     // Danh sách các đường dẫn không cần đăng nhập vẫn xem được
     private static final String[] PUBLIC_WHITELIST = {
             "/css/**", "/js/**", "/images/**",
-            "/", "/home", "/login", "/register", "/activate", "/forgot-password", "/reset-password"
+            "/", "/home", "/search", "/login", "/register", "/activate", "/forgot-password", "/reset-password"
     };
 
     @Bean
@@ -35,16 +38,25 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_WHITELIST).permitAll()
-                        // Nếu có phân quyền Admin
-                        // .requestMatchers("/admin/**").hasRole("ADMIN") 
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/staff/**").hasRole("STAFF")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/process-login")
-                        .usernameParameter("email")
+                        .usernameParameter("phone")
                         .passwordParameter("password")
-                        .defaultSuccessUrl("/home", false)
+                        .successHandler((request, response, authentication) -> {
+                            Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
+                            if (roles.contains("ROLE_ADMIN")) {
+                                response.sendRedirect("/admin/dashboard");
+                            } else if (roles.contains("ROLE_STAFF")) {
+                                response.sendRedirect("/staff/booking/trips");
+                            } else {
+                                response.sendRedirect("/home");
+                            }
+                        })
                         .failureUrl("/login?error=true")
                         .permitAll()
                 )
@@ -60,10 +72,12 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
+    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+        provider.setHideUserNotFoundExceptions(false);
+        return provider;
     }
 
     @Bean

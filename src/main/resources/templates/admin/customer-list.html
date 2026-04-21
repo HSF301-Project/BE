@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${title}">Quản lý Khách hàng</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" th:href="@{/css/admin.css}" />
+</head>
+
+<body class="admin-main text-on-surface antialiased">
+
+    <aside
+        class="admin-sidebar fixed left-0 top-0 h-full z-40 flex flex-col w-64 bg-slate-50 font-semibold tracking-tight shadow-lg">
+        <div class="p-6 flex flex-col gap-1 border-b border-slate-200">
+            <a th:href="@{/admin/dashboard}" class="text-xl font-black tracking-tighter text-blue-900">PREMIUM
+                TRANSIT</a>
+            <span class="text-[10px] text-blue-600 uppercase tracking-[0.2em] font-black">Admin Panel</span>
+        </div>
+        <nav class="flex-1 px-4 py-8 space-y-2">
+            <a th:href="@{/admin/dashboard}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all font-bold">
+                <span class="material-symbols-outlined">dashboard</span><span>Bảng điều khiển</span>
+            </a>
+            <a th:href="@{/admin/coaches}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all font-bold">
+                <span class="material-symbols-outlined">rv_hookup</span><span>Quản lý Xe</span>
+            </a>
+            <a th:href="@{/admin/trips}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all font-bold">
+                <span class="material-symbols-outlined">directions_bus</span><span>Lịch trình</span>
+            </a>
+            <a th:href="@{/admin/users}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-200/50 hover:text-blue-700 transition-all font-bold">
+                <span class="material-symbols-outlined">badge</span><span> Quản lý Nhân viên</span>
+            </a>
+            <a th:href="@{/admin/customers}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-700 text-white shadow-md shadow-blue-200 transition-all font-bold">
+                <span class="material-symbols-outlined">group</span><span> Quản lý Khách hàng</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="pl-72 pr-8 pt-12 pb-12 min-h-screen font-sans">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-12">
+                <h1 class="text-5xl font-black tracking-tight text-blue-900 mb-2 italic">Quản lý Khách hàng</h1>
+                <p class="text-slate-500 font-medium italic">Theo dõi thông tin và trạng thái hoạt động của khách hàng.
+                </p>
+            </div>
+
+            <div th:if="${successMessage}"
+                class="mb-8 p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl flex items-center gap-3 font-bold animate-pulse">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span th:text="${successMessage}"></span>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="mb-8 bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                <form th:action="@{/admin/customers}" method="get" class="flex flex-col md:flex-row gap-4 items-end">
+                    <div class="flex-1 space-y-1">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">Tìm
+                            kiếm</label>
+                        <div class="relative">
+                            <span
+                                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                            <input type="text" name="search" th:value="${search}"
+                                placeholder="Tìm khách hàng theo tên, email hoặc SĐT..."
+                                class="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 transition-all font-medium text-sm" />
+                        </div>
+                    </div>
+                    <button type="submit"
+                        class="bg-blue-700 text-white px-8 py-3 rounded-2xl font-black text-sm hover:bg-blue-800 transition-all shadow-lg shadow-blue-200 uppercase tracking-tighter">
+                        Tìm kiếm
+                    </button>
+                    <a th:href="@{/admin/customers}"
+                        class="px-6 py-3 bg-slate-100 text-slate-500 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all uppercase tracking-tighter">
+                        Làm mới
+                    </a>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-slate-50/50 text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">
+                                <th class="px-8 py-6">Khách hàng</th>
+                                <th class="px-8 py-6">Liên hệ</th>
+                                <th class="px-8 py-6">Trạng thái</th>
+                                <th class="px-8 py-6 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <tr th:each="user : ${users}" class="hover:bg-blue-50/30 transition-colors group cursor-pointer customer-row"
+                                th:data-name="${user.fullName}"
+                                th:data-email="${user.email}"
+                                th:data-phone="${user.phone}"
+                                th:data-role="${user.role}"
+                                th:data-status="${user.status}"
+                                th:data-created="${user.createdAt != null ? #temporals.format(user.createdAt, 'dd/MM/yyyy HH:mm') : 'N/A'}"
+                                th:data-updated="${user.updatedAt != null ? #temporals.format(user.updatedAt, 'dd/MM/yyyy HH:mm') : 'N/A'}">
+                                <td class="px-8 py-6">
+                                    <div class="flex items-center gap-4">
+                                        <div
+                                            class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-all">
+                                            <span class="material-symbols-outlined">person</span>
+                                        </div>
+                                        <div>
+                                            <span class="block font-black text-blue-900 text-sm"
+                                                th:text="${user.fullName}">Nguyễn Văn A</span>
+                                            <span class="block text-[10px] font-bold text-slate-400"
+                                                th:text="${user.email}">user@gmail.com</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-8 py-6 font-semibold text-slate-500 text-sm" th:text="${user.phone}">
+                                    0912345678</td>
+                                <td class="px-8 py-6">
+                                    <span th:if="${user.status.name() == 'ACTIVE'}"
+                                        class="flex items-center gap-1.5 text-emerald-600 font-bold text-xs uppercase tracking-tighter">
+                                        <span
+                                            class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                                        Đang hoạt động
+                                    </span>
+                                    <span th:if="${user.status.name() == 'BLOCKED'}"
+                                        class="flex items-center gap-1.5 text-red-400 font-bold text-xs uppercase tracking-tighter">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span> Đã khóa
+                                    </span>
+                                </td>
+                                <td class="px-8 py-6 text-right" onclick="event.stopPropagation()">
+                                    <form th:action="@{/admin/users/status/{id}(id=${user.id})}" method="post"
+                                        class="inline">
+                                        <button type="submit"
+                                            th:class="${user.status.name() == 'ACTIVE' ? 'p-2 text-red-400 hover:bg-red-50 rounded-xl transition-all' : 'p-2 text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all'}"
+                                            th:title="${user.status.name() == 'ACTIVE' ? 'Khóa khách hàng' : 'Mở khóa khách hàng'}">
+                                            <span class="material-symbols-outlined"
+                                                th:text="${user.status.name() == 'ACTIVE' ? 'person_off' : 'person_check'}">lock</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(users)}">
+                                <td colspan="4" class="px-8 py-20 text-center text-slate-300 italic font-medium">
+                                    Không tìm thấy hành khách nào.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Detail Modal -->
+    <div id="detailModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity bg-blue-900/40 backdrop-blur-sm" aria-hidden="true" onclick="closeModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            
+            <div class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white rounded-[3rem] shadow-2xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-blue-50">
+                <div class="p-10">
+                    <div class="flex justify-between items-start mb-8">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                                <span class="material-symbols-outlined text-4xl font-light">account_circle</span>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-black text-blue-900 leading-tight" id="modalName">Nguyễn Văn Khách</h3>
+                                <p class="text-xs font-black uppercase tracking-[0.2em] text-blue-400">CUSTOMER</p>
+                            </div>
+                        </div>
+                        <button onclick="closeModal()" class="p-2 text-slate-300 hover:text-red-400 transition-colors">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-2 gap-4 text-sm font-medium">
+                            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">Email</p>
+                                <p class="text-blue-900 truncate font-semibold" id="modalEmail">user@gmail.com</p>
+                            </div>
+                            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">Điện thoại</p>
+                                <p class="text-blue-900 font-semibold" id="modalPhone">0123456789</p>
+                            </div>
+                        </div>
+
+                        <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-4">
+                             <div class="flex justify-between items-center">
+                                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Trạng thái tài khoản</span>
+                                 <span id="modalStatus" class="font-black text-xs uppercase tracking-tighter">ĐANG HOẠT ĐỘNG</span>
+                             </div>
+                             <div class="flex justify-between items-center text-xs">
+                                 <span class="font-bold text-slate-400 italic">Ngày tham gia</span>
+                                 <span id="modalCreatedAt" class="font-black text-blue-800">20/04/2026 10:00</span>
+                             </div>
+                             <div class="flex justify-between items-center text-xs pt-4 border-t border-slate-200">
+                                 <span class="font-bold text-slate-400 italic">Hoạt động cuối</span>
+                                 <span id="modalUpdatedAt" class="font-black text-blue-800">20/04/2026 15:00</span>
+                             </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8">
+                        <button onclick="closeModal()" class="w-full py-4 bg-blue-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-blue-100">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.querySelectorAll('.customer-row').forEach(row => {
+            row.addEventListener('click', function() {
+                const name = this.getAttribute('data-name');
+                const email = this.getAttribute('data-email');
+                const phone = this.getAttribute('data-phone');
+                const role = this.getAttribute('data-role');
+                const status = this.getAttribute('data-status');
+                const created = this.getAttribute('data-created');
+                const updated = this.getAttribute('data-updated');
+                
+                openModal(name, email, phone, role, status, created, updated);
+            });
+        });
+
+        function openModal(name, email, phone, role, status, createdAt, updatedAt) {
+            document.getElementById('modalName').innerText = name;
+            document.getElementById('modalEmail').innerText = email;
+            document.getElementById('modalPhone').innerText = (phone && phone !== 'null') ? phone : 'Chưa cập nhật';
+            document.getElementById('modalCreatedAt').innerText = createdAt || 'N/A';
+            document.getElementById('modalUpdatedAt').innerText = updatedAt || 'N/A';
+            
+            const statusEl = document.getElementById('modalStatus');
+            if (status === 'ACTIVE') {
+                statusEl.innerText = 'ĐANG HOẠT ĐỘNG';
+                statusEl.className = 'text-emerald-500 font-black text-xs uppercase tracking-tighter';
+            } else {
+                statusEl.innerText = 'ĐÃ KHÓA';
+                statusEl.className = 'text-red-500 font-black text-xs uppercase tracking-tighter';
+            }
+
+            document.getElementById('detailModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    </script>
+</body>
+
+</html>

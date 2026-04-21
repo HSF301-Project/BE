@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <th:block th:replace="~{fragments/head-common :: head-common(title='Kết quả tìm kiếm | Premium Transit')}">
+    </th:block>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        h1,
+        h2,
+        h3,
+        .font-headline {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface">
+
+<th:block th:replace="~{fragments/navbar :: navbar}"></th:block>
+
+<main class="max-w-7xl mx-auto px-4 md:px-8 py-8">
+
+    <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+            <h1 class="text-4xl font-extrabold tracking-tight text-primary mb-2">
+                <span th:text="${searchResult.fromCity}">Hà Nội</span>
+                <span class="text-secondary"> → </span>
+                <span th:text="${searchResult.toCity}">Đà Nẵng</span>
+            </h1>
+            <p class="text-on-surface-variant font-medium" th:text="${searchResult.dateLabel}">Thứ Sáu, 24 Tháng 5
+            </p>
+        </div>
+        <a th:href="@{/home}"
+           class="flex items-center gap-2 px-6 py-3 bg-surface-container-high rounded-xl font-semibold text-primary transition-all active:scale-95">
+            <span class="material-symbols-outlined text-lg">arrow_back</span>
+            Tìm lại
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        <aside class="lg:col-span-3 space-y-8 sticky top-24">
+            <form th:action="@{/search}" th:object="${filterForm}" method="get">
+                <input type="hidden" th:field="*{from}" />
+                <input type="hidden" th:field="*{to}" />
+                <input type="hidden" th:field="*{date}" />
+
+                <div class="bg-surface-container-low rounded-3xl p-6 space-y-8">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-xl">Bộ lọc</h3>
+                        <a th:href="@{/search(from=${filterForm.from},to=${filterForm.to},date=${filterForm.date})}"
+                           class="text-surface-tint text-sm font-semibold">
+                            Xóa lọc
+                        </a>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Giờ xuất
+                            phát</p>
+                        <div class="grid grid-cols-1 gap-2">
+                            <label
+                                    class="flex items-center gap-3 p-3 bg-surface-container-lowest rounded-xl cursor-pointer border-2 border-transparent hover:border-primary/20 transition-all">
+                                <input type="checkbox" name="timeSlots" value="early_morning"
+                                       th:checked="${filterForm.timeSlots != null && filterForm.timeSlots.contains('early_morning')}"
+                                       class="w-5 h-5 rounded border-outline text-primary focus:ring-primary" />
+                                <span class="text-sm font-semibold">Sáng sớm (00:00 - 06:00)</span>
+                            </label>
+                            <label
+                                    class="flex items-center gap-3 p-3 bg-surface-container-lowest rounded-xl cursor-pointer border-2 border-transparent hover:border-primary/20 transition-all">
+                                <input type="checkbox" name="timeSlots" value="morning"
+                                       th:checked="${filterForm.timeSlots != null && filterForm.timeSlots.contains('morning')}"
+                                       class="w-5 h-5 rounded border-outline text-primary focus:ring-primary" />
+                                <span class="text-sm font-semibold">Buổi sáng (06:00 - 12:00)</span>
+                            </label>
+                            <label
+                                    class="flex items-center gap-3 p-3 bg-surface-container-lowest rounded-xl cursor-pointer border-2 border-transparent hover:border-primary/20 transition-all">
+                                <input type="checkbox" name="timeSlots" value="afternoon"
+                                       th:checked="${filterForm.timeSlots != null && filterForm.timeSlots.contains('afternoon')}"
+                                       class="w-5 h-5 rounded border-outline text-primary focus:ring-primary" />
+                                <span class="text-sm font-semibold">Buổi chiều (12:00 - 18:00)</span>
+                            </label>
+                            <label
+                                    class="flex items-center gap-3 p-3 bg-surface-container-lowest rounded-xl cursor-pointer border-2 border-transparent hover:border-primary/20 transition-all">
+                                <input type="checkbox" name="timeSlots" value="evening"
+                                       th:checked="${filterForm.timeSlots != null && filterForm.timeSlots.contains('evening')}"
+                                       class="w-5 h-5 rounded border-outline text-primary focus:ring-primary" />
+                                <span class="text-sm font-semibold">Buổi tối (18:00 - 24:00)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Loại xe
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="submit" name="busType" value="LIMOUSINE"
+                                    th:class="${filterForm.busType == 'LIMOUSINE'}
+                                        ? 'px-4 py-2 rounded-full bg-primary-fixed text-on-primary-fixed font-semibold text-sm border-2 border-primary/10'
+                                        : 'px-4 py-2 rounded-full bg-surface-container-high text-on-surface-variant font-medium text-sm hover:bg-surface-container-highest transition-colors'">
+                                Limousine
+                            </button>
+                            <button type="submit" name="busType" value="SLEEPER"
+                                    th:class="${filterForm.busType == 'SLEEPER'}
+                                        ? 'px-4 py-2 rounded-full bg-primary-fixed text-on-primary-fixed font-semibold text-sm border-2 border-primary/10'
+                                        : 'px-4 py-2 rounded-full bg-surface-container-high text-on-surface-variant font-medium text-sm hover:bg-surface-container-highest transition-colors'">
+                                Giường nằm
+                            </button>
+                            <button type="submit" name="busType" value="SEATING"
+                                    th:class="${filterForm.busType == 'SEATING'}
+                                        ? 'px-4 py-2 rounded-full bg-primary-fixed text-on-primary-fixed font-semibold text-sm border-2 border-primary/10'
+                                        : 'px-4 py-2 rounded-full bg-surface-container-high text-on-surface-variant font-medium text-sm hover:bg-surface-container-highest transition-colors'">
+                                Ghế ngồi
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Khoảng
+                                giá</p>
+                        </div>
+                        <input type="range" th:field="*{maxPrice}" min="0" max="1500000" step="50000"
+                               class="w-full h-2 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-primary" />
+                        <div class="flex justify-between mt-2 text-[10px] font-bold text-on-surface-variant">
+                            <span>0đ</span>
+                            <span>1.500.000đ</span>
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                            class="w-full py-3 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition-all">
+                        Áp dụng
+                    </button>
+                </div>
+            </form>
+        </aside>
+
+        <div class="lg:col-span-9 space-y-6">
+
+            <div
+                    class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-surface-container-low rounded-2xl">
+                <p class="text-on-surface-variant font-semibold">
+                    Tìm thấy
+                    <span class="text-primary" th:text="${searchResult.totalCount}">0</span>
+                    chuyến xe phù hợp
+                </p>
+                <div class="flex items-center gap-3 overflow-x-auto hide-scrollbar">
+                    <span class="text-xs font-bold text-on-surface-variant whitespace-nowrap">SẮP XẾP:</span>
+                    <a th:href="@{/search(from=${filterForm.from},to=${filterForm.to},date=${filterForm.date},sort='price_asc')}"
+                       th:class="${filterForm.sort == 'price_asc'}
+                           ? 'px-4 py-2 bg-white text-primary border border-outline/10 rounded-lg text-sm font-bold shadow-sm whitespace-nowrap'
+                           : 'px-4 py-2 text-on-surface-variant hover:bg-white/50 rounded-lg text-sm font-medium transition-all whitespace-nowrap'">
+                        Giá thấp nhất
+                    </a>
+                    <a th:href="@{/search(from=${filterForm.from},to=${filterForm.to},date=${filterForm.date},sort='departure_asc')}"
+                       th:class="${filterForm.sort == 'departure_asc'}
+                           ? 'px-4 py-2 bg-white text-primary border border-outline/10 rounded-lg text-sm font-bold shadow-sm whitespace-nowrap'
+                           : 'px-4 py-2 text-on-surface-variant hover:bg-white/50 rounded-lg text-sm font-medium transition-all whitespace-nowrap'">
+                        Giờ sớm nhất
+                    </a>
+                    <a th:href="@{/search(from=${filterForm.from},to=${filterForm.to},date=${filterForm.date},sort='rating_desc')}"
+                       th:class="${filterForm.sort == 'rating_desc'}
+                           ? 'px-4 py-2 bg-white text-primary border border-outline/10 rounded-lg text-sm font-bold shadow-sm whitespace-nowrap'
+                           : 'px-4 py-2 text-on-surface-variant hover:bg-white/50 rounded-lg text-sm font-medium transition-all whitespace-nowrap'">
+                        Đánh giá cao
+                    </a>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(searchResult.trips)}"
+                 class="text-center py-24 bg-surface-container-low rounded-3xl">
+                <span class="material-symbols-outlined text-6xl text-outline mb-4 block">search_off</span>
+                <h3 class="text-xl font-bold text-on-surface mb-2">Không tìm thấy chuyến xe</h3>
+                <p class="text-on-surface-variant">Vui lòng thử tìm kiếm với ngày hoặc điểm đến khác.</p>
+            </div>
+
+            <div class="space-y-6" th:if="${!#lists.isEmpty(searchResult.trips)}">
+                <div th:each="trip : ${searchResult.trips}"
+                     class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-[0_12px_32px_rgba(26,27,33,0.06)] hover:bg-surface-bright transition-all group border border-transparent hover:border-primary/10">
+                    <div class="flex flex-col md:flex-row gap-8">
+
+                        <div class="md:w-1/4 relative">
+                            <div
+                                    class="rounded-2xl overflow-hidden h-full min-h-[140px] bg-surface-container flex items-center justify-center">
+                                    <span
+                                            class="material-symbols-outlined text-6xl text-primary/30">directions_bus</span>
+                                <div class="absolute top-2 left-2 bg-white/90 backdrop-blur px-3 py-1 rounded-full flex items-center gap-1"
+                                     th:if="${trip.rating != null}">
+                                        <span class="material-symbols-outlined text-orange-500 text-sm"
+                                              style="font-variation-settings:'FILL' 1">star</span>
+                                    <span class="text-xs font-bold" th:text="${trip.rating}">4.9</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 flex flex-col justify-between">
+
+                            <div class="flex justify-between items-center w-full">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <h3 class="text-xl font-bold text-primary">
+                                            <span>Chuyến xe</span><br/>
+                                            <span th:text="${trip.name.replaceFirst('Chuyến xe ', '')}">51B-12345</span>
+                                        </h3>
+                                    </div>
+                                    <p class="text-sm text-on-surface-variant" th:text="${trip.amenities}">WiFi • Sạc • Nước uống</p>
+                                </div>
+
+                                <div class="flex-1 flex justify-center">
+                                    <span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant text-xs font-black uppercase rounded-md tracking-wide"
+                                          th:text="${trip.busTypeLabel}">
+                                        Limousine
+                                    </span>
+                                </div>
+
+                                <div class="flex-1 text-right flex flex-col items-end justify-center">
+                                    <div class="text-2xl font-black text-secondary leading-none mb-1.5" th:text="${trip.priceFormatted}">
+                                        450.000đ
+                                    </div>
+                                    <p class="text-[11px] font-bold text-on-surface-variant uppercase">Mỗi hành khách</p>
+                                </div>
+                            </div>
+                            <div class="mt-6 flex items-center gap-6">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold font-headline" th:text="${trip.departureTime}">
+                                        19:30</div>
+                                    <p class="text-xs font-semibold text-on-surface-variant"
+                                       th:text="${trip.departureStation}">Bến xe</p>
+                                </div>
+                                <div class="flex-1 flex flex-col items-center relative">
+                                    <div class="w-full h-[2px] bg-outline-variant relative">
+                                        <div class="absolute -top-1 left-0 w-2 h-2 rounded-full bg-primary"></div>
+                                        <div class="absolute -top-1 right-0 w-2 h-2 rounded-full bg-outline"></div>
+                                    </div>
+                                    <span
+                                            class="material-symbols-outlined text-primary text-xl absolute -bottom-6">directions_bus</span>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold font-headline" th:text="${trip.arrivalTime}">
+                                        10:15</div>
+                                    <p class="text-xs font-semibold text-on-surface-variant"
+                                       th:text="${trip.arrivalStation}">Bến đến</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="md:w-1/5 flex flex-col items-center justify-center gap-3 border-t md:border-t-0 md:border-l border-outline-variant/30 pt-4 md:pt-0 md:pl-6">
+                            <div class="text-center w-full">
+                                <p class="text-base font-medium text-on-surface-variant mb-2">
+                                    Còn trống
+                                    <span class="text-secondary font-bold text-lg" th:text="${trip.seatsLeft}">8</span>
+                                    ghế
+                                </p>
+                                <a th:href="@{'/booking/' + ${trip.id}}"
+                                   class="block w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-center mx-auto max-w-[200px]">
+                                    Chọn chuyến
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/footer :: footer}"></th:block>
+<th:block th:replace="~{fragments/mobile-nav :: mobile-nav(activeTab='search')}"></th:block>
+
+</body>
+
+</html>
