@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Usage:
+  <th:block th:replace="~{fragments/admin-shell :: admin-sidebar(activeTab='trips')}"></th:block>
+  <th:block th:replace="~{fragments/admin-shell :: admin-topbar(title='...', subtitle='...')}"></th:block>
+-->
+
+<th:block th:fragment="admin-sidebar(activeTab)">
+    <aside class="fixed inset-y-0 left-0 w-60 bg-surface-card border-r border-surface-border flex flex-col z-40">
+        <div class="px-5 py-5 border-b border-surface-border">
+            <a th:href="@{/admin/dashboard}" class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-brand-700 flex items-center justify-center">
+                    <span class="ms text-white text-[16px]">directions_bus</span>
+                </div>
+                <span class="font-bold text-ink text-sm">Transit Admin</span>
+            </a>
+        </div>
+
+        <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+            <p class="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-ink-faint">Điều hành</p>
+            <a th:href="@{/admin/dashboard}" class="nav-link" th:classappend="${activeTab == 'dashboard'} ? ' active' : ''">
+                <span class="ms text-[20px]">dashboard</span> Bảng điều khiển
+            </a>
+            <a th:href="@{/admin/trips}" class="nav-link" th:classappend="${activeTab == 'trips'} ? ' active' : ''">
+                <span class="ms text-[20px]">departure_board</span> Chuyến đi
+            </a>
+            <a th:href="@{/admin/coaches}" class="nav-link" th:classappend="${activeTab == 'coaches'} ? ' active' : ''">
+                <span class="ms text-[20px]">rv_hookup</span> Đội xe
+            </a>
+
+            <p class="px-3 pt-4 pb-2 text-[10px] font-bold uppercase tracking-widest text-ink-faint">Khác</p>
+            <a th:href="@{/admin/infrastructure}" class="nav-link" th:classappend="${activeTab == 'infra'} ? ' active' : ''">
+                <span class="ms text-[20px]">garage</span> Hạ tầng
+            </a>
+            <a th:href="@{/admin/payments}" class="nav-link" th:classappend="${activeTab == 'payments'} ? ' active' : ''">
+                <span class="ms text-[20px]">payments</span> Thanh toán
+            </a>
+            <a th:href="@{/admin/reports}" class="nav-link" th:classappend="${activeTab == 'reports'} ? ' active' : ''">
+                <span class="ms text-[20px]">bar_chart_4_bars</span> Báo cáo
+            </a>
+        </nav>
+
+        <div class="px-3 pb-4 border-t border-surface-border pt-3 space-y-0.5">
+            <a th:href="@{/admin/settings}" class="nav-link"><span class="ms text-[20px]">settings</span> Cài đặt</a>
+            <a th:href="@{/admin/help}" class="nav-link"><span class="ms text-[20px]">help_outline</span> Hỗ trợ</a>
+
+            <div class="flex items-center gap-2.5 px-3 pt-3 mt-2 border-t border-surface-border">
+                <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-xs flex-shrink-0">AD</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-ink truncate" th:text="${adminUser != null ? adminUser.fullName : 'Admin'}">Admin</p>
+                    <p class="text-[11px] text-ink-faint truncate" th:text="${adminUser != null ? adminUser.role : ''}"></p>
+                </div>
+                <form th:action="@{/logout}" method="post" class="flex-shrink-0">
+                    <button class="btn-icon" title="Đăng xuất" type="submit">
+                        <span class="ms text-[20px]">logout</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </aside>
+</th:block>
+
+<th:block th:fragment="admin-topbar(title, subtitle)">
+    <header class="fixed top-0 left-60 right-0 h-14 bg-surface-card/90 backdrop-blur border-b border-surface-border flex items-center justify-between px-6 z-30">
+        <div class="min-w-0">
+            <p class="text-sm font-semibold text-ink truncate" th:text="${title}">Admin</p>
+            <p class="text-[11px] text-ink-faint truncate" th:text="${subtitle}"></p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="btn-icon" title="Thông báo">
+                <span class="ms text-[22px]">notifications</span>
+            </button>
+            <a th:href="@{/admin/dashboard}" class="btn-icon" title="Trang chủ">
+                <span class="ms text-[22px]">home</span>
+            </a>
+        </div>
+    </header>
+</th:block>
+
+</body>
+</html>
+

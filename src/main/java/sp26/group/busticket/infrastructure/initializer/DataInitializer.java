@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import sp26.group.busticket.modules.entity.*;
 import sp26.group.busticket.modules.enumType.StatusEnum;
+import sp26.group.busticket.modules.enumType.StopTypeEnum;
 import sp26.group.busticket.modules.repository.*;
 
 import java.math.BigDecimal;
@@ -21,6 +22,7 @@ public class DataInitializer implements CommandLineRunner {
     private final AccountRepository accountRepository;
     private final LocationRepository locationRepository;
     private final RouteRepository routeRepository;
+    private final RouteStopRepository routeStopRepository;
     private final CoachRepository coachRepository;
     private final SeatRepository seatRepository;
     private final TripRepository tripRepository;
@@ -43,9 +45,17 @@ public class DataInitializer implements CommandLineRunner {
         Location dalat = initLocation("Bến xe Đà Lạt", "Lâm Đồng");
         Location danang = initLocation("Bến xe Đà Nẵng", "Đà Nẵng");
 
-        // 3. Initialize Routes
+        // 3. Initialize Routes with proper RouteStop entities
         Route sgDl = initRoute(saigon, dalat, 300f, 420);
+        initRouteStop(sgDl, initLocation("Ngã ba Dầu Giây", "Đồng Nai"), 1, StopTypeEnum.BOTH, 60, 60f);
+        initRouteStop(sgDl, initLocation("Trạm nghỉ Xuân Lộc", "Đồng Nai"), 2, StopTypeEnum.BOTH, 110, 110f);
+        initRouteStop(sgDl, initLocation("TP. Bảo Lộc", "Lâm Đồng"), 3, StopTypeEnum.BOTH, 180, 180f);
+        initRouteStop(sgDl, initLocation("Ngã 3 Liên Khương", "Lâm Đồng"), 4, StopTypeEnum.DROPOFF, 260, 260f);
+
         Route sgDn = initRoute(saigon, danang, 900f, 960);
+        initRouteStop(sgDn, initLocation("Trạm nghỉ Phan Thiết", "Bình Thuận"), 1, StopTypeEnum.BOTH, 180, 200f);
+        initRouteStop(sgDn, initLocation("Trạm nghỉ Nha Trang", "Khánh Hòa"), 2, StopTypeEnum.BOTH, 430, 450f);
+        initRouteStop(sgDn, initLocation("Trạm nghỉ Quy Nhơn", "Bình Định"), 3, StopTypeEnum.BOTH, 650, 680f);
 
         // 4. Initialize Coaches & Seats
         Coach limousine = initCoach("51B-12345", "Xe Limousine", 22);
@@ -143,6 +153,7 @@ public class DataInitializer implements CommandLineRunner {
                 .orElseGet(() -> locationRepository.save(Location.builder()
                         .name(name)
                         .city(city)
+                        .locationType("TERMINAL")
                         .build()));
     }
 
@@ -181,14 +192,27 @@ public class DataInitializer implements CommandLineRunner {
                 });
     }
 
-    private Trip initTrip(Route route, Coach coach, LocalDateTime depTime, String phone, int price, sp26.group.busticket.modules.enumType.TripStatusEnum status, Account driver) {
+    private RouteStop initRouteStop(Route route, Location location, int order,
+                                    StopTypeEnum stopType, int offsetMinutes, float distanceFromStart) {
+        return routeStopRepository.save(RouteStop.builder()
+                .route(route)
+                .location(location)
+                .stopOrder(order)
+                .stopType(stopType)
+                .offsetMinutes(offsetMinutes)
+                .distanceFromStart(distanceFromStart)
+                .build());
+    }
+
+    private Trip initTrip(Route route, Coach coach, LocalDateTime depTime, String phone,
+                          int price, sp26.group.busticket.modules.enumType.TripStatusEnum status, Account driver) {
         return tripRepository.save(Trip.builder()
                 .route(route)
                 .coach(coach)
                 .departureTime(depTime)
                 .arrivalTime(depTime.plusMinutes(route.getDuration()))
                 .priceBase(BigDecimal.valueOf(price))
-                .contact_phoneNumber(phone)
+                .contactPhoneNumber(phone)
                 .tripStatus(status)
                 .driver(driver)
                 .build());

@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import sp26.group.busticket.modules.entity.Trip;
 
 import java.time.LocalDateTime;
@@ -11,20 +12,29 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TripRepository extends JpaRepository<Trip, UUID> {
+    @Query("SELECT t FROM Trip t WHERE " +
+            "(LOWER(t.route.departureLocation.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(t.route.arrivalLocation.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(t.driver.fullName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "CONCAT('', t.id) LIKE CONCAT('%', :query, '%')) " +
+            "AND (:status IS NULL OR :status = 'ALL' " +
+            "OR (:status = 'RUNNING' AND t.tripStatus = 'DEPARTED') " +
+            "OR (:status = 'SCHEDULED' AND t.tripStatus = 'SCHEDULED') " +
+            "OR (:status = 'DEPARTING_SOON' AND t.tripStatus = 'SCHEDULED' AND t.departureTime BETWEEN :now AND :soonTime))")
+    Page<Trip> findAllBySearchAndStatus(@Param("query") String query, 
+                                        @Param("status") String status, 
+                                        @Param("now") LocalDateTime now, 
+                                        @Param("soonTime") LocalDateTime soonTime, 
+                                        Pageable pageable);
+
+    // Query dành cho khách hàng tìm kiếm chuyến đi
     List<Trip> findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeBetween(
-            String from, String to, LocalDateTime startOfDay, LocalDateTime endOfDay);
+            String from, String to, LocalDateTime start, LocalDateTime end);
+
+    List<Trip> findByCoach_Id(UUID coachId);
 
     boolean existsByCoach_Id(UUID coachId);
 
-    // Tìm kiếm phân trang theo điểm khởi hành hoặc mã chuyến
-    @Query("SELECT t FROM Trip t WHERE " +
-            "t.route.startLocation LIKE %:query% OR " +
-            "t.route.endLocation LIKE %:query% OR " +
-            "CAST(t.id AS string) LIKE %:query%")
-    Page<Trip> findAllBySearch(String query, Pageable pageable);
-
-    // Lấy tất cả chuyến đi trong ngày hôm nay
-    @Query("SELECT t FROM Trip t WHERE t.departureTime >= :startOfDay AND t.departureTime <= :endOfDay")
-    List<Trip> findAllTripsToday(LocalDateTime startOfDay, LocalDateTime endOfDay);
-    List<Trip> findByCoach_Id(UUID coachId);
+    @Query("SELECT t FROM Trip t WHERE t.departureTime BETWEEN :start AND :end")
+    List<Trip> findAllTripsToday(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

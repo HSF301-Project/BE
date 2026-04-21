@@ -73,11 +73,11 @@
             </a>
             <!-- Admin profile card -->
             <div class="mt-4 p-4 bg-primary rounded-xl text-white">
-                <img th:src="${adminUser.avatarUrl != null ? adminUser.avatarUrl : '/images/default-admin.png'}"
-                     th:alt="${adminUser.fullName}"
+                <img th:src="@{/images/default-admin.png}"
+                     th:alt="${adminUser != null ? adminUser.fullName : 'Admin'}"
                      class="w-10 h-10 rounded-full border-2 border-primary-fixed mb-3 object-cover"/>
                 <p class="text-xs font-semibold opacity-80">Quản lý Cơ quan</p>
-                <p class="text-sm font-bold truncate" th:text="${adminUser.fullName}">Alex Rivera</p>
+                <p class="text-sm font-bold truncate" th:text="${adminUser != null ? adminUser.fullName : 'Admin'}">Alex Rivera</p>
             </div>
         </div>
     </div>

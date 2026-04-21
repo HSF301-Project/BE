@@ -16,6 +16,7 @@ public class TripPageResponse {
     private long totalCount;
     private int totalPages;
     private boolean hasNext;
+    private int displayedCount;
 
     // Thông tin Admin (Sidebar)
     private String adminFullName;

@@ -12,6 +12,7 @@ import sp26.group.busticket.modules.dto.coach.response.TripDetailDTO;
 import sp26.group.busticket.modules.dto.coach.response.TripHistoryDTO;
 import sp26.group.busticket.modules.dto.trip.response.AdminSeatStatusDTO;
 import sp26.group.busticket.modules.dto.trip.response.AdminTripDetailResponseDTO;
+import sp26.group.busticket.modules.dto.trip.response.TripStopEtaDTO;
 import sp26.group.busticket.modules.entity.Coach;
 import sp26.group.busticket.modules.entity.Seat;
 import sp26.group.busticket.modules.entity.Ticket;
@@ -25,6 +26,9 @@ import sp26.group.busticket.modules.service.CoachService;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 
 @Service
 @RequiredArgsConstructor
@@ -149,6 +153,8 @@ public class CoachServiceImpl implements CoachService {
         List<Ticket> tickets = ticketRepository.findByBooking_Trip_Id(tripId);
 
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+        java.time.format.DateTimeFormatter timeOnly = java.time.format.DateTimeFormatter.ofPattern("HH:mm");
+        java.time.format.DateTimeFormatter dateOnly = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         List<AdminSeatStatusDTO> seatStatuses = allSeats.stream()
                 .map(seat -> {
@@ -168,14 +174,119 @@ public class CoachServiceImpl implements CoachService {
                 })
                 .collect(Collectors.toList());
 
+        List<TripStopEtaDTO> stopEtas = buildStopEtas(trip, timeOnly);
+        String intermediateStopsText = stopEtas.stream()
+                .filter(s -> "INTERMEDIATE".equals(s.getStopType()))
+                .map(TripStopEtaDTO::getStopName)
+                .collect(Collectors.joining(", "));
+
         return AdminTripDetailResponseDTO.builder()
                 .tripId(tripId)
                 .routeName(trip.getRoute().getDepartureLocation().getName() + " - " + 
                            trip.getRoute().getArrivalLocation().getName())
                 .departureTime(trip.getDepartureTime().format(formatter))
+                .arrivalTime(trip.getArrivalTime().format(formatter))
+                .departureDate(trip.getDepartureTime().format(dateOnly))
                 .coachPlate(coach.getPlateNumber())
+                .coachType(coach.getCoachType())
                 .driverName(trip.getDriver() != null ? trip.getDriver().getFullName() : "N/A")
+                .driverPhone(trip.getDriver() != null ? trip.getDriver().getPhone() : "N/A")
+                .assistantName(trip.getAssistant() != null ? trip.getAssistant().getFullName() : "Chưa phân công")
+                .assistantPhone(trip.getAssistant() != null ? trip.getAssistant().getPhone() : "N/A")
+                .pickUpAddress(trip.getRoute().getDepartureLocation().getName() + ", " + trip.getRoute().getDepartureLocation().getCity())
+                .dropOffAddress(trip.getRoute().getArrivalLocation().getName() + ", " + trip.getRoute().getArrivalLocation().getCity())
+                .intermediateStopsText(intermediateStopsText.isBlank() ? "Không có" : intermediateStopsText)
+                .stopEtas(stopEtas)
                 .seats(seatStatuses)
                 .build();
+    }
+
+    private List<TripStopEtaDTO> buildStopEtas(sp26.group.busticket.modules.entity.Trip trip,
+                                               java.time.format.DateTimeFormatter timeOnly) {
+        // Build stop list from RouteStop entities (FK → Location)
+        List<StopWithKm> stops = new ArrayList<>();
+        stops.add(new StopWithKm(trip.getRoute().getDepartureLocation().getName(), 0f, "START"));
+
+        if (trip.getRoute().getStops() != null) {
+            for (sp26.group.busticket.modules.entity.RouteStop rs : trip.getRoute().getStops()) {
+                stops.add(new StopWithKm(
+                        rs.getLocation().getName(),
+                        rs.getDistanceFromStart(),
+                        "INTERMEDIATE"));
+            }
+        }
+
+        Float totalKm = trip.getRoute().getDistance();
+        if (totalKm == null || totalKm <= 0) {
+            totalKm = 1f;
+        }
+        stops.add(new StopWithKm(trip.getRoute().getArrivalLocation().getName(), totalKm, "END"));
+
+        // Prefer distance-based ETA when km is present, else fallback to equal distribution for those without km.
+        long totalMinutes = java.time.Duration.between(trip.getDepartureTime(), trip.getArrivalTime()).toMinutes();
+        if (totalMinutes <= 0 && trip.getRoute().getDuration() != null) {
+            totalMinutes = trip.getRoute().getDuration();
+        }
+        if (totalMinutes <= 0) {
+            totalMinutes = 60;
+        }
+
+        List<StopWithKm> withKm = stops.stream().filter(s -> s.km != null).sorted(Comparator.comparing(s -> s.km)).toList();
+        // If route dataset is present, at least START and END have km.
+        boolean canUseKm = withKm.size() >= 2;
+
+        List<TripStopEtaDTO> result = new ArrayList<>();
+        if (canUseKm) {
+            for (StopWithKm s : stops) {
+                long offsetMinutes;
+                if (s.km != null) {
+                    offsetMinutes = Math.round(totalMinutes * (s.km / totalKm));
+                } else {
+                    // fallback: put unknown-km stops evenly between START and END
+                    int idx = stops.indexOf(s);
+                    int segments = Math.max(stops.size() - 1, 1);
+                    offsetMinutes = Math.round((double) idx * totalMinutes / segments);
+                }
+                LocalDateTime eta = trip.getDepartureTime().plusMinutes(offsetMinutes);
+                result.add(TripStopEtaDTO.builder()
+                        .stopName(s.name)
+                        .etaTime(eta.format(timeOnly))
+                        .stopType(s.type)
+                        .pointType("BOTH")
+                        .pointTypeLabel("Đón & trả")
+                        .offsetMinutes((int) offsetMinutes)
+                        .build());
+            }
+            return result;
+        }
+
+        // Pure fallback: equal distribution
+        int segments = Math.max(stops.size() - 1, 1);
+        for (int i = 0; i < stops.size(); i++) {
+            long offsetMinutes = Math.round((double) i * totalMinutes / segments);
+            LocalDateTime eta = trip.getDepartureTime().plusMinutes(offsetMinutes);
+            StopWithKm s = stops.get(i);
+            result.add(TripStopEtaDTO.builder()
+                    .stopName(s.name)
+                    .etaTime(eta.format(timeOnly))
+                    .stopType(s.type)
+                    .pointType("BOTH")
+                    .pointTypeLabel("Đón & trả")
+                    .offsetMinutes((int) offsetMinutes)
+                    .build());
+        }
+        return result;
+    }
+
+    private static class StopWithKm {
+        final String name;
+        final Float km;
+        final String type;
+
+        private StopWithKm(String name, Float km, String type) {
+            this.name = name;
+            this.km = km;
+            this.type = type;
+        }
     }
 }

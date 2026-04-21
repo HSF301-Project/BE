@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{Admin/fragments/layout :: admin-head(${routeRequest.id != null} ? 'Cập nhật tuyến đường' : 'Tạo tuyến đường')}"></head>
+<body class="bg-surface min-h-screen text-ink antialiased">
+
+<aside th:replace="~{Admin/fragments/layout :: admin-sidebar('infrastructure')}"></aside>
+<header th:replace="~{Admin/fragments/layout :: admin-topnav(${routeRequest.id != null} ? 'Cập nhật tuyến đường' : 'Thêm tuyến đường')}"></header>
+
+<main class="ml-60 pt-14 min-h-screen">
+    <div class="px-8 py-7 max-w-screen-xl mx-auto">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-2xl font-extrabold text-ink" th:text="${routeRequest.id != null} ? 'Cập nhật tuyến đường' : 'Tạo tuyến đường'">Tạo tuyến đường</h1>
+                <p class="text-sm text-ink-muted mt-1">Kéo thả để sắp xếp waypoint. Có thể gán loại điểm và offset phút để tổng đài báo giờ chính xác.</p>
+            </div>
+            <a th:href="@{/admin/infrastructure(tab='routes')}" class="text-sm font-semibold text-ink-muted hover:text-ink">← Quay lại Hạ tầng</a>
+        </div>
+
+        <form id="routeForm" th:action="@{/admin/infrastructure/routes/save}" th:object="${routeRequest}" method="post" class="space-y-8">
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <input type="hidden" th:field="*{id}" />
+            
+            <!-- Hidden container for stops array bindings -->
+            <div id="stopsContainer"></div>
+
+            <section class="bg-surface-card rounded-2xl border border-surface-border p-6 shadow-sm">
+                <h2 class="text-base font-extrabold text-ink mb-4 flex items-center gap-2">
+                    <span class="ms text-brand-600">route</span> Thông tin tuyến
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Mã/Tên tuyến</label>
+                        <input th:field="*{routeCode}" placeholder="Ví dụ: SG-DL-01" class="w-full rounded-xl border-surface-border bg-white"/>
+                        <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('routeCode')}" th:errors="*{routeCode}"></p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Khoảng cách (km)</label>
+                            <input type="number" step="0.1" min="0" th:field="*{distanceKm}" class="w-full rounded-xl border-surface-border bg-white"/>
+                            <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('distanceKm')}" th:errors="*{distanceKm}"></p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Thời lượng (phút)</label>
+                            <input type="number" step="1" min="1" th:field="*{durationMinutes}" class="w-full rounded-xl border-surface-border bg-white"/>
+                            <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('durationMinutes')}" th:errors="*{durationMinutes}"></p>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Điểm đi</label>
+                        <select th:field="*{departureLocationId}" class="w-full rounded-xl border-surface-border bg-white">
+                            <option value="">— Chọn điểm đi —</option>
+                            <option th:each="l : ${locations}" th:value="${l.id}" th:text="${l.city + ' • ' + l.name}"></option>
+                        </select>
+                        <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('departureLocationId')}" th:errors="*{departureLocationId}"></p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Điểm đến</label>
+                        <select th:field="*{arrivalLocationId}" class="w-full rounded-xl border-surface-border bg-white">
+                            <option value="">— Chọn điểm đến —</option>
+                            <option th:each="l : ${locations}" th:value="${l.id}" th:text="${l.city + ' • ' + l.name}"></option>
+                        </select>
+                        <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('arrivalLocationId')}" th:errors="*{arrivalLocationId}"></p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-surface-card rounded-2xl border border-surface-border p-6 shadow-sm">
+                <div class="flex items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h2 class="text-base font-extrabold text-ink flex items-center gap-2">
+                            <span class="ms text-brand-600">alt_route</span> Waypoints (kéo thả để sắp xếp)
+                        </h2>
+                        <p class="text-sm text-ink-muted mt-1">Mỗi waypoint có thể là <b>chỉ đón</b>, <b>chỉ trả</b> hoặc <b>cả hai</b>. Offset phút sẽ ưu tiên hơn km khi tính ETA.</p>
+                    </div>
+                    <button type="button" onclick="addWaypoint()" class="px-4 py-2 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-sm hover:opacity-95">
+                        <span class="ms text-[18px] align-[-3px]">add</span> Thêm waypoint
+                    </button>
+                </div>
+
+                <ul id="waypointList" class="space-y-3"></ul>
+
+                <template id="waypointItemTpl">
+                    <li class="bg-white border border-surface-border rounded-2xl p-4 flex gap-3 items-start" draggable="true">
+                        <button type="button" class="mt-2 text-ink-faint hover:text-ink cursor-grab" title="Kéo để đổi thứ tự">
+                            <span class="ms text-[20px]">drag_indicator</span>
+                        </button>
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 flex-1">
+                            <div class="md:col-span-5">
+                                <label class="block text-[11px] font-extrabold uppercase tracking-wider text-ink-faint mb-1">Địa điểm dừng</label>
+                                <select class="wp-location w-full rounded-xl border-surface-border bg-white">
+                                    <option value="">— Chọn địa điểm —</option>
+                                    <option th:each="l : ${locations}" th:value="${l.id}" th:text="${l.city + ' • ' + l.name}"></option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-[11px] font-extrabold uppercase tracking-wider text-ink-faint mb-1">Km</label>
+                                <input type="number" step="0.1" min="0" class="wp-km w-full rounded-xl border-surface-border bg-white" placeholder="15"/>
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-extrabold uppercase tracking-wider text-ink-faint mb-1">Loại điểm</label>
+                                <select class="wp-type w-full rounded-xl border-surface-border bg-white">
+                                    <option value="BOTH">Đón & trả</option>
+                                    <option value="PICKUP">Chỉ đón</option>
+                                    <option value="DROPOFF">Chỉ trả</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-[11px] font-extrabold uppercase tracking-wider text-ink-faint mb-1">+Phút</label>
+                                <input type="number" step="1" min="0" class="wp-offset w-full rounded-xl border-surface-border bg-white" placeholder="45"/>
+                            </div>
+                        </div>
+                        <button type="button" class="mt-2 text-ink-faint hover:text-red-600" title="Xóa" onclick="removeWaypoint(this)">
+                            <span class="ms text-[20px]">delete</span>
+                        </button>
+                    </li>
+                </template>
+            </section>
+
+            <div class="flex justify-end gap-3">
+                <a th:href="@{/admin/infrastructure(tab='routes')}" class="px-5 py-2.5 rounded-xl border border-surface-border text-sm font-bold text-ink-muted hover:bg-surface-hover">Huỷ</a>
+                <button type="submit" onclick="beforeSubmit()" class="px-6 py-2.5 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-sm hover:opacity-95">
+                    Lưu tuyến
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script th:inline="javascript">
+    const list = document.getElementById('waypointList');
+    const tpl = document.getElementById('waypointItemTpl');
+
+    function addWaypoint(initial = {}) {
+        const node = tpl.content.firstElementChild.cloneNode(true);
+        if (initial.locationId) node.querySelector('.wp-location').value = initial.locationId;
+        node.querySelector('.wp-km').value = initial.distanceFromStart ?? '';
+        node.querySelector('.wp-type').value = initial.stopType || 'BOTH';
+        node.querySelector('.wp-offset').value = initial.offsetMinutes ?? '';
+        hookDnd(node);
+        list.appendChild(node);
+    }
+
+    function removeWaypoint(btn) {
+        btn.closest('li').remove();
+    }
+
+    function beforeSubmit() {
+        const container = document.getElementById('stopsContainer');
+        container.innerHTML = ''; // Clear old
+
+        const items = [...list.querySelectorAll('li')];
+        let validIndex = 0;
+        
+        items.forEach((li) => {
+            const locId = li.querySelector('.wp-location').value.trim();
+            if (!locId) return; // Skip empty rows
+            
+            const km = li.querySelector('.wp-km').value.trim();
+            const type = li.querySelector('.wp-type').value.trim() || 'BOTH';
+            const offset = li.querySelector('.wp-offset').value.trim();
+
+            const createHidden = (name, value) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = `stops[${validIndex}].${name}`;
+                input.value = value;
+                return input;
+            };
+
+            container.appendChild(createHidden('locationId', locId));
+            container.appendChild(createHidden('stopType', type));
+            if (km) container.appendChild(createHidden('distanceFromStart', km));
+            if (offset) container.appendChild(createHidden('offsetMinutes', offset));
+            
+            validIndex++;
+        });
+    }
+
+    // Drag & drop
+    let dragEl = null;
+    function hookDnd(li) {
+        li.addEventListener('dragstart', (e) => {
+            dragEl = li;
+            li.classList.add('opacity-60');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        li.addEventListener('dragend', () => {
+            li.classList.remove('opacity-60');
+            dragEl = null;
+        });
+        li.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+        li.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (!dragEl || dragEl === li) return;
+            const rect = li.getBoundingClientRect();
+            const after = (e.clientY - rect.top) > rect.height / 2;
+            if (after) {
+                li.after(dragEl);
+            } else {
+                li.before(dragEl);
+            }
+        });
+    }
+
+    // Seed 1 empty item for UX if new, else render existing
+    const existingStops = /*[[${routeRequest.stops}]]*/ [];
+
+    if (existingStops && existingStops.length > 0) {
+        existingStops.forEach(s => addWaypoint(s));
+    } else {
+        addWaypoint();
+    }
+</script>
+</body>
+</html>
+

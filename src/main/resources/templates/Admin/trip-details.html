@@ -17,26 +17,43 @@
         }
     </style>
 </head>
-<body class="admin-main text-on-surface antialiased">
+<body class="bg-surface min-h-screen text-ink antialiased">
 
-<aside class="admin-sidebar fixed left-0 top-0 h-full z-40 flex flex-col w-64 bg-slate-50 font-semibold tracking-tight shadow-lg">
-    <div class="p-6 flex flex-col gap-1 border-b border-slate-200">
-        <a th:href="@{/admin/dashboard}" class="text-xl font-black tracking-tighter text-blue-900">PREMIUM TRANSIT</a>
-    </div>
-    <nav class="flex-1 px-4 py-8 space-y-2">
-        <a th:href="@{/admin/coaches}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-700 text-white shadow-md shadow-blue-200 transition-all">
-            <span class="material-symbols-outlined">rv_hookup</span><span>Quản lý Xe</span>
-        </a>
-    </nav>
-</aside>
+<style>
+    * { font-family: 'Inter', sans-serif; }
+    .ms { font-family: 'Material Symbols Outlined'; font-variation-settings: 'FILL' 0,'wght' 450,'GRAD' 0,'opsz' 24; line-height:1; display:inline-block; user-select:none; }
+    .nav-link { display:flex; align-items:center; gap:.6rem; padding:.55rem .75rem; border-radius:.65rem; font-size:.9rem; color:#64748b; font-weight:600; transition:.12s; }
+    .nav-link:hover { background:#f1f5f9; color:#0f172a; }
+    .nav-link.active { background:#eff6ff; color:#1d4ed8; }
+    .btn-icon { padding:.4rem; border-radius:.55rem; color:#94a3b8; }
+    .btn-icon:hover { background:#f1f5f9; color:#0f172a; }
+</style>
 
-<main class="pl-72 pr-8 pt-12 pb-12 min-h-screen font-sans">
-    <div class="max-w-6xl mx-auto" th:object="${trip}">
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: { sans: ['Inter', 'sans-serif'] },
+                colors: {
+                    brand: { 50:'#eff6ff',100:'#dbeafe',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8' },
+                    surface: { DEFAULT:'#f8fafc',card:'#ffffff',border:'#e2e8f0',hover:'#f1f5f9' },
+                    ink: { DEFAULT:'#0f172a', muted:'#64748b', faint:'#94a3b8' }
+                }
+            }
+        }
+    }
+</script>
+
+<th:block th:replace="~{fragments/admin-shell :: admin-sidebar(activeTab='trips')}"></th:block>
+<th:block th:replace="~{fragments/admin-shell :: admin-topbar(title='Chi tiết chuyến đi', subtitle=${trip.routeName})}"></th:block>
+
+<main class="ml-60 pt-14 min-h-screen">
+    <div class="px-8 py-7 max-w-screen-2xl mx-auto" th:object="${trip}">
         <div class="mb-10">
-            <a href="javascript:history.back()" class="inline-flex items-center gap-2 text-xs font-black text-slate-400 hover:text-blue-700 transition-colors uppercase tracking-widest mb-6">
-                <span class="material-symbols-outlined text-sm">arrow_back</span> Quay lại hồ sơ xe
+            <a th:href="@{/admin/trips}" class="inline-flex items-center gap-2 text-xs font-black text-ink-faint hover:text-ink transition-colors uppercase tracking-widest mb-6">
+                <span class="material-symbols-outlined text-sm">arrow_back</span> Quay lại danh sách chuyến
             </a>
-            <div class="flex justify-between items-start">
+            <div class="flex justify-between items-start gap-6">
                 <div>
                     <h1 class="text-4xl font-black tracking-tight text-blue-900 mb-2" th:text="*{routeName}">Hà Nội - Sài Gòn</h1>
                     <div class="flex items-center gap-4 text-slate-500 font-semibold">
@@ -44,9 +61,55 @@
                          <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">person</span> <span th:text="'Tài xế: ' + *{driverName}"></span></div>
                     </div>
                 </div>
-                <div class="bg-blue-50 px-6 py-3 rounded-2xl border border-blue-100">
+                <div class="bg-brand-50 px-6 py-3 rounded-2xl border border-surface-border">
                     <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest block">Biển số xe</span>
                     <span class="text-xl font-black text-blue-900" th:text="*{coachPlate}">51B-12345</span>
+                    <span class="text-[11px] font-bold text-slate-500 block mt-1" th:text="*{coachType}">Limousine</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+            <div class="bg-surface-card p-5 rounded-2xl border border-surface-border shadow-sm">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ngày xuất phát</p>
+                <p class="text-lg font-black text-blue-900 mt-1" th:text="*{departureDate}">20/04/2026</p>
+                <p class="text-xs font-semibold text-slate-500 mt-1" th:text="'Khởi hành: ' + *{departureTime}">Khởi hành: 08:30</p>
+                <p class="text-xs font-semibold text-slate-500" th:text="'Dự kiến đến: ' + *{arrivalTime}">Dự kiến đến: 15:30</p>
+            </div>
+            <div class="bg-surface-card p-5 rounded-2xl border border-surface-border shadow-sm">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nhân sự chuyến</p>
+                <p class="text-sm font-bold text-blue-900 mt-2" th:text="'Tài xế: ' + *{driverName}">Tài xế</p>
+                <p class="text-xs font-semibold text-slate-500" th:text="'SĐT: ' + *{driverPhone}">SĐT</p>
+                <p class="text-sm font-bold text-blue-900 mt-2" th:text="'Phụ xe: ' + *{assistantName}">Phụ xe</p>
+                <p class="text-xs font-semibold text-slate-500" th:text="'SĐT: ' + *{assistantPhone}">SĐT</p>
+            </div>
+            <div class="bg-surface-card p-5 rounded-2xl border border-surface-border shadow-sm">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Điểm đón/trả đã chọn</p>
+                <p class="text-sm font-bold text-blue-900 mt-2">Đón: <span class="font-semibold text-slate-600" th:text="*{pickUpAddress}">Điểm đón</span></p>
+                <p class="text-sm font-bold text-blue-900 mt-2">Trả: <span class="font-semibold text-slate-600" th:text="*{dropOffAddress}">Điểm trả</span></p>
+                <p class="text-xs font-semibold text-slate-500 mt-2" th:text="'Điểm giữa: ' + *{intermediateStopsText}">Điểm giữa</p>
+            </div>
+        </div>
+
+        <div class="bg-surface-card rounded-3xl border border-surface-border p-6 mb-10 shadow-sm">
+            <h2 class="text-lg font-black text-blue-900 mb-3">Điểm đón/trả theo tuyến và giờ dự kiến đến</h2>
+            <p class="text-xs text-slate-500 font-semibold mb-4">Các điểm giữa được nội suy thời gian theo tổng thời lượng chuyến hiện tại.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest">Điểm đón</label>
+                    <select class="w-full mt-2 rounded-xl border-slate-200 text-sm font-semibold bg-slate-50">
+                        <option th:each="stop : *{stopEtas}"
+                                th:selected="${stop.stopName == trip.pickUpAddress}"
+                                th:text="${stop.stopName + ' — ETA ' + stop.etaTime + ' (+' + stop.offsetMinutes + 'p)'}">Điểm đón</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest">Điểm trả</label>
+                    <select class="w-full mt-2 rounded-xl border-slate-200 text-sm font-semibold bg-slate-50">
+                        <option th:each="stop : *{stopEtas}"
+                                th:selected="${stop.stopName == trip.dropOffAddress}"
+                                th:text="${stop.stopName + ' — ETA ' + stop.etaTime + ' (+' + stop.offsetMinutes + 'p)'}">Điểm trả</option>
+                    </select>
                 </div>
             </div>
         </div>

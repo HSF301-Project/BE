@@ -34,6 +34,10 @@ public class Account extends BaseEntity {
     @Column(name = "phone")
     private String phone;
 
+    /** Số GPLX (chủ yếu dùng cho tài khoản vai trò DRIVER). */
+    @Column(name = "driver_license_number", columnDefinition = "NVARCHAR(64)")
+    private String driverLicenseNumber;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatusEnum status;

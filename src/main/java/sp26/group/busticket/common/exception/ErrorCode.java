@@ -21,6 +21,10 @@ public enum ErrorCode {
 
     // Lỗi nghiệp vụ Chuyến đi & Đặt vé
     TRIP_NOT_FOUND(404, "Chuyến xe không tồn tại hoặc đã bị hủy!"),
+    TRIP_MISSING_ROUTE_POINTS(400, "Vui lòng nhập đầy đủ địa điểm đón và địa điểm trả."),
+    TRIP_DRIVER_REQUIRED(400, "Vui lòng chọn tài xế hoặc tạo tài xế mới cho chuyến đi."),
+    DRIVER_NOT_ASSIGNABLE(400, "Tài xế không hợp lệ hoặc chưa ở trạng thái sẵn sàng (hoạt động)."),
+    DRIVER_EMAIL_EXISTS(409, "Email tài xế đã được sử dụng."),
     ROUTE_NOT_FOUND(404, "Không tìm thấy tuyến đường này!"),
     BOOKING_NOT_FOUND(404, "Không tìm thấy thông tin đặt vé!"),
     SEAT_NOT_AVAILABLE(400, "Ghế bạn chọn hiện không còn trống!"),

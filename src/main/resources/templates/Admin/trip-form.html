@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{Admin/fragments/layout :: admin-head(${editMode} ? 'Sửa chuyến đi' : 'Tạo chuyến đi')}"></head>
+<body class="bg-surface min-h-screen text-ink antialiased">
+
+<aside th:replace="~{Admin/fragments/layout :: admin-sidebar('trips')}"></aside>
+<header th:replace="~{Admin/fragments/layout :: admin-topnav(${editMode} ? 'Cập nhật chuyến đi' : 'Tạo chuyến đi')}"></header>
+
+<main class="ml-60 pt-14 min-h-screen">
+    <div class="px-8 py-7 max-w-screen-xl mx-auto">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-2xl font-extrabold text-ink" th:text="${editMode} ? 'Cập nhật chuyến đi' : 'Khởi tạo chuyến đi mới'">Khởi tạo chuyến đi</h1>
+                <p class="text-sm text-ink-muted mt-1">Điền thông tin theo từng khối, hệ thống sẽ tự validate và đồng bộ tài xế.</p>
+            </div>
+            <a th:href="@{/admin/trips}" class="text-sm font-semibold text-ink-muted hover:text-ink">← Quay lại danh sách</a>
+        </div>
+
+        <div th:if="${errorMessage}" class="mb-6 p-4 rounded-xl bg-error-container text-error text-sm font-semibold" th:text="${errorMessage}"></div>
+
+        <form th:action="@{/admin/trips/save}" th:object="${tripRequest}" method="post" class="space-y-10">
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <input type="hidden" th:field="*{id}"/>
+
+            <!-- 1. Lộ trình & điểm đón trả -->
+            <section class="bg-surface-card rounded-2xl border border-surface-border p-8 shadow-sm">
+                <h2 class="text-lg font-bold text-blue-900 mb-1 flex items-center gap-2" style="font-family:'Plus Jakarta Sans',sans-serif;">
+                    <span class="material-symbols-outlined text-primary">route</span> Lộ trình &amp; điểm dừng
+                </h2>
+                <p class="text-sm text-on-surface-variant mb-6">Tuyến cố định (bến/tỉnh) kết hợp địa chỉ chi tiết đón — trả cho hành khách.</p>
+
+                <div class="grid gap-5">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Tuyến đường</label>
+                        <select th:field="*{routeId}" required
+                                class="w-full rounded-xl border-slate-200 text-sm font-medium focus:ring-2 focus:ring-primary/30">
+                            <option value="">— Chọn tuyến —</option>
+                            <option th:each="r : ${routes}" th:value="${r.id}"
+                                    th:text="${r.routeCode + ' • ' + r.departureLocation.name + ' → ' + r.arrivalLocation.name}"></option>
+                        </select>
+                        <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('routeId')}" th:errors="*{routeId}"></p>
+                        <p class="text-xs text-on-surface-variant mt-2">Hệ thống sẽ tự động đồng bộ tất cả các điểm dừng đón/trả từ tuyến đường đã chọn.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Tài xế -->
+            <section class="bg-surface-card rounded-2xl border border-surface-border p-8 shadow-sm">
+                <h2 class="text-lg font-bold text-blue-900 mb-1 flex items-center gap-2" style="font-family:'Plus Jakarta Sans',sans-serif;">
+                    <span class="material-symbols-outlined text-primary">badge</span> Tài xế
+                </h2>
+                <p class="text-sm text-on-surface-variant mb-6">Chỉ tài xế có trạng thái <strong>Hoạt động (ACTIVE)</strong> được hiển thị — tương đương <em>sẵn sàng nhận chuyến</em>.</p>
+
+                <div class="flex flex-wrap gap-6 mb-6">
+                    <label class="inline-flex items-center gap-2 cursor-pointer font-semibold text-sm">
+                        <input type="radio" th:field="*{driverInputMode}" value="existing" id="modeExisting" onchange="syncDriverMode()"/>
+                        Chọn từ danh sách
+                    </label>
+                    <label class="inline-flex items-center gap-2 cursor-pointer font-semibold text-sm">
+                        <input type="radio" th:field="*{driverInputMode}" value="new" id="modeNew" onchange="syncDriverMode()"/>
+                        Nhập tài xế mới
+                    </label>
+                </div>
+                <p class="text-error text-xs mb-4" th:if="${#fields.hasErrors('driverValidForMode')}" th:errors="*{driverValidForMode}"></p>
+                <p class="text-error text-xs mb-4" th:if="${#fields.hasErrors('newDriverFieldsValid')}" th:errors="*{newDriverFieldsValid}"></p>
+
+                <div id="existingDriverBlock" class="grid gap-5">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Tài xế</label>
+                        <select th:field="*{driverId}" class="w-full rounded-xl border-slate-200 text-sm focus:ring-2 focus:ring-primary/30">
+                            <option value="">— Chọn tài xế —</option>
+                            <option th:each="d : ${drivers}" th:value="${d.id}"
+                                    th:text="${d.fullName + ' | ' + d.phone + (d.licenseNumber != null ? ' | GPLX ' + d.licenseNumber : '') + ' | ' + d.readinessLabel}"></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Cập nhật số GPLX (tuỳ chọn)</label>
+                        <input type="text" th:field="*{existingDriverLicenseUpdate}" placeholder="Ghi nếu cần cập nhật GPLX cho tài xế đã chọn"
+                               class="w-full rounded-xl border-slate-200 text-sm focus:ring-2 focus:ring-primary/30"/>
+                    </div>
+                </div>
+
+                <div id="newDriverBlock" class="hidden grid gap-5 mt-2">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Họ tên *</label>
+                            <input type="text" th:field="*{newDriverFullName}" class="w-full rounded-xl border-slate-200 text-sm"/>
+                            <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('newDriverFullName')}" th:errors="*{newDriverFullName}"></p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Số điện thoại *</label>
+                            <input type="text" th:field="*{newDriverPhone}" class="w-full rounded-xl border-slate-200 text-sm"/>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Email đăng nhập *</label>
+                        <input type="email" th:field="*{newDriverEmail}" class="w-full rounded-xl border-slate-200 text-sm"/>
+                        <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('newDriverEmail')}" th:errors="*{newDriverEmail}"></p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Số GPLX (tuỳ chọn)</label>
+                        <input type="text" th:field="*{newDriverLicense}" class="w-full rounded-xl border-slate-200 text-sm"/>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Xe & thời gian & giá -->
+            <section class="bg-surface-card rounded-2xl border border-surface-border p-8 shadow-sm">
+                <h2 class="text-lg font-bold text-blue-900 mb-6 flex items-center gap-2" style="font-family:'Plus Jakarta Sans',sans-serif;">
+                    <span class="material-symbols-outlined text-primary">directions_bus</span> Phương tiện &amp; lịch chạy
+                </h2>
+                <div class="grid gap-5">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Xe (biển số — loại)</label>
+                        <select th:field="*{coachId}" required class="w-full rounded-xl border-slate-200 text-sm">
+                            <option value="">— Chọn xe —</option>
+                            <option th:each="c : ${coaches}" th:value="${c.id}"
+                                    th:text="${c.plateNumber} + ' — ' + ${c.coachType} + ' (' + ${c.totalSeats} + ' chỗ)'"></option>
+                        </select>
+                        <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('coachId')}" th:errors="*{coachId}"></p>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Khởi hành</label>
+                            <input type="datetime-local" step="60" th:field="*{departureTime}" required class="w-full rounded-xl border-slate-200 text-sm"/>
+                            <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('departureTime')}" th:errors="*{departureTime}"></p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Dự kiến đến</label>
+                            <input type="datetime-local" step="60" th:field="*{arrivalTime}" required class="w-full rounded-xl border-slate-200 text-sm"/>
+                            <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('arrivalTime')}" th:errors="*{arrivalTime}"></p>
+                        </div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Giá vé cơ bản</label>
+                            <input type="number" step="1" min="1" th:field="*{priceBase}" required class="w-full rounded-xl border-slate-200 text-sm"/>
+                            <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('priceBase')}" th:errors="*{priceBase}"></p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Hotline chuyến</label>
+                            <input type="text" th:field="*{contactPhoneNumber}" required class="w-full rounded-xl border-slate-200 text-sm"/>
+                            <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('contactPhoneNumber')}" th:errors="*{contactPhoneNumber}"></p>
+                        </div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Phụ xe (tuỳ chọn)</label>
+                            <select th:field="*{assistantId}" class="w-full rounded-xl border-slate-200 text-sm">
+                                <option value="">— Không —</option>
+                                <option th:each="a : ${assistants}" th:value="${a.id}" th:text="${a.fullName}"></option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Trạng thái chuyến</label>
+                            <select th:field="*{status}" class="w-full rounded-xl border-slate-200 text-sm">
+                                <option th:each="st : ${tripStatuses}" th:value="${st}" th:text="${st}"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="flex justify-end gap-3">
+                <a th:href="@{/admin/trips}" class="px-5 py-2.5 rounded-xl border border-surface-border text-sm font-bold text-ink-muted hover:bg-surface-hover">Huỷ</a>
+                <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-sm hover:opacity-95">
+                    Lưu chuyến
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+    function syncDriverMode() {
+        const existing = document.getElementById('modeExisting').checked;
+        document.getElementById('existingDriverBlock').classList.toggle('hidden', !existing);
+        document.getElementById('newDriverBlock').classList.toggle('hidden', existing);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        syncDriverMode();
+    });
+</script>
+</body>
+</html>

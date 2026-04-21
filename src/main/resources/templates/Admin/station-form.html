@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{Admin/fragments/layout :: admin-head(${location.id != null} ? 'Cập nhật Địa điểm' : 'Thêm Địa điểm')}"></head>
+<body class="bg-surface min-h-screen text-ink antialiased">
+
+<aside th:replace="~{Admin/fragments/layout :: admin-sidebar('infrastructure')}"></aside>
+<header th:replace="~{Admin/fragments/layout :: admin-topnav(${location.id != null} ? 'Cập nhật Địa điểm' : 'Thêm Địa điểm')}"></header>
+
+<main class="ml-60 pt-14 min-h-screen">
+    <div class="px-8 py-7 max-w-screen-xl mx-auto">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-2xl font-extrabold text-ink" th:text="${location.id != null} ? 'Cập nhật Địa điểm' : 'Tạo Địa điểm'">Tạo Địa điểm</h1>
+                <p class="text-sm text-ink-muted mt-1">Định nghĩa trạm dừng, bến bãi hoặc điểm trung chuyển vào hệ thống hạ tầng.</p>
+            </div>
+            <a th:href="@{/admin/infrastructure(tab='stations')}" class="text-sm font-semibold text-ink-muted hover:text-brand-600">← Quay lại Hạ tầng</a>
+        </div>
+
+        <form th:action="@{/admin/infrastructure/stations/save}" th:object="${location}" method="post" class="space-y-6">
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <input type="hidden" th:field="*{id}" />
+
+            <section class="bg-surface-card rounded-2xl border border-surface-border p-6 shadow-sm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Tên địa điểm</label>
+                        <input th:field="*{name}" required placeholder="Ví dụ: Bến xe Miền Đông, Trạm An Sương..." class="w-full rounded-xl border-surface-border bg-white"/>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Thành phố/Tỉnh</label>
+                        <input th:field="*{city}" required placeholder="Ví dụ: TP. Hồ Chí Minh" class="w-full rounded-xl border-surface-border bg-white"/>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Loại địa điểm</label>
+                        <select th:field="*{locationType}" class="w-full rounded-xl border-surface-border bg-white">
+                            <option value="TERMINAL">Bến chính (Terminal)</option>
+                            <option value="TRANSFER">Trung chuyển (Transfer)</option>
+                            <option value="STOP">Trạm dừng (Stop)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Địa chỉ chi tiết</label>
+                        <input th:field="*{address}" placeholder="Số nhà, đường, phường/xã..." class="w-full rounded-xl border-surface-border bg-white"/>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Ghi chú (Tùy chọn)</label>
+                        <textarea th:field="*{notes}" rows="3" placeholder="Giờ hoạt động, số điện thoại liên hệ bến bãi..." class="w-full rounded-xl border-surface-border bg-white"></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <div class="flex justify-end gap-3 mt-6">
+                <a th:href="@{/admin/infrastructure(tab='stations')}" class="px-5 py-2.5 rounded-xl border border-surface-border text-sm font-bold text-ink-muted hover:bg-surface-hover">Huỷ</a>
+                <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-sm hover:opacity-95">
+                    Lưu địa điểm
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+</body>
+</html>

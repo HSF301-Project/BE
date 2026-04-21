@@ -1,305 +1,313 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Transit Admin - Quản lý Lịch trình</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"/>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"/>
-    <script>
-        tailwind.config = {
-            theme: { extend: {
-                    colors: {
-                        "surface-container":"#ededf5","surface-container-high":"#e8e7f0","surface-container-low":"#f3f3fb",
-                        "surface-container-lowest":"#ffffff","surface-container-highest":"#e2e2ea","surface-bright":"#faf8ff",
-                        "surface-variant":"#e2e2ea","on-surface":"#1a1b21","on-surface-variant":"#434652",
-                        "secondary-container":"#fe5825","secondary":"#b02e00","on-secondary":"#ffffff",
-                        "secondary-fixed":"#ffdbd1","on-secondary-fixed":"#3b0900",
-                        "primary-container":"#0d47a1","primary":"#003178","on-primary":"#ffffff",
-                        "primary-fixed":"#d9e2ff","on-primary-fixed":"#001945","primary-fixed-dim":"#b0c6ff",
-                        "tertiary":"#003f0b","tertiary-container":"#005914","tertiary-fixed":"#a3f69c",
-                        "on-tertiary-fixed":"#002204","outline":"#737783","outline-variant":"#c3c6d4",
-                        "background":"#faf8ff","error":"#ba1a1a","error-container":"#ffdad6"
-                    },
-                    fontFamily: { headline:["Plus Jakarta Sans"], body:["Inter"] }
-                }}
-        }
-    </script>
-    <style>
-        .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; display:inline-block; line-height:1; }
-        body { font-family:'Inter',sans-serif; }
-        h1,h2,h3,.font-headline { font-family:'Plus Jakarta Sans',sans-serif; }
-    </style>
-</head>
-<body class="bg-background text-on-surface antialiased overflow-x-hidden">
+<head th:replace="~{Admin/fragments/layout :: admin-head('Quản lý Lịch trình')}"></head>
+<body class="bg-surface min-h-screen text-ink antialiased">
 
-<!-- ===== SIDEBAR ===== -->
-<aside class="fixed left-0 top-0 h-full z-40 flex flex-col w-64 bg-slate-50 font-semibold tracking-tight" style="font-family:'Plus Jakarta Sans',sans-serif;">
-    <div class="p-6 flex flex-col gap-1">
-        <a th:href="@{/admin}" class="text-xl font-bold tracking-tighter text-blue-900">Transit Admin</a>
-        <span class="text-xs text-on-surface-variant/70 uppercase tracking-widest font-bold">Quản lý Cơ quan</span>
-    </div>
-    <nav class="flex-1 px-4 py-4 space-y-1">
-        <a th:href="@{/admin/dashboard}"
-           class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
-            <span class="material-symbols-outlined">dashboard</span><span>Bảng điều khiển</span>
-        </a>
-        <!-- ACTIVE -->
-        <a th:href="@{/admin/trips}"
-           class="flex items-center gap-3 px-4 py-3 rounded-lg text-blue-700 font-bold border-r-4 border-blue-700 bg-slate-200/50">
-            <span class="material-symbols-outlined">directions_bus</span><span>Chuyến đi</span>
-        </a>
-        <a th:href="@{/admin/infrastructure}"
-           class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
-            <span class="material-symbols-outlined">construction</span><span>Hạ tầng</span>
-        </a>
-        <a th:href="@{/admin/payments}"
-           class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
-            <span class="material-symbols-outlined">payments</span><span>Thanh toán</span>
-        </a>
-        <a th:href="@{/admin/reports}"
-           class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
-            <span class="material-symbols-outlined">analytics</span><span>Báo cáo</span>
-        </a>
-    </nav>
-    <div class="px-4 py-6 border-t border-slate-200 space-y-1">
-        <a th:href="@{/admin/settings}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-500 hover:text-blue-600 transition-colors">
-            <span class="material-symbols-outlined">settings</span><span>Cài đặt</span>
-        </a>
-        <a th:href="@{/admin/help}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-500 hover:text-blue-600 transition-colors">
-            <span class="material-symbols-outlined">help_center</span><span>Hỗ trợ</span>
-        </a>
-        <div class="mt-4 flex items-center gap-3 px-4">
-            <img th:src="${adminUser.avatarUrl != null ? adminUser.avatarUrl : '/images/default-admin.png'}"
-                 th:alt="${adminUser.fullName}"
-                 class="w-10 h-10 rounded-full object-cover"/>
-            <span class="text-sm font-bold text-blue-900" th:text="${adminUser.fullName}">Admin</span>
-        </div>
-    </div>
-</aside>
+<aside th:replace="~{Admin/fragments/layout :: admin-sidebar('trips')}"></aside>
 
-<!-- ===== TOP NAV ===== -->
-<header class="flex justify-between items-center w-full h-16 pl-72 pr-8 fixed top-0 z-30 bg-white/80 backdrop-blur-xl shadow-sm" style="font-family:'Plus Jakarta Sans',sans-serif;">
-    <div class="text-lg font-black text-blue-900">The Premium Transit Authority</div>
-    <div class="flex items-center gap-6">
-        <form th:action="@{/admin/trips}" method="get" class="relative">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-            <input type="text" name="q" th:value="${searchQuery}"
-                   placeholder="Tìm kiếm chuyến đi..."
-                   class="pl-10 pr-4 py-1.5 rounded-full bg-surface-container-low border-none focus:ring-2 focus:ring-primary/20 text-sm w-64"/>
-        </form>
-        <div class="flex items-center gap-3">
-            <button class="relative text-slate-600 hover:text-blue-600 transition-colors">
-                <span class="material-symbols-outlined">notifications</span>
-                <span th:if="${hasAlerts}" class="absolute -top-1 -right-1 w-2 h-2 bg-secondary rounded-full"></span>
-            </button>
-            <button class="text-slate-600 hover:text-blue-600 transition-colors">
-                <span class="material-symbols-outlined">account_circle</span>
-            </button>
-        </div>
-    </div>
-</header>
+<header th:replace="~{Admin/fragments/layout :: admin-topnav('Quản lý Chuyến đi')}"></header>
 
 <!-- ===== MAIN ===== -->
-<main class="pl-72 pr-8 pt-24 pb-12 min-h-screen">
-    <div class="max-w-7xl mx-auto">
+<main class="ml-60 pt-14 min-h-screen">
+    <div class="px-8 py-7 max-w-screen-2xl mx-auto">
+
+        <!-- Alerts -->
+        <div th:if="${message}" class="mb-5 px-4 py-3 rounded-lg bg-emerald-50 text-emerald-800 text-sm font-medium border border-emerald-200 flex items-center gap-2">
+            <span class="ms text-[18px]">check_circle</span> <span th:text="${message}"></span>
+        </div>
+        <div th:if="${newDriverNotice}" class="mb-5 px-4 py-3 rounded-lg bg-amber-50 text-amber-800 text-sm font-medium border border-amber-200 flex items-center gap-2">
+            <span class="ms text-[18px]">info</span> <span th:text="${newDriverNotice}"></span>
+        </div>
 
         <!-- Page Header -->
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div class="flex items-center justify-between mb-6">
             <div>
-                <h1 class="text-4xl font-extrabold tracking-tight text-primary mb-2">Quản lý Lịch trình</h1>
-                <p class="text-on-surface-variant font-medium">Giám sát và lập lịch trình cho các dịch vụ vận tải cao cấp trong ngày.</p>
+                <h1 class="text-2xl font-extrabold text-ink tracking-tight">Quản lý Lịch trình</h1>
+                <p class="text-sm text-ink-muted mt-0.5">Giám sát và lập lịch trình các dịch vụ vận tải hôm nay.</p>
             </div>
             <a th:href="@{/admin/trips/new}"
-               class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-lg font-bold shadow-lg shadow-primary/20 hover:scale-[0.98] transition-transform">
-                <span class="material-symbols-outlined text-sm">add</span>
-                <span>Thêm mới</span>
+               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-700 text-white text-sm font-semibold hover:bg-brand-800 active:scale-[.98] transition-all shadow-sm">
+                <span class="ms text-[18px]">add</span> Thêm chuyến
             </a>
         </div>
 
-        <!-- ===== STATS BENTO GRID ===== -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-
-            <!-- Today's trips -->
-            <div class="bg-surface-container-low p-6 rounded-xl">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="p-2 bg-primary/10 rounded-lg text-primary">
-                        <span class="material-symbols-outlined">calendar_today</span>
-                    </div>
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="ms text-[22px] text-brand-600">calendar_today</span>
                     <span th:if="${stats.tripGrowthPercent != null}"
-                          class="text-xs font-bold text-tertiary px-2 py-1 bg-tertiary-fixed rounded-full"
+                          class="badge bg-emerald-50 text-emerald-700"
                           th:text="'+' + ${stats.tripGrowthPercent} + '%'">+12%</span>
                 </div>
-                <p class="text-sm font-semibold text-on-surface-variant">Lịch trình hôm nay</p>
-                <h3 class="text-2xl font-black" th:text="${stats.todayTrips + ' Chuyến'}">42 Chuyến</h3>
+                <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide">Lịch trình hôm nay</p>
+                <p class="text-2xl font-extrabold text-ink mt-1" th:text="${stats.todayTrips}">42</p>
             </div>
-
-            <!-- Total capacity -->
-            <div class="bg-surface-container-low p-6 rounded-xl">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="p-2 bg-secondary/10 rounded-lg text-secondary">
-                        <span class="material-symbols-outlined">group</span>
-                    </div>
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="ms text-[22px] text-violet-500">group</span>
                 </div>
-                <p class="text-sm font-semibold text-on-surface-variant">Tổng sức chứa</p>
-                <h3 class="text-2xl font-black" th:text="${#numbers.formatInteger(stats.totalSeats,1,'COMMA') + ' Chỗ'}">1,260 Chỗ</h3>
+                <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide">Tổng sức chứa</p>
+                <p class="text-2xl font-extrabold text-ink mt-1" th:text="${#numbers.formatInteger(stats.totalSeats,1,'COMMA')}">1,260</p>
             </div>
-
-            <!-- Fill rate -->
-            <div class="bg-surface-container-low p-6 rounded-xl">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="p-2 bg-tertiary-container/10 rounded-lg text-tertiary-container">
-                        <span class="material-symbols-outlined">leaderboard</span>
-                    </div>
-                    <span th:if="${stats.fillRateLevel != null}"
-                          class="text-xs font-bold text-secondary px-2 py-1 bg-secondary-fixed rounded-full"
-                          th:text="${stats.fillRateLevel}">Cao</span>
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="ms text-[22px] text-emerald-500">leaderboard</span>
+                    <span th:if="${stats.fillRateLevel != null}" class="badge bg-orange-50 text-orange-700" th:text="${stats.fillRateLevel}">Cao</span>
                 </div>
-                <p class="text-sm font-semibold text-on-surface-variant">Tỷ lệ lấp đầy TB</p>
-                <h3 class="text-2xl font-black" th:text="${stats.avgFillRate + '%'}">84.2%</h3>
+                <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide">Tỷ lệ lấp đầy TB</p>
+                <p class="text-2xl font-extrabold text-ink mt-1" th:text="${stats.avgFillRate + '%'}">84%</p>
             </div>
-
-            <!-- Alerts -->
-            <div class="bg-surface-container-low p-6 rounded-xl">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="p-2 bg-error/10 rounded-lg text-error">
-                        <span class="material-symbols-outlined">warning</span>
-                    </div>
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="ms text-[22px] text-red-500">warning_amber</span>
                 </div>
-                <p class="text-sm font-semibold text-on-surface-variant">Cảnh báo</p>
-                <h3 class="text-2xl font-black" th:text="${stats.alertCount + ' Vấn đề'}">2 Vấn đề</h3>
+                <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide">Cảnh báo</p>
+                <p class="text-2xl font-extrabold text-ink mt-1" th:text="${stats.alertCount}">2</p>
             </div>
         </div>
 
-        <!-- ===== TRIP TABLE ===== -->
-        <section class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
-            <!-- Table header -->
-            <div class="p-6 flex justify-between items-center bg-white border-b border-surface-container">
-                <h2 class="text-xl font-bold flex items-center gap-2">
-                    <span class="w-1.5 h-6 bg-primary rounded-full"></span>
-                    Lịch trình Hoạt động Hôm nay
-                </h2>
-                <div class="flex gap-2">
-                    <button class="p-2 hover:bg-surface-container-low rounded-lg transition-colors">
-                        <span class="material-symbols-outlined text-on-surface-variant">filter_list</span>
-                    </button>
-                    <button class="p-2 hover:bg-surface-container-low rounded-lg transition-colors">
-                        <span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
-                    </button>
+        <!-- Trip Table Card -->
+        <div class="bg-surface-card rounded-xl border border-surface-border shadow-card overflow-hidden">
+
+            <!-- Table Toolbar -->
+            <div class="border-b border-surface-border px-5 pt-4 pb-0">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-base font-bold text-ink flex items-center gap-2">
+                        <span class="w-1 h-5 bg-brand-600 rounded-full block"></span>
+                        Lịch trình hôm nay
+                    </h2>
+                    <div class="flex items-center gap-1">
+                        <button class="btn-icon" title="Xuất dữ liệu"><span class="ms text-[20px]">download</span></button>
+                        <button class="btn-icon" title="Bộ lọc thêm"><span class="ms text-[20px]">tune</span></button>
+                        <button class="btn-icon" title="Làm mới"><span class="ms text-[20px]">refresh</span></button>
+                    </div>
+                </div>
+                <!-- Quick Filter Tabs -->
+                <div class="flex items-center gap-5">
+                    <a href="?status=ALL" class="tab-filter" th:classappend="${currentStatus == null or currentStatus == 'ALL'} ? 'active' : ''">Tất cả</a>
+                    <a href="?status=RUNNING" class="tab-filter" th:classappend="${currentStatus == 'RUNNING'} ? 'active' : ''">Đang chạy</a>
+                    <a href="?status=SCHEDULED" class="tab-filter" th:classappend="${currentStatus == 'SCHEDULED'} ? 'active' : ''">Đã lên lịch</a>
+                    <a href="?status=DEPARTING_SOON" class="tab-filter" th:classappend="${currentStatus == 'DEPARTING_SOON'} ? 'active' : ''">Sắp khởi hành</a>
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                    <tr class="bg-surface-container-low text-on-surface-variant text-xs font-bold uppercase tracking-widest">
-                        <th class="px-6 py-4">Mã chuyến</th>
-                        <th class="px-6 py-4">Lộ trình (Khởi hành - Đến)</th>
-                        <th class="px-6 py-4">Loại xe</th>
-                        <th class="px-6 py-4">Giờ khởi hành</th>
-                        <th class="px-6 py-4">Tỷ lệ lấp đầy</th>
-                        <th class="px-6 py-4">Trạng thái</th>
-                        <th class="px-6 py-4 text-right">Thao tác</th>
-                    </tr>
+            <!-- Scrollable Table -->
+            <div class="overflow-auto" style="max-height: 560px;">
+                <table class="w-full border-collapse text-sm">
+                    <thead class="sticky top-0 z-10">
+                        <tr>
+                            <th class="th">Mã chuyến</th>
+                            <th class="th">Lộ trình</th>
+                            <th class="th">Loại xe</th>
+                            <th class="th">Xuất phát</th>
+                            <th class="th">Biển số</th>
+                            <th class="th">Tài xế / Phụ xe</th>
+                            <th class="th">Trạm kế tiếp</th>
+                            <th class="th">Lấp đầy</th>
+                            <th class="th">Trạng thái</th>
+                            <th class="th text-right">Thao tác</th>
+                        </tr>
                     </thead>
-                    <tbody class="divide-y divide-surface-container">
+                    <tbody>
                     <!--
-                        DYNAMIC: trip.tripCode, trip.fromStation, trip.toStation,
-                        trip.busTypeLabel, trip.busTypeStyle (LIMOUSINE/EXECUTIVE),
-                        trip.departureTime, trip.departureAmPm,
+                        DYNAMIC FIELDS: trip.tripCode, trip.fromStation, trip.toStation,
+                        trip.busType, trip.busTypeLabel, trip.departureDateTime,
+                        trip.minutesUntilDeparture, trip.coachPlate, trip.driverName,
+                        trip.driverPhone, trip.assistantName, trip.assistantPhone,
                         trip.bookedSeats, trip.totalSeats, trip.fillPercent,
-                        trip.fillBarColor (bg-primary/bg-red-500/bg-green-500),
-                        trip.status (DA_XAC_NHAN/DANG_CHO/DA_HUY),
-                        trip.statusLabel, trip.statusColor
+                        trip.status, trip.statusLabel, trip.hasIssue, trip.id
                     -->
                     <tr th:each="trip : ${trips}"
-                        class="hover:bg-surface-bright transition-colors group">
-                        <td class="px-6 py-5">
-                            <span class="font-mono text-sm font-bold text-primary" th:text="${trip.tripCode}">TRP-8802</span>
-                        </td>
-                        <td class="px-6 py-5">
-                            <div class="flex flex-col">
-                                <span class="text-sm font-bold" th:text="${trip.fromStation}">London Victoria</span>
-                                <span class="text-xs text-on-surface-variant" th:text="${trip.toStation}">Manchester Central</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-5">
-                                <span th:classappend="${trip.busType == 'LIMOUSINE'} ? 'bg-primary-fixed text-on-primary-fixed' : 'bg-surface-container-high text-on-surface-variant'"
-                                      class="px-3 py-1 text-[10px] font-black uppercase tracking-tighter rounded-full"
-                                      th:text="${trip.busTypeLabel}">Hạng Limousine</span>
-                        </td>
-                        <td class="px-6 py-5">
-                            <div class="flex items-baseline gap-1">
-                                <span class="text-base font-bold" th:text="${trip.departureTime}">09:45</span>
-                                <span class="text-xs text-on-surface-variant font-medium" th:text="${trip.departureAmPm}">SA</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-5">
-                            <div class="flex flex-col gap-1 min-w-[140px]">
-                                <div class="flex justify-between text-xs font-medium text-on-surface-variant">
-                                    <span th:text="${trip.bookedSeats + ' / ' + trip.totalSeats + ' chỗ'}">24 / 30 chỗ</span>
-                                    <span class="font-bold" th:text="${trip.fillPercent + '%'}">80%</span>
+                        class="group"
+                        th:classappend="${trip.hasIssue} ? 'bg-red-50/60' : ''">
+
+                        <!-- Mã chuyến -->
+                        <td class="td">
+                            <div class="flex items-center gap-1.5">
+                                <span th:if="${trip.hasIssue}" class="ms ms-fill text-red-500 text-[16px] animate-pulse" title="Có vấn đề">warning</span>
+                                <div class="relative group/code flex items-center">
+                                    <span class="font-mono text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded cursor-default"
+                                          th:title="${trip.tripCode}"
+                                          th:text="${#strings.length(trip.tripCode) > 10 ? #strings.substring(trip.tripCode,0,10) + '…' : trip.tripCode}">TRP-0d38…</span>
+                                    <button class="copy-btn" title="Copy"><span class="ms text-[14px]">content_copy</span></button>
                                 </div>
-                                <div class="h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
-                                    <div class="h-full rounded-full"
-                                         th:classappend="${trip.status == 'DA_HUY'} ? 'bg-error' : (${trip.fillPercent >= 90} ? 'bg-green-500' : 'bg-primary')"
+                            </div>
+                        </td>
+
+                        <!-- Lộ trình -->
+                        <td class="td">
+                            <details class="group rounded-lg">
+                                <summary class="list-none cursor-pointer">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-1 font-semibold text-ink">
+                                                <span th:text="${trip.fromStation}">Hồ Chí Minh</span>
+                                                <span class="ms text-[14px] text-ink-faint">arrow_forward</span>
+                                                <span th:text="${trip.toStation}">Đà Lạt</span>
+                                            </div>
+                                            <div class="text-[11px] text-ink-muted mt-1">
+                                                <span th:text="${trip.routeTimeline != null ? #lists.size(trip.routeTimeline) : 0}">0</span> điểm • click xem chi tiết
+                                            </div>
+                                        </div>
+                                        <span class="ms text-ink-faint mt-0.5 group-open:rotate-180 transition-transform">expand_more</span>
+                                    </div>
+                                </summary>
+
+                                <div class="mt-3 rounded-xl border border-surface-border bg-white p-4">
+                                    <div class="text-[11px] font-bold uppercase tracking-wider text-ink-faint mb-3">Timeline trạm dừng</div>
+                                    <div class="relative pl-6">
+                                        <div class="absolute left-2 top-1 bottom-1 w-px bg-surface-border"></div>
+                                        <div th:each="stop, idx : ${trip.routeTimeline}" class="relative pb-3 last:pb-0">
+                                            <div class="absolute left-[6px] top-1.5 w-2.5 h-2.5 rounded-full border-2 border-white"
+                                                 th:classappend="${idx.index == 0} ? ' bg-brand-600' : (${idx.last} ? ' bg-ink-faint' : ' bg-brand-100')"></div>
+                                            <div class="flex items-start justify-between gap-4">
+                                                <div class="min-w-0">
+                                                    <div class="text-sm font-semibold text-ink" th:text="${stop.stopName}">An Sương</div>
+                                                    <div class="text-[11px] text-ink-muted mt-0.5">
+                                                        <span th:text="${stop.stopType}">INTERMEDIATE</span>
+                                                        <span class="mx-1 text-surface-border">•</span>
+                                                        <span th:text="${stop.pointTypeLabel}">Đón & trả</span>
+                                                    </div>
+                                                </div>
+                                                <div class="text-right">
+                                                    <div class="text-xs font-bold text-ink bg-surface-hover border border-surface-border rounded-lg px-2 py-1"
+                                                         th:text="${stop.etaTime}">08:45</div>
+                                                    <div class="text-[11px] font-semibold text-ink-muted mt-1" th:text="'+' + ${stop.offsetMinutes} + ' phút'">+45 phút</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                        </td>
+
+                        <!-- Loại xe -->
+                        <td class="td">
+                            <span th:classappend="${trip.busType == 'LIMOUSINE'} ? 'bg-brand-50 text-brand-700' : 'bg-surface text-ink-muted'"
+                                  class="badge border border-current/10"
+                                  th:text="${trip.busTypeLabel}">Limousine</span>
+                        </td>
+
+                        <!-- Xuất phát -->
+                        <td class="td">
+                            <p class="font-semibold text-ink" th:text="${trip.departureDateTime}">09:45 20/04</p>
+                            <p th:if="${trip.status == 'SCHEDULED' and trip.minutesUntilDeparture != null and trip.minutesUntilDeparture > 0}"
+                               class="text-[11px] font-semibold text-orange-500 mt-0.5"
+                               th:text="'→ ' + ${trip.minutesUntilDeparture} + ' phút nữa'"></p>
+                            <p th:if="${trip.status == 'SCHEDULED' and trip.minutesUntilDeparture != null and trip.minutesUntilDeparture <= 0}"
+                               class="text-[11px] font-semibold text-red-500 mt-0.5">→ Đến giờ</p>
+                        </td>
+
+                        <!-- Biển số -->
+                        <td class="td">
+                            <span class="font-mono text-xs font-bold text-ink bg-surface-hover px-2 py-0.5 rounded" th:text="${trip.coachPlate}">51B-12345</span>
+                        </td>
+
+                        <!-- Tài xế -->
+                        <td class="td">
+                            <p class="font-semibold text-ink" th:text="${trip.driverName}">Nguyễn Văn A</p>
+                            <p class="text-xs text-ink-faint mt-0.5">
+                                <span th:text="${trip.driverPhone}">0901234567</span>
+                                <span th:if="${trip.assistantName != null}" class="mx-1 text-surface-border">·</span>
+                                <span th:if="${trip.assistantName != null}" class="text-ink-muted" th:text="${trip.assistantName + ' (phụ)'}"></span>
+                            </p>
+                        </td>
+
+                        <!-- Trạm kế tiếp -->
+                        <td class="td">
+                            <span class="font-semibold text-ink" th:text="${trip.nextStopLabel}">Chưa chạy</span>
+                        </td>
+
+                        <!-- Tỷ lệ lấp đầy -->
+                        <td class="td">
+                            <div class="w-32">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs text-ink-muted" th:text="${trip.bookedSeats + '/' + trip.totalSeats}">24/30</span>
+                                    <span class="text-xs font-bold"
+                                          th:classappend="${trip.fillPercent < 30 and trip.status == 'SCHEDULED'} ? 'text-red-600' : (${trip.fillPercent >= 90} ? 'text-emerald-600' : 'text-ink')"
+                                          th:text="${trip.fillPercent + '%'}">80%</span>
+                                </div>
+                                <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full transition-all"
+                                         th:classappend="${trip.fillPercent < 30 and trip.status == 'SCHEDULED'} ? 'bg-red-500' : (${trip.fillPercent >= 90} ? 'bg-emerald-500' : 'bg-brand-500')"
                                          th:style="'width:' + ${trip.fillPercent} + '%'"></div>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-5">
-                                <span class="px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-1.5 w-fit"
-                                      th:classappend="${trip.status == 'DA_XAC_NHAN'} ? 'bg-green-100 text-green-800' : (${trip.status == 'DANG_CHO'} ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700')">
-                                    <span class="w-1.5 h-1.5 rounded-full"
-                                          th:classappend="${trip.status == 'DA_XAC_NHAN'} ? 'bg-green-500' : (${trip.status == 'DANG_CHO'} ? 'bg-orange-500' : 'bg-red-500')"></span>
-                                    <span th:text="${trip.statusLabel}">Đã xác nhận</span>
-                                </span>
+
+                        <!-- Trạng thái -->
+                        <td class="td">
+                            <span th:classappend="${trip.status == 'SCHEDULED'} ? 'bg-emerald-50 text-emerald-700' : (${trip.status == 'DEPARTED'} ? 'bg-orange-50 text-orange-700' : 'bg-slate-100 text-slate-600')"
+                                  class="pill-status">
+                                <span th:classappend="${trip.status == 'SCHEDULED'} ? 'bg-emerald-500' : (${trip.status == 'DEPARTED'} ? 'bg-orange-500' : 'bg-slate-400')"
+                                      class="dot"></span>
+                                <span th:text="${trip.statusLabel}">Đã lên lịch</span>
+                            </span>
                         </td>
-                        <td class="px-6 py-5 text-right">
-                            <a th:href="@{/admin/trips/{id}/edit(id=${trip.id})}"
-                               class="p-2 hover:bg-surface-container rounded-lg transition-colors inline-block text-on-surface-variant hover:text-primary">
-                                <span class="material-symbols-outlined text-lg">edit</span>
-                            </a>
+
+                        <!-- Thao tác -->
+                        <td class="td text-right">
+                            <div class="flex items-center justify-end gap-0.5">
+                                <button class="quick-action" title="Gọi điện tài xế"><span class="ms text-[18px]">call</span></button>
+                                <button class="quick-action" title="Danh sách khách"><span class="ms text-[18px]">group</span></button>
+                                <button class="quick-action" title="In lệnh xuất bến"><span class="ms text-[18px]">print</span></button>
+                                <a th:href="@{/admin/trips/{id}/edit(id=${trip.id})}"
+                                   class="btn-icon opacity-100 text-brand-600 hover:bg-brand-50" title="Chỉnh sửa">
+                                    <span class="ms text-[18px]">edit</span>
+                                </a>
+                            </div>
                         </td>
                     </tr>
 
-                    <!-- Static fallback rows -->
-                    <tr th:unless="${trips != null}" class="hover:bg-surface-bright transition-colors">
-                        <td class="px-6 py-5"><span class="font-mono text-sm font-bold text-primary">TRP-8802</span></td>
-                        <td class="px-6 py-5"><div class="flex flex-col"><span class="text-sm font-bold">London Victoria</span><span class="text-xs text-on-surface-variant">Manchester Central</span></div></td>
-                        <td class="px-6 py-5"><span class="px-3 py-1 bg-primary-fixed text-on-primary-fixed text-[10px] font-black uppercase rounded-full">Hạng Limousine</span></td>
-                        <td class="px-6 py-5"><div class="flex items-baseline gap-1"><span class="text-base font-bold">09:45</span><span class="text-xs text-on-surface-variant">SA</span></div></td>
-                        <td class="px-6 py-5"><div class="flex flex-col gap-1 min-w-[140px]"><div class="flex justify-between text-xs font-medium text-on-surface-variant"><span>24 / 30 chỗ</span><span class="font-bold">80%</span></div><div class="h-1.5 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full rounded-full bg-primary" style="width:80%"></div></div></div></td>
-                        <td class="px-6 py-5"><span class="px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-1.5 w-fit bg-green-100 text-green-800"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Đã xác nhận</span></td>
-                        <td class="px-6 py-5 text-right"><button class="p-2 hover:bg-surface-container rounded-lg text-on-surface-variant"><span class="material-symbols-outlined text-lg">edit</span></button></td>
+                    <!-- Fallback / empty state -->
+                    <tr th:if="${trips == null or #lists.isEmpty(trips)}">
+                        <td colspan="9" class="py-16 text-center">
+                            <span class="ms text-[48px] text-ink-faint block mb-3">departure_board</span>
+                            <p class="font-semibold text-ink-muted">Không có chuyến đi nào</p>
+                            <p class="text-xs text-ink-faint mt-1">Thử thay đổi bộ lọc hoặc thêm chuyến mới.</p>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
 
             <!-- Pagination -->
-            <div class="px-6 py-4 flex justify-between items-center border-t border-surface-container bg-white">
-                <p class="text-sm text-on-surface-variant font-medium">
-                    Hiển thị <span th:text="${pagination.displayedCount}">4</span>
-                    trên <span th:text="${pagination.totalCount}">42</span> chuyến đi
+            <div class="px-5 py-3 border-t border-surface-border flex items-center justify-between bg-surface-card">
+                <p class="text-xs text-ink-muted">
+                    Hiển thị <span class="font-semibold text-ink" th:text="${pagination.displayedCount}">10</span>
+                    / <span class="font-semibold text-ink" th:text="${pagination.totalCount}">42</span> chuyến
                 </p>
-                <div class="flex gap-2">
+                <div class="flex items-center gap-1.5">
                     <a th:href="@{/admin/trips(page=${pagination.currentPage - 1})}"
-                       th:classappend="${pagination.currentPage <= 1} ? 'opacity-50 pointer-events-none' : ''"
-                       class="px-4 py-2 text-sm font-semibold border border-surface-container-highest rounded-lg hover:bg-surface-container-low transition-colors">
-                        Trước
+                       th:classappend="${pagination.currentPage <= 1} ? 'opacity-40 pointer-events-none' : ''"
+                       class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-surface-border text-xs font-semibold text-ink-muted hover:bg-surface-hover transition-colors">
+                        <span class="ms text-[16px]">chevron_left</span> Trước
                     </a>
                     <a th:href="@{/admin/trips(page=${pagination.currentPage + 1})}"
-                       th:classappend="${!pagination.hasNext} ? 'opacity-50 pointer-events-none' : ''"
-                       class="px-4 py-2 text-sm font-semibold border border-surface-container-highest rounded-lg hover:bg-surface-container-low transition-colors">
-                        Tiếp theo
+                       th:classappend="${!pagination.hasNext} ? 'opacity-40 pointer-events-none' : ''"
+                       class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-surface-border text-xs font-semibold text-ink-muted hover:bg-surface-hover transition-colors">
+                        Tiếp <span class="ms text-[16px]">chevron_right</span>
                     </a>
                 </div>
             </div>
-        </section>
+        </div>
+
     </div>
 </main>
 
+<script>
+    // Copy trip code on button click
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const code = btn.closest('.group\\/code').querySelector('span[title]')?.getAttribute('title');
+            if (code) navigator.clipboard.writeText(code).then(() => {
+                const icon = btn.querySelector('.ms');
+                icon.textContent = 'check';
+                setTimeout(() => icon.textContent = 'content_copy', 1500);
+            });
+        });
+    });
+</script>
 </body>
 </html>
