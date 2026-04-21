@@ -102,18 +102,19 @@ public class DataInitializer implements CommandLineRunner {
         Account d5 = accountRepository.findByEmail("driver5@gmail.com").get();
         Account d6 = accountRepository.findByEmail("driver6@gmail.com").get();
 
-        Trip trip1 = initTrip(sgDl, limousine, LocalDateTime.now().plusHours(1), "0912345678", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d1);
+        Trip trip1 = initTrip(sgDl, limousine, LocalDateTime.now().plusDays(1).plusHours(1), "0912345678", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d1);
+        Trip trip10_today = initTrip(sgDl, seater, LocalDateTime.now().plusHours(5), "0901230000", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d4);
         Trip trip2 = initTrip(sgDl, limousine, LocalDateTime.now().minusHours(5), "0912345678", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.DEPARTED, d2);
-        Trip trip3 = initTrip(sgDn, sleeper, LocalDateTime.now().plusHours(5), "0987654321", 500000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d3);
+        Trip trip3 = initTrip(sgDn, sleeper, LocalDateTime.now().plusHours(8), "0987654321", 500000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d3);
 
         // New Trips
         Trip trip4 = initTrip(sgCt, seater, LocalDateTime.now().plusDays(1).plusHours(9), "0901112233", 150000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d4);
         Trip trip5 = initTrip(ctSg, seater, LocalDateTime.now().plusDays(1).plusHours(14), "0904445566", 150000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d5);
-        Trip trip6 = initTrip(dnHue, limousine, LocalDateTime.now().plusHours(2), "0907778899", 100000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d6);
+        Trip trip6 = initTrip(dnHue, limousine, LocalDateTime.now().plusHours(6), "0907778899", 100000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d6);
         Trip trip7 = initTrip(hueDn, limousine, LocalDateTime.now().minusDays(1), "0901231231", 100000, sp26.group.busticket.modules.enumType.TripStatusEnum.COMPLETED, d1);
         Trip trip8 = initTrip(sgHn, sleeper, LocalDateTime.now().plusDays(2).plusHours(10), "0904564564", 1000000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d2);
         Trip trip9 = initTrip(hnSg, sleeper, LocalDateTime.now().plusDays(3).plusHours(18), "0907897897", 1000000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d3);
-        Trip trip10 = initTrip(sgDl, seater, LocalDateTime.now().plusHours(3), "0901230000", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d4);
+        Trip trip10 = initTrip(sgDl, seater, LocalDateTime.now().plusDays(1).plusHours(3), "0901230000", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d4);
         Trip trip11 = initTrip(sgDn, seater, LocalDateTime.now().plusHours(7), "0904561111", 500000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d5);
         Trip trip12 = initTrip(sgCt, limousine, LocalDateTime.now().plusDays(1).plusHours(11), "0907892222", 150000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d6);
         Trip trip13 = initTrip(ctSg, sleeper, LocalDateTime.now().plusDays(1).plusHours(16), "0901233333", 150000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d1);

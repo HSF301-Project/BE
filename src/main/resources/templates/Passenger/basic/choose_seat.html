@@ -248,5 +248,46 @@
 <th:block th:replace="~{fragments/mobile-nav :: mobile-nav(activeTab='trips')}"></th:block>
 
 <script th:src="@{/js/seat-selection.js}"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const tripStopEtas = /*[[${trip.stopEtas}]]*/ [];
+    const pickupSelect = document.querySelector('select[name="pickupLocationId"]');
+    const dropoffSelect = document.querySelector('select[name="dropoffLocationId"]');
+
+    function updateDropoffOptions() {
+        const selectedPickupId = pickupSelect.value;
+        const selectedPickupStop = tripStopEtas.find(stop => stop.stopId === selectedPickupId);
+
+        // Clear current dropoff options
+        dropoffSelect.innerHTML = '';
+
+        if (selectedPickupStop) {
+            const pickupOffset = selectedPickupStop.offsetMinutes;
+
+            // Filter and add new dropoff options
+            tripStopEtas.forEach(stop => {
+                // Only consider DROPOFF or BOTH points
+                if ((stop.pointType === 'DROPOFF' || stop.pointType === 'BOTH') && stop.offsetMinutes > pickupOffset) {
+                    const option = document.createElement('option');
+                    option.value = stop.stopId;
+                    option.textContent = stop.stopName + ' (' + stop.etaTime + ')';
+                    dropoffSelect.appendChild(option);
+                }
+            });
+        }
+        
+        // If no dropoff option is selected, try to select the first one
+        if (dropoffSelect.options.length > 0 && dropoffSelect.value === "") {
+            dropoffSelect.value = dropoffSelect.options[0].value;
+        }
+    }
+
+    // Initial update when page loads
+    updateDropoffOptions();
+
+    // Add event listener for pickup location change
+    pickupSelect.addEventListener('change', updateDropoffOptions);
+    /*]]>*/
+</script>
 </body>
 </html>
