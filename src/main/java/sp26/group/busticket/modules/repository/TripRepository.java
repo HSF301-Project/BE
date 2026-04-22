@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import sp26.group.busticket.modules.entity.Trip;
+import sp26.group.busticket.modules.enumType.TripStatusEnum;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,4 +40,8 @@ public interface TripRepository extends JpaRepository<Trip, UUID> {
 
     @Query("SELECT t FROM Trip t WHERE t.departureTime BETWEEN :start AND :end")
     List<Trip> findAllTripsToday(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    List<Trip> findByDriver_IdAndTripStatusInOrAssistant_IdAndTripStatusInOrderByDepartureTimeAsc(
+            UUID driverId, Collection<TripStatusEnum> statuses1, 
+            UUID assistantId, Collection<TripStatusEnum> statuses2);
 }

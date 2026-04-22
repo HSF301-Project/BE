@@ -86,7 +86,7 @@ public class CoachServiceImpl implements CoachService {
         }
         
         // Kiểm tra xem xe có khách hàng đã đặt vé không
-        if (ticketRepository.existsByCoachIdDirect(id)) {
+        if (ticketRepository.existsBySeat_Coach_Id(id)) {
             throw new AppException(ErrorCode.INVALID_INPUT, 
                 "Không thể xóa xe này vì đã có hành khách đặt vé trên các chỗ ngồi của xe. Vui lòng kiểm tra lại!");
         }

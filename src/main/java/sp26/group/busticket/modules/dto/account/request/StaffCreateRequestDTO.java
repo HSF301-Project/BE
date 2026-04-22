@@ -27,6 +27,11 @@ public class StaffCreateRequestDTO {
     @NotBlank(message = "Mat khau khong duoc de trong")
     private String password;
 
+    @NotBlank(message = "Role khong duoc de trong")
+    private String role; // DRIVER or ASSISTANT
+
+    private String driverLicenseNumber; // Only for DRIVER
+
     // Neu khong truyen, he thong mac dinh ACTIVE
     private StatusEnum status;
 }
