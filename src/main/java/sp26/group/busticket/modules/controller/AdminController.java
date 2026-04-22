@@ -8,18 +8,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import sp26.group.busticket.common.exception.AppException;
-import sp26.group.busticket.modules.dto.trip.TripAdminConstants;
 import sp26.group.busticket.modules.dto.trip.request.TripRequestDTO;
-import sp26.group.busticket.modules.entity.Account;
 import sp26.group.busticket.modules.enumType.StatusEnum;
 import sp26.group.busticket.modules.enumType.TripStatusEnum;
 import sp26.group.busticket.modules.repository.AccountRepository;
@@ -28,13 +20,12 @@ import sp26.group.busticket.modules.service.AccountService;
 import sp26.group.busticket.modules.service.CoachService;
 import sp26.group.busticket.modules.service.FinanceService;
 import sp26.group.busticket.modules.service.TripService;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import java.util.UUID;
 
 import java.beans.PropertyEditorSupport;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Controller
@@ -44,7 +35,7 @@ public class AdminController {
 
     @InitBinder("tripRequest")
     public void initTripRequestBinder(WebDataBinder binder) {
-        for (String field : new String[]{"assistantId", "driverId", "secondDriverId"}) {
+        for (String field : new String[]{"assistantId", "driverId", "secondDriverId", "returnDriverId", "returnSecondDriverId", "returnAssistantId"}) {
             binder.registerCustomEditor(UUID.class, field, new PropertyEditorSupport() {
                 @Override
                 public void setAsText(String text) throws IllegalArgumentException {
@@ -139,7 +130,6 @@ public class AdminController {
     @GetMapping("/trips/new")
     public String newTripForm(Model model) {
         model.addAttribute("tripRequest", TripRequestDTO.builder()
-                .driverInputMode("existing")
                 .status(TripStatusEnum.SCHEDULED)
                 .build());
         enrichTripFormModel(model);
@@ -170,17 +160,11 @@ public class AdminController {
         }
         try {
             if (requestDTO.getId() == null) {
-                var createdDriver = tripService.createTrip(requestDTO);
+                tripService.createTrip(requestDTO);
                 redirectAttributes.addFlashAttribute("message", "Thêm mới chuyến đi thành công!");
-                createdDriver.ifPresent(uuid -> redirectAttributes.addFlashAttribute("newDriverNotice",
-                        "Đã tạo tài khoản tài xế mới (id: " + uuid + "). Mật khẩu tạm thời: "
-                                + TripAdminConstants.NEW_DRIVER_TEMP_PASSWORD + " — vui lòng yêu cầu tài xế đổi mật khẩu sau khi đăng nhập."));
             } else {
-                var createdDriver = tripService.updateTrip(requestDTO.getId(), requestDTO);
+                tripService.updateTrip(requestDTO.getId(), requestDTO);
                 redirectAttributes.addFlashAttribute("message", "Cập nhật chuyến đi thành công!");
-                createdDriver.ifPresent(uuid -> redirectAttributes.addFlashAttribute("newDriverNotice",
-                        "Đã tạo tài khoản tài xế mới (id: " + uuid + "). Mật khẩu tạm thời: "
-                                + TripAdminConstants.NEW_DRIVER_TEMP_PASSWORD + " — vui lòng yêu cầu tài xế đổi mật khẩu sau khi đăng nhập."));
             }
         } catch (AppException e) {
             model.addAttribute("errorMessage", e.getMessage());
@@ -198,5 +182,61 @@ public class AdminController {
         model.addAttribute("drivers", tripService.listAssignableDrivers());
         model.addAttribute("assistants", accountRepository.findByRoleAndStatusOrderByFullNameAsc("STAFF", StatusEnum.ACTIVE));
         model.addAttribute("tripStatuses", TripStatusEnum.values());
+    }
+
+    // --- AJAX Endpoints for Dynamic Form ---
+    @GetMapping("/trips/check-return-route")
+    @ResponseBody
+    public Map<String, Object> checkReturnRoute(@RequestParam UUID routeId) {
+        Map<String, Object> res = new HashMap<>();
+        Optional<UUID> returnRouteId = tripService.findReturnRouteId(routeId);
+        res.put("hasReturn", returnRouteId.isPresent());
+        if (returnRouteId.isPresent()) {
+            res.put("returnRouteId", returnRouteId.get());
+            routeRepository.findById(returnRouteId.get()).ifPresent(route -> {
+                res.put("duration", route.getDuration());
+                res.put("distance", route.getDistance());
+            });
+        }
+        return res;
+    }
+
+    @GetMapping("/trips/check-availability")
+    @ResponseBody
+    public Map<String, Object> checkAvailability(@RequestParam(required = false) UUID driverId,
+                                                @RequestParam(required = false) UUID coachId,
+                                                @RequestParam(required = false) UUID routeId,
+                                                @RequestParam LocalDateTime start,
+                                                @RequestParam LocalDateTime end,
+                                                @RequestParam(required = false) UUID excludeId) {
+        Map<String, Object> res = new HashMap<>();
+        if (driverId != null) {
+            res.put("driverAvailable", tripService.isDriverAvailable(driverId, start, end, excludeId));
+        }
+        if (coachId != null) {
+            res.put("coachAvailable", tripService.isCoachAvailable(coachId, start, end, routeId, excludeId));
+        }
+        return res;
+    }
+
+    @GetMapping("/trips/available-staff")
+    @ResponseBody
+    public Map<String, Object> getAvailableStaff(@RequestParam LocalDateTime start,
+                                                @RequestParam LocalDateTime end,
+                                                @RequestParam(required = false) UUID excludeId) {
+        Map<String, Object> res = new HashMap<>();
+        res.put("availableDriverIds", tripService.getAvailableDriverIds(start, end, excludeId));
+        return res;
+    }
+
+    @GetMapping("/trips/available-coaches")
+    @ResponseBody
+    public Map<String, Object> getAvailableCoaches(@RequestParam LocalDateTime start,
+                                                  @RequestParam LocalDateTime end,
+                                                  @RequestParam(required = false) UUID routeId,
+                                                  @RequestParam(required = false) UUID excludeId) {
+        Map<String, Object> res = new HashMap<>();
+        res.put("availableCoachIds", tripService.getAvailableCoachIds(start, end, routeId, excludeId));
+        return res;
     }
 }

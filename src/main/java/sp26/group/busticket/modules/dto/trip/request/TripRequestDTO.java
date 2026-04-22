@@ -30,27 +30,8 @@ public class TripRequestDTO {
     @NotNull(message = "Vui lòng chọn xe")
     private UUID coachId;
 
-    /**
-     * Chế độ: "existing" = chọn tài xế có sẵn; "new" = nhập tài xế mới (tạo Account DRIVER).
-     */
-    @Builder.Default
-    private String driverInputMode = "existing";
-
-    /** Bắt buộc khi driverInputMode = existing */
+    @NotNull(message = "Vui lòng chọn tài xế chính")
     private UUID driverId;
-
-
-
-    private String newDriverFullName;
-    private String newDriverPhone;
-
-    @Email(message = "Email tài xế không hợp lệ")
-    private String newDriverEmail;
-
-    private String newDriverLicense;
-
-    /** Cập nhật GPLX cho tài xế đã chọn (tùy chọn). */
-    private String existingDriverLicenseUpdate;
 
     private UUID secondDriverId;
     private UUID assistantId;
@@ -76,21 +57,18 @@ public class TripRequestDTO {
     @Builder.Default
     private TripStatusEnum status = TripStatusEnum.SCHEDULED;
 
-    @AssertTrue(message = "Vui lòng chọn tài xế khi dùng danh sách có sẵn")
-    public boolean isDriverValidForMode() {
-        if (driverInputMode == null || "existing".equalsIgnoreCase(driverInputMode.trim())) {
-            return driverId != null;
-        }
-        return true;
-    }
+    // --- Roundtrip Fields ---
+    private boolean roundTrip = false;
+    private UUID returnRouteId;
+    private UUID returnDriverId;
+    private UUID returnSecondDriverId;
+    private UUID returnAssistantId;
 
-    @AssertTrue(message = "Vui lòng nhập họ tên, SĐT và email khi tạo tài xế mới")
-    public boolean isNewDriverFieldsValid() {
-        if (driverInputMode != null && "new".equalsIgnoreCase(driverInputMode.trim())) {
-            return newDriverFullName != null && !newDriverFullName.isBlank()
-                    && newDriverPhone != null && !newDriverPhone.isBlank()
-                    && newDriverEmail != null && !newDriverEmail.isBlank();
-        }
-        return true;
-    }
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    private LocalDateTime returnDepartureTime;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    private LocalDateTime returnArrivalTime;
+
+    private BigDecimal priceRoundTrip;
 }

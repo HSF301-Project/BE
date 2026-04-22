@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{Admin/fragments/layout :: admin-head(${editMode} ? 'Sửa chuyến đi' : 'Tạo chuyến đi')}"></head>
+<head>
+    <th:block th:replace="~{Admin/fragments/layout :: admin-head(${editMode} ? 'Sửa chuyến đi' : 'Tạo chuyến đi')}"></th:block>
+    <!-- Tom Select -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <style>
+        .ts-control { border-radius: 0.75rem !important; border-color: #e2e8f0 !important; font-size: 0.875rem !important; padding: 0.5rem 0.75rem !important; }
+        .ts-dropdown { border-radius: 0.75rem !important; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important; border: 1px solid #e2e8f0 !important; }
+        .ts-wrapper.focus .ts-control { ring: 2px; ring-color: rgba(29, 78, 216, 0.3); border-color: #1d4ed8 !important; }
+        .readonly-input { background-color: #f8fafc !important; cursor: not-allowed; }
+    </style>
+</head>
 <body class="bg-surface min-h-screen text-ink antialiased">
 
 <aside th:replace="~{Admin/fragments/layout :: admin-sidebar('trips')}"></aside>
@@ -11,187 +22,504 @@
         <div class="flex items-center justify-between mb-6">
             <div>
                 <h1 class="text-2xl font-extrabold text-ink" th:text="${editMode} ? 'Cập nhật chuyến đi' : 'Khởi tạo chuyến đi mới'">Khởi tạo chuyến đi</h1>
-                <p class="text-sm text-ink-muted mt-1">Điền thông tin theo từng khối, hệ thống sẽ tự validate và đồng bộ tài xế.</p>
+                <p class="text-sm text-ink-muted mt-1">Hệ thống hỗ trợ tự động tính toán lịch trình và kiểm tra trùng lịch tài xế.</p>
             </div>
             <a th:href="@{/admin/trips}" class="text-sm font-semibold text-ink-muted hover:text-ink">← Quay lại danh sách</a>
         </div>
 
-        <div th:if="${errorMessage}" class="mb-6 p-4 rounded-xl bg-error-container text-error text-sm font-semibold" th:text="${errorMessage}"></div>
+        <div th:if="${errorMessage}" class="mb-6 p-4 rounded-xl bg-red-50 text-red-700 text-sm font-semibold" th:text="${errorMessage}"></div>
 
-        <form th:action="@{/admin/trips/save}" th:object="${tripRequest}" method="post" class="space-y-10">
+        <form th:action="@{/admin/trips/save}" th:object="${tripRequest}" method="post" class="space-y-8 pb-20">
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
             <input type="hidden" th:field="*{id}"/>
 
-            <!-- 1. Lộ trình & điểm đón trả -->
+            <!-- 1. Lộ trình & Chế độ khứ hồi -->
             <section class="bg-surface-card rounded-2xl border border-surface-border p-8 shadow-sm">
                 <h2 class="text-lg font-bold text-blue-900 mb-1 flex items-center gap-2" style="font-family:'Plus Jakarta Sans',sans-serif;">
-                    <span class="material-symbols-outlined text-primary">route</span> Lộ trình &amp; điểm dừng
+                    <span class="ms text-primary">route</span> Lộ trình & Chế độ chạy
                 </h2>
-                <p class="text-sm text-on-surface-variant mb-6">Tuyến cố định (bến/tỉnh) kết hợp địa chỉ chi tiết đón — trả cho hành khách.</p>
+                <p class="text-sm text-on-surface-variant mb-6">Chọn tuyến đường chính, hệ thống sẽ gợi ý tuyến khứ hồi nếu có.</p>
 
-                <div class="grid gap-5">
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Tuyến đường</label>
-                        <select th:field="*{routeId}" required
-                                class="w-full rounded-xl border-slate-200 text-sm font-medium focus:ring-2 focus:ring-primary/30">
-                            <option value="">— Chọn tuyến —</option>
+                <div class="grid md:grid-cols-3 gap-6 items-end">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Tuyến đường chính</label>
+                        <select th:field="*{routeId}" required id="routeId" class="ts-select">
+                            <option value="">— Chọn tuyến đường —</option>
                             <option th:each="r : ${routes}" th:value="${r.id}"
+                                    th:data-duration="${r.duration}"
+                                    th:data-distance="${r.distance}"
                                     th:text="${r.routeCode + ' • ' + r.departureLocation.name + ' → ' + r.arrivalLocation.name}"></option>
                         </select>
-                        <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('routeId')}" th:errors="*{routeId}"></p>
-                        <p class="text-xs text-on-surface-variant mt-2">Hệ thống sẽ tự động đồng bộ tất cả các điểm dừng đón/trả từ tuyến đường đã chọn.</p>
+                    </div>
+                    <div id="roundTripInfo" class="hidden flex items-center gap-3 bg-brand-50 text-brand-700 px-4 py-3 rounded-xl border border-brand-200 shadow-sm">
+                        <span class="ms text-brand-600">info</span>
+                        <span id="returnRouteName" class="text-sm font-bold"></span>
+                        <input type="hidden" th:field="*{roundTrip}" id="roundTrip"/>
                     </div>
                 </div>
             </section>
 
-            <!-- 2. Tài xế -->
-            <section class="bg-surface-card rounded-2xl border border-surface-border p-8 shadow-sm">
-                <h2 class="text-lg font-bold text-blue-900 mb-1 flex items-center gap-2" style="font-family:'Plus Jakarta Sans',sans-serif;">
-                    <span class="material-symbols-outlined text-primary">badge</span> Tài xế
-                </h2>
-                <p class="text-sm text-on-surface-variant mb-6">Chỉ tài xế có trạng thái <strong>Hoạt động (ACTIVE)</strong> được hiển thị — tương đương <em>sẵn sàng nhận chuyến</em>.</p>
+            <!-- 2. Thông tin chuyến đi (Forward Trip) -->
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Chuyến đi chính -->
+                <div class="space-y-8">
+                    <section class="bg-surface-card rounded-2xl border border-surface-border p-6 shadow-sm">
+                        <h3 class="text-md font-bold text-ink mb-6 flex items-center gap-2">
+                            <span class="ms text-brand-600">arrow_forward</span> Chuyến đi
+                        </h3>
+                        
+                        <div class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Tài xế chính</label>
+                                <select th:field="*{driverId}" required id="driverId" class="ts-select">
+                                    <option value="">— Chọn tài xế —</option>
+                                    <option th:each="d : ${drivers}" th:value="${d.id}"
+                                            th:text="${d.fullName + ' | ' + d.phone}"></option>
+                                </select>
+                            </div>
 
-                <div class="flex flex-wrap gap-6 mb-6">
-                    <label class="inline-flex items-center gap-2 cursor-pointer font-semibold text-sm">
-                        <input type="radio" th:field="*{driverInputMode}" value="existing" id="modeExisting" onchange="syncDriverMode()"/>
-                        Chọn từ danh sách
-                    </label>
-                    <label class="inline-flex items-center gap-2 cursor-pointer font-semibold text-sm">
-                        <input type="radio" th:field="*{driverInputMode}" value="new" id="modeNew" onchange="syncDriverMode()"/>
-                        Nhập tài xế mới
-                    </label>
+                            <div id="secondDriverContainer" class="hidden">
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Tài xế 2 (Dự phòng) *</label>
+                                <select th:field="*{secondDriverId}" id="secondDriverId" class="ts-select">
+                                    <option value="">— Chọn tài xế —</option>
+                                    <option th:each="d : ${drivers}" th:value="${d.id}" th:text="${d.fullName + ' | ' + d.phone}"></option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Khởi hành</label>
+                                    <input type="datetime-local" step="60" th:field="*{departureTime}" required id="departureTime"
+                                           class="w-full rounded-xl border-slate-200 text-sm"/>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Dự kiến đến</label>
+                                    <input type="datetime-local" step="60" th:field="*{arrivalTime}" id="arrivalTime" readonly
+                                           class="w-full rounded-xl border-slate-200 text-sm readonly-input"/>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Giá vé (VNĐ)</label>
+                                <input type="number" th:field="*{priceBase}" required id="priceBase"
+                                       class="w-full rounded-xl border-slate-200 text-sm font-bold text-brand-700"/>
+                            </div>
+                        </div>
+                    </section>
                 </div>
-                <p class="text-error text-xs mb-4" th:if="${#fields.hasErrors('driverValidForMode')}" th:errors="*{driverValidForMode}"></p>
-                <p class="text-error text-xs mb-4" th:if="${#fields.hasErrors('newDriverFieldsValid')}" th:errors="*{newDriverFieldsValid}"></p>
 
-                <div id="existingDriverBlock" class="grid gap-5">
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Tài xế chính</label>
-                            <select th:field="*{driverId}" class="w-full rounded-xl border-slate-200 text-sm focus:ring-2 focus:ring-primary/30">
-                                <option value="">— Chọn tài xế —</option>
-                                <option th:each="d : ${drivers}" th:value="${d.id}"
-                                        th:text="${'[' + d.readinessLabel + '] ' + d.fullName + ' | ' + d.phone + (d.licenseNumber != null ? ' | GPLX ' + d.licenseNumber : '')}"></option>
-                            </select>
-                            <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('driverId')}" th:errors="*{driverId}"></p>
+                <!-- Chuyến về (Chỉ hiện khi bật Khứ hồi) -->
+                <div id="returnTripSection" class="space-y-8 hidden">
+                    <section class="bg-brand-50/30 rounded-2xl border-2 border-brand-200 p-6 shadow-md">
+                        <h3 class="text-md font-bold text-brand-800 mb-6 flex items-center gap-2">
+                            <span class="ms">arrow_back</span> Chuyến về
+                        </h3>
+                        
+                        <div class="space-y-5">
+                            <input type="hidden" th:field="*{returnRouteId}" id="returnRouteId"/>
+                            
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-brand-600 mb-2">Tài xế chuyến về</label>
+                                <select th:field="*{returnDriverId}" id="returnDriverId" class="ts-select">
+                                    <option value="">— Chọn tài xế —</option>
+                                    <option th:each="d : ${drivers}" th:value="${d.id}"
+                                            th:text="${d.fullName + ' | ' + d.phone}"></option>
+                                </select>
+                            </div>
+
+                            <div id="returnSecondDriverContainer" class="hidden">
+                                <label class="block text-xs font-bold uppercase text-brand-600 mb-2">Tài xế 2 chuyến về *</label>
+                                <select th:field="*{returnSecondDriverId}" id="returnSecondDriverId" class="ts-select">
+                                    <option value="">— Chọn tài xế —</option>
+                                    <option th:each="d : ${drivers}" th:value="${d.id}" th:text="${d.fullName + ' | ' + d.phone}"></option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-brand-600 mb-2">Khởi hành về</label>
+                                    <input type="datetime-local" step="60" th:field="*{returnDepartureTime}" id="returnDepartureTime"
+                                           class="w-full rounded-xl border-brand-200 text-sm focus:ring-brand-500"/>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-brand-600 mb-2">Dự kiến về đến</label>
+                                    <input type="datetime-local" step="60" th:field="*{returnArrivalTime}" id="returnArrivalTime" readonly
+                                           class="w-full rounded-xl border-brand-200 text-sm readonly-input"/>
+                                </div>
+                            </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-brand-600 mb-2">Giá vé lượt về (VNĐ)</label>
+                                    <input type="number" th:field="*{priceRoundTrip}" id="priceRoundTrip"
+                                           class="w-full rounded-xl border-brand-200 text-sm font-bold text-brand-700"/>
+                                </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Tài xế 2 (Dự phòng)</label>
-                            <select th:field="*{secondDriverId}" class="w-full rounded-xl border-slate-200 text-sm focus:ring-2 focus:ring-primary/30">
-                                <option value="">— Chọn tài xế —</option>
-                                <option th:each="d : ${drivers}" th:value="${d.id}" th:text="${d.fullName + ' | ' + d.phone}"></option>
-                            </select>
-                            <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('secondDriverId')}" th:errors="*{secondDriverId}"></p>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Cập nhật số GPLX (tuỳ chọn)</label>
-                        <input type="text" th:field="*{existingDriverLicenseUpdate}" placeholder="Ghi nếu cần cập nhật GPLX cho tài xế đã chọn"
-                               class="w-full rounded-xl border-slate-200 text-sm focus:ring-2 focus:ring-primary/30"/>
-                    </div>
+                    </section>
                 </div>
+            </div>
 
-                <div id="newDriverBlock" class="hidden grid gap-5 mt-2">
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Họ tên *</label>
-                            <input type="text" th:field="*{newDriverFullName}" class="w-full rounded-xl border-slate-200 text-sm"/>
-                            <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('newDriverFullName')}" th:errors="*{newDriverFullName}"></p>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Số điện thoại *</label>
-                            <input type="text" th:field="*{newDriverPhone}" class="w-full rounded-xl border-slate-200 text-sm"/>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Email đăng nhập *</label>
-                        <input type="email" th:field="*{newDriverEmail}" class="w-full rounded-xl border-slate-200 text-sm"/>
-                        <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('newDriverEmail')}" th:errors="*{newDriverEmail}"></p>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Số GPLX (tuỳ chọn)</label>
-                        <input type="text" th:field="*{newDriverLicense}" class="w-full rounded-xl border-slate-200 text-sm"/>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 3. Xe & thời gian & giá -->
+            <!-- 3. Xe & Phụ xe (Dùng chung cho cả 2 nếu là khứ hồi) -->
             <section class="bg-surface-card rounded-2xl border border-surface-border p-8 shadow-sm">
                 <h2 class="text-lg font-bold text-blue-900 mb-6 flex items-center gap-2" style="font-family:'Plus Jakarta Sans',sans-serif;">
-                    <span class="material-symbols-outlined text-primary">directions_bus</span> Phương tiện &amp; lịch chạy
+                    <span class="ms text-primary">rv_hookup</span> Phương tiện & Nhân sự khác
                 </h2>
-                <div class="grid gap-5">
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Xe (biển số — loại)</label>
-                        <select th:field="*{coachId}" required class="w-full rounded-xl border-slate-200 text-sm">
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="lg:col-span-2">
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Xe thực hiện</label>
+                        <select th:field="*{coachId}" required id="coachId" class="ts-select">
                             <option value="">— Chọn xe —</option>
                             <option th:each="c : ${coaches}" th:value="${c.id}"
-                                    th:text="${'[' + c.statusLabel + '] ' + c.plateNumber + ' — ' + c.coachType + ' (' + c.totalSeats + ' chỗ)'}"></option>
+                                    th:text="${c.plateNumber + ' — ' + c.coachType + ' (' + c.totalSeats + ' chỗ)'}"></option>
                         </select>
-                        <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('coachId')}" th:errors="*{coachId}"></p>
                     </div>
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Khởi hành</label>
-                            <input type="datetime-local" step="60" th:field="*{departureTime}" required class="w-full rounded-xl border-slate-200 text-sm"/>
-                            <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('departureTime')}" th:errors="*{departureTime}"></p>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Dự kiến đến</label>
-                            <input type="datetime-local" step="60" th:field="*{arrivalTime}" required class="w-full rounded-xl border-slate-200 text-sm"/>
-                            <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('arrivalTime')}" th:errors="*{arrivalTime}"></p>
-                        </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Phụ xe (tuỳ chọn)</label>
+                        <select th:field="*{assistantId}" id="assistantId" class="ts-select">
+                            <option value="">— Không có —</option>
+                            <option th:each="a : ${assistants}" th:value="${a.id}" th:text="${a.fullName}"></option>
+                        </select>
                     </div>
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Giá vé cơ bản</label>
-                            <input type="number" step="1" min="1" th:field="*{priceBase}" required class="w-full rounded-xl border-slate-200 text-sm"/>
-                            <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('priceBase')}" th:errors="*{priceBase}"></p>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Hotline chuyến</label>
-                            <input type="text" th:field="*{contactPhoneNumber}" required class="w-full rounded-xl border-slate-200 text-sm"/>
-                            <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('contactPhoneNumber')}" th:errors="*{contactPhoneNumber}"></p>
-                        </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Trạng thái</label>
+                        <select th:field="*{status}" id="status" class="ts-select">
+                            <option th:each="st : ${tripStatuses}" th:value="${st}" th:text="${st}"></option>
+                        </select>
                     </div>
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Phụ xe (tuỳ chọn)</label>
-                            <select th:field="*{assistantId}" class="w-full rounded-xl border-slate-200 text-sm">
-                                <option value="">— Không —</option>
-                                <option th:each="a : ${assistants}" th:value="${a.id}" th:text="${a.fullName}"></option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Trạng thái chuyến</label>
-                            <select th:field="*{status}" class="w-full rounded-xl border-slate-200 text-sm">
-                                <option th:each="st : ${tripStatuses}" th:value="${st}" th:text="${st}"></option>
-                            </select>
-                        </div>
-                    </div>
+                </div>
+                <div class="mt-6">
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Hotline liên hệ chuyến</label>
+                    <input type="text" th:field="*{contactPhoneNumber}" required class="w-full rounded-xl border-slate-200 text-sm"/>
                 </div>
             </section>
 
-            <div class="flex justify-end gap-3">
-                <a th:href="@{/admin/trips}" class="px-5 py-2.5 rounded-xl border border-surface-border text-sm font-bold text-ink-muted hover:bg-surface-hover">Huỷ</a>
-                <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-sm hover:opacity-95">
-                    Lưu chuyến
+            <div class="flex justify-end gap-3 pt-6 border-t border-surface-border">
+                <a th:href="@{/admin/trips}" class="px-6 py-3 rounded-xl border border-surface-border text-sm font-bold text-ink-muted hover:bg-surface-hover transition-colors">Huỷ bỏ</a>
+                <button type="submit" class="px-10 py-3 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-lg hover:bg-brand-800 transform active:scale-95 transition-all flex items-center gap-2">
+                    <span class="ms">save</span>
+                    Lưu thông tin chuyến đi
                 </button>
             </div>
         </form>
     </div>
 </main>
 
-<script>
-    function syncDriverMode() {
-        const existing = document.getElementById('modeExisting').checked;
-        document.getElementById('existingDriverBlock').classList.toggle('hidden', !existing);
-        document.getElementById('newDriverBlock').classList.toggle('hidden', existing);
-    }
-
+<script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
-        syncDriverMode();
+        // --- Tom Select Instances ---
+        const tsInstances = {};
+        const originalOptions = {};
+
+        // Khởi tạo Tom Select cho tất cả các ô có class 'ts-select'
+        document.querySelectorAll('.ts-select').forEach(el => {
+            const id = el.id || el.getAttribute('name');
+            tsInstances[id] = new TomSelect(el, {
+                plugins: ['dropdown_input'],
+                create: false,
+                maxOptions: 100,
+                onInitialize: function() {
+                    originalOptions[id] = Object.values(this.options);
+                }
+            });
+        });
+
+        const routeSelect = document.getElementById('routeId');
+        const departureInput = document.getElementById('departureTime');
+        const arrivalInput = document.getElementById('arrivalTime');
+        const priceInput = document.getElementById('priceBase');
+        const roundTripInput = document.getElementById('roundTrip');
+        const roundTripInfo = document.getElementById('roundTripInfo');
+        const returnRouteName = document.getElementById('returnRouteName');
+        const returnTripSection = document.getElementById('returnTripSection');
+        const returnRouteIdInput = document.getElementById('returnRouteId');
+        const returnDepartureInput = document.getElementById('returnDepartureTime');
+        const returnArrivalInput = document.getElementById('returnArrivalTime');
+        const priceRoundTripInput = document.getElementById('priceRoundTrip');
+        const tripId = document.querySelector('input[name="id"]')?.value;
+
+        // --- State ---
+        let currentDuration = 0;
+        let currentDistance = 0;
+        let returnDuration = 0;
+        let returnDistance = 0;
+
+        // --- Helpers ---
+        function formatDateTime(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            const h = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            return `${y}-${m}-${d}T${h}:${min}`;
+        }
+
+        async function checkReturnRoute(routeId) {
+            if (!routeId) {
+                roundTripInput.value = 'false';
+                roundTripInfo.classList.add('hidden');
+                updateReturnTripVisibility();
+                return;
+            }
+            try {
+                const res = await fetch(`/admin/trips/check-return-route?routeId=${routeId}`);
+                const data = await res.json();
+                if (data.hasReturn) {
+                    roundTripInfo.classList.remove('hidden');
+                    const selectedText = routeSelect.options[routeSelect.selectedIndex].text;
+                    const parts = selectedText.split(' • ');
+                    if (parts.length > 1) {
+                        const routeParts = parts[1].split(' → ');
+                        if (routeParts.length > 1) {
+                            returnRouteName.innerText = `Lộ trình khứ hồi: ${routeParts[1]} → ${routeParts[0]}`;
+                        }
+                    }
+                    returnRouteIdInput.value = data.returnRouteId;
+                    returnDuration = data.duration || 0;
+                    returnDistance = data.distance || 0;
+                    roundTripInput.value = 'true';
+                    
+                    // Cập nhật giá vé lượt về mặc định
+                    if (returnDistance > 0) {
+                        priceRoundTripInput.value = Math.round(returnDistance * 4000);
+                    }
+                } else {
+                    roundTripInfo.classList.add('hidden');
+                    roundTripInput.value = 'false';
+                    returnDuration = 0;
+                    returnDistance = 0;
+                }
+                updateReturnTripVisibility();
+                updateReturnArrival(); // Cập nhật lại giờ đến của chuyến về
+            } catch (e) { console.error(e); }
+        }
+
+        function updateReturnTripVisibility() {
+            if (roundTripInput.value === 'true') {
+                returnTripSection.classList.remove('hidden');
+                
+                // Set min for return trip: must be after forward arrival
+                if (arrivalInput.value) {
+                    returnDepartureInput.min = arrivalInput.value;
+                    const forwardArrival = new Date(arrivalInput.value);
+                    const currentRetDep = returnDepartureInput.value ? new Date(returnDepartureInput.value) : null;
+                    
+                    if (!currentRetDep || currentRetDep <= forwardArrival) {
+                        const returnDep = new Date(forwardArrival.getTime() + 120 * 60000); // Default: 2 hours buffer
+                        returnDepartureInput.value = formatDateTime(returnDep);
+                        updateReturnArrival();
+                    }
+                } else if (departureInput.value) {
+                    // If arrival not calculated yet, use departure + 3 hours (as a safe default)
+                    const depDate = new Date(departureInput.value);
+                    const returnDep = new Date(depDate.getTime() + 180 * 60000); 
+                    returnDepartureInput.value = formatDateTime(returnDep);
+                    updateReturnArrival();
+                }
+                
+                if (priceInput.value && !priceRoundTripInput.value) {
+                    priceRoundTripInput.value = priceInput.value;
+                }
+            } else {
+                returnTripSection.classList.add('hidden');
+            }
+            refreshAllAvailability();
+        }
+
+        // --- Event Listeners ---
+        // roundTripInput change listener removed since it's now hidden and automatic
+
+        function updateArrival() {
+            if (departureInput.value && currentDuration > 0) {
+                const depDate = new Date(departureInput.value);
+                const arrDate = new Date(depDate.getTime() + currentDuration * 60000);
+                arrivalInput.value = formatDateTime(arrDate);
+                
+                // Cập nhật min cho chuyến về
+                if (returnDepartureInput) {
+                    returnDepartureInput.min = arrivalInput.value;
+                    
+                    // Logic nghiệp vụ: Chuyến về phải sau chuyến đi tới bến ít nhất 1-2 tiếng
+                    if (roundTripInput.value === 'true') {
+                        const currentRetDep = returnDepartureInput.value ? new Date(returnDepartureInput.value) : null;
+                        const minAllowedRetDep = new Date(arrDate.getTime() + 60 * 60000); // Tối thiểu nghỉ 1 tiếng
+                        
+                        if (!currentRetDep || currentRetDep < minAllowedRetDep) {
+                            // Gợi ý nghỉ 2 tiếng cho thoải mái
+                            const suggestRetDep = new Date(arrDate.getTime() + 120 * 60000);
+                            returnDepartureInput.value = formatDateTime(suggestRetDep);
+                            updateReturnArrival();
+                        }
+                    }
+                }
+
+                // Hiện/ẩn tài xế dự phòng
+                const secondDriverContainer = document.getElementById('secondDriverContainer');
+                if (currentDuration > 240) {
+                    secondDriverContainer.classList.remove('hidden');
+                } else {
+                    secondDriverContainer.classList.add('hidden');
+                    tsInstances['secondDriverId'].setValue('');
+                }
+
+                if (roundTripInput.value === 'true') updateReturnArrival();
+                refreshAllAvailability();
+            }
+        }
+
+        function updateReturnArrival() {
+            if (returnDepartureInput.value && returnDuration > 0) {
+                const depDate = new Date(returnDepartureInput.value);
+                const arrDate = new Date(depDate.getTime() + returnDuration * 60000);
+                returnArrivalInput.value = formatDateTime(arrDate);
+
+                const returnSecondDriverContainer = document.getElementById('returnSecondDriverContainer');
+                if (returnDuration > 240) {
+                    returnSecondDriverContainer.classList.remove('hidden');
+                } else {
+                    returnSecondDriverContainer.classList.add('hidden');
+                    tsInstances['returnSecondDriverId'].setValue('');
+                }
+                refreshAllAvailability();
+            }
+        }
+
+        async function refreshAllAvailability() {
+            const tripId = document.getElementById('id')?.value;
+            const forwardStart = departureInput.value;
+            const forwardEnd = arrivalInput.value;
+            const routeId = routeSelect.value;
+            
+            // Load lại options ban đầu cho tất cả trước khi filter
+            Object.keys(tsInstances).forEach(id => {
+                if (id.includes('Driver') || id === 'coachId') {
+                    const ts = tsInstances[id];
+                    const currentVal = ts.getValue();
+                    ts.clearOptions();
+                    ts.addOptions(originalOptions[id]);
+                    ts.setValue(currentVal, true);
+                }
+            });
+
+            if (forwardStart && forwardEnd && routeId) {
+                try {
+                    const staffRes = await fetch(`/admin/trips/available-staff?start=${forwardStart}&end=${forwardEnd}${tripId ? '&excludeId=' + tripId : ''}`);
+                    const staffData = await staffRes.json();
+                    
+                    const coachRes = await fetch(`/admin/trips/available-coaches?start=${forwardStart}&end=${forwardEnd}&routeId=${routeId}${tripId ? '&excludeId=' + tripId : ''}`);
+                    const coachData = await coachRes.json();
+
+                    updateSelectOptions('driverId', staffData.availableDriverIds);
+                    updateSelectOptions('secondDriverId', staffData.availableDriverIds);
+                    updateSelectOptions('coachId', coachData.availableCoachIds);
+                } catch (e) { console.error("Error fetching forward availability:", e); }
+            }
+
+            if (roundTripInput.value === 'true') {
+                const returnStart = returnDepartureInput.value;
+                const returnEnd = returnArrivalInput.value;
+                const returnRouteId = returnRouteIdInput.value;
+                if (returnStart && returnEnd && returnRouteId) {
+                    try {
+                        const staffRes = await fetch(`/admin/trips/available-staff?start=${returnStart}&end=${returnEnd}`);
+                        const staffData = await staffRes.json();
+                        updateSelectOptions('returnDriverId', staffData.availableDriverIds);
+                        updateSelectOptions('returnSecondDriverId', staffData.availableDriverIds);
+                        // Xe dùng chung nên coachId đã được check ở lượt đi
+                    } catch (e) { console.error("Error fetching return availability:", e); }
+                }
+            }
+            
+            filterDuplicateDrivers();
+        }
+
+        function updateSelectOptions(selectId, availableIds) {
+            const ts = tsInstances[selectId];
+            if (!ts) return;
+
+            const currentVal = ts.getValue();
+            ts.clearOptions();
+            
+            const filtered = originalOptions[selectId].filter(opt => 
+                !opt.value || availableIds.includes(opt.value) || opt.value === currentVal
+            );
+            ts.addOptions(filtered);
+            ts.setValue(currentVal, true);
+            ts.refreshOptions(false);
+        }
+
+        function filterDuplicateDrivers() {
+            const driverFields = ['driverId', 'secondDriverId', 'returnDriverId', 'returnSecondDriverId'];
+            const selections = {};
+            
+            // Lấy tất cả giá trị đang chọn
+            driverFields.forEach(id => {
+                if (tsInstances[id]) {
+                    selections[id] = tsInstances[id].getValue();
+                }
+            });
+
+            // Duyệt từng ô và ẩn các tài xế đã được chọn ở các ô KHÁC
+            driverFields.forEach(targetId => {
+                const ts = tsInstances[targetId];
+                if (!ts) return;
+
+                driverFields.forEach(sourceId => {
+                    const selectedId = selections[sourceId];
+                    if (targetId !== sourceId && selectedId) {
+                        // Ẩn option này khỏi danh sách chọn của ô hiện tại
+                        ts.removeOption(selectedId);
+                    }
+                });
+
+                // Kiểm tra nếu lỡ trùng (do race condition), xóa giá trị
+                const currentVal = selections[targetId];
+                if (currentVal) {
+                    const otherSelected = Object.entries(selections)
+                        .find(([id, val]) => id !== targetId && val === currentVal);
+                    if (otherSelected) {
+                        ts.setValue('', true);
+                        selections[targetId] = '';
+                    }
+                }
+                
+                ts.refreshOptions(false);
+            });
+        }
+
+        // --- Event Listeners ---
+        routeSelect.addEventListener('change', function() {
+            const opt = routeSelect.options[routeSelect.selectedIndex];
+            if (opt && opt.value) {
+                currentDuration = parseInt(opt.getAttribute('data-duration') || '0');
+                currentDistance = parseFloat(opt.getAttribute('data-distance') || '0');
+                priceInput.value = Math.round(currentDistance * 4000);
+                checkReturnRoute(opt.value);
+                updateArrival();
+            }
+        });
+
+        departureInput.addEventListener('change', updateArrival);
+        returnDepartureInput.addEventListener('change', updateReturnArrival);
+
+        ['driverId', 'secondDriverId', 'returnDriverId', 'returnSecondDriverId'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('change', refreshAllAvailability);
+        });
+
+        // Initialize min date
+        departureInput.min = formatDateTime(new Date());
+
+        // Run once if edit mode
+        if (routeSelect.value) {
+            const opt = routeSelect.options[routeSelect.selectedIndex];
+            currentDuration = parseInt(opt.getAttribute('data-duration') || '0');
+            currentDistance = parseFloat(opt.getAttribute('data-distance') || '0');
+            checkReturnRoute(routeSelect.value);
+            // Wait a bit for TS to initialize
+            setTimeout(refreshAllAvailability, 500);
+        }
     });
 </script>
+</body>
+</html>
 </body>
 </html>

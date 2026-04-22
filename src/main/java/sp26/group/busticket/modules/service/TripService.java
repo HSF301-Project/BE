@@ -10,6 +10,7 @@ import sp26.group.busticket.modules.dto.trip.response.TripSearchResultDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripStopEtaDTO;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,4 +39,13 @@ public interface TripService {
     void startTrip(UUID tripId);
 
     void finishTrip(UUID tripId);
+
+    // Business Logic for Admin Form
+    Optional<UUID> findReturnRouteId(UUID forwardRouteId);
+    boolean isDriverAvailable(UUID driverId, java.time.LocalDateTime start, java.time.LocalDateTime end, UUID excludeTripId);
+    boolean isCoachAvailable(UUID coachId, LocalDateTime start, LocalDateTime end, UUID routeId, UUID excludeTripId);
+
+    List<UUID> getAvailableDriverIds(java.time.LocalDateTime start, java.time.LocalDateTime end, UUID excludeTripId);
+
+    List<UUID> getAvailableCoachIds(java.time.LocalDateTime start, java.time.LocalDateTime end, UUID routeId, UUID excludeTripId);
 }

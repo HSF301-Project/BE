@@ -32,7 +32,7 @@
         </div>
 
         <!-- Stats Grid -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div class="stat-card">
                 <div class="flex items-center justify-between mb-3">
                     <span class="ms text-[22px] text-brand-600">calendar_today</span>
@@ -58,13 +58,6 @@
                 <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide">Tỷ lệ lấp đầy TB</p>
                 <p class="text-2xl font-extrabold text-ink mt-1" th:text="${stats.avgFillRate + '%'}">84%</p>
             </div>
-            <div class="stat-card">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="ms text-[22px] text-red-500">warning_amber</span>
-                </div>
-                <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide">Cảnh báo</p>
-                <p class="text-2xl font-extrabold text-ink mt-1" th:text="${stats.alertCount}">2</p>
-            </div>
         </div>
 
         <!-- Trip Table Card -->
@@ -77,11 +70,6 @@
                         <span class="w-1 h-5 bg-brand-600 rounded-full block"></span>
                         Lịch trình hôm nay
                     </h2>
-                    <div class="flex items-center gap-1">
-                        <button class="btn-icon" title="Xuất dữ liệu"><span class="ms text-[20px]">download</span></button>
-                        <button class="btn-icon" title="Bộ lọc thêm"><span class="ms text-[20px]">tune</span></button>
-                        <button class="btn-icon" title="Làm mới"><span class="ms text-[20px]">refresh</span></button>
-                    </div>
                 </div>
                 <!-- Quick Filter Tabs -->
                 <div class="flex items-center gap-5">
@@ -258,12 +246,6 @@
                         <!-- Thao tác -->
                         <td class="td text-right">
                             <div class="flex items-center justify-end gap-0.5">
-                                <button class="btn-icon" title="Gọi điện tài xế"><span class="ms text-[18px]">call</span></button>
-                                <a th:href="@{/admin/trips/detail/{id}(id=${trip.id})}"
-                                   class="btn-icon text-brand-600 bg-brand-50/50 hover:bg-brand-100" title="Sơ đồ & Khách">
-                                    <span class="ms text-[18px]">airline_seat_recline_extra</span>
-                                </a>
-                                <button class="btn-icon" title="In lệnh xuất bến"><span class="ms text-[18px]">print</span></button>
                                 <a th:href="@{/admin/trips/{id}/edit(id=${trip.id})}"
                                    class="btn-icon opacity-100 text-brand-600 hover:bg-brand-50" title="Chỉnh sửa">
                                     <span class="ms text-[18px]">edit</span>

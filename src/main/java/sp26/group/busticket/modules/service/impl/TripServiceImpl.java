@@ -135,7 +135,6 @@ public class TripServiceImpl implements TripService {
                 .id(trip.getId())
                 .routeId(trip.getRoute().getId())
                 .coachId(trip.getCoach().getId())
-                .driverInputMode("existing")
                 .driverId(trip.getDriver() != null ? trip.getDriver().getId() : null)
                 .secondDriverId(trip.getSecondDriver() != null ? trip.getSecondDriver().getId() : null)
                 .assistantId(trip.getAssistant() != null ? trip.getAssistant().getId() : null)
@@ -165,14 +164,11 @@ public class TripServiceImpl implements TripService {
     @Transactional
     public Optional<UUID> createTrip(TripRequestDTO req) {
         validateTripBusinessRules(req, true);
-        boolean newDriverMode = req.getDriverInputMode() != null
-                && "new".equalsIgnoreCase(req.getDriverInputMode().trim());
-        Account driver = resolveDriverAccount(req, newDriverMode);
         
         Trip trip = Trip.builder()
                 .route(routeRepository.findById(req.getRouteId()).orElseThrow(() -> new AppException(ErrorCode.ROUTE_NOT_FOUND)))
                 .coach(coachRepository.findById(req.getCoachId()).orElseThrow(() -> new AppException(ErrorCode.COACH_NOT_FOUND)))
-                .driver(driver)
+                .driver(accountRepository.findById(req.getDriverId()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND)))
                 .secondDriver(req.getSecondDriverId() != null
                         ? accountRepository.findById(req.getSecondDriverId()).orElse(null)
                         : null)
@@ -186,21 +182,133 @@ public class TripServiceImpl implements TripService {
                 .tripStatus(req.getStatus())
                 .build();
         tripRepository.save(trip);
-        return newDriverMode ? Optional.of(driver.getId()) : Optional.empty();
+
+        // Handle Roundtrip
+        if (req.isRoundTrip() && req.getReturnRouteId() != null && req.getReturnDepartureTime() != null) {
+            TripRequestDTO returnReq = TripRequestDTO.builder()
+                    .routeId(req.getReturnRouteId())
+                    .coachId(req.getCoachId())
+                    .driverId(req.getReturnDriverId())
+                    .secondDriverId(req.getReturnSecondDriverId())
+                    .assistantId(req.getReturnAssistantId())
+                    .departureTime(req.getReturnDepartureTime())
+                    .arrivalTime(req.getReturnArrivalTime())
+                    .priceBase(req.getPriceRoundTrip() != null ? req.getPriceRoundTrip() : req.getPriceBase())
+                    .contactPhoneNumber(req.getContactPhoneNumber())
+                    .status(req.getStatus())
+                    .build();
+            
+            // Validate return trip separately
+            validateTripBusinessRules(returnReq, true);
+
+            Trip returnTrip = Trip.builder()
+                    .route(routeRepository.findById(returnReq.getRouteId()).orElseThrow(() -> new AppException(ErrorCode.ROUTE_NOT_FOUND)))
+                    .coach(coachRepository.findById(returnReq.getCoachId()).orElseThrow(() -> new AppException(ErrorCode.COACH_NOT_FOUND)))
+                    .driver(accountRepository.findById(returnReq.getDriverId()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND)))
+                    .secondDriver(returnReq.getSecondDriverId() != null
+                            ? accountRepository.findById(returnReq.getSecondDriverId()).orElse(null)
+                            : null)
+                    .assistant(returnReq.getAssistantId() != null
+                            ? accountRepository.findById(returnReq.getAssistantId()).orElse(null)
+                            : null)
+                    .departureTime(returnReq.getDepartureTime())
+                    .arrivalTime(returnReq.getArrivalTime())
+                    .priceBase(returnReq.getPriceBase())
+                    .contactPhoneNumber(returnReq.getContactPhoneNumber())
+                    .tripStatus(returnReq.getStatus())
+                    .build();
+            tripRepository.save(returnTrip);
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<UUID> findReturnRouteId(UUID forwardRouteId) {
+        var forward = routeRepository.findById(forwardRouteId)
+                .orElseThrow(() -> new AppException(ErrorCode.ROUTE_NOT_FOUND));
+        
+        return routeRepository.findAll().stream()
+                .filter(r -> r.getDepartureLocation().getId().equals(forward.getArrivalLocation().getId()) &&
+                            r.getArrivalLocation().getId().equals(forward.getDepartureLocation().getId()))
+                .map(sp26.group.busticket.infrastructure.persistence.BaseEntity::getId)
+                .findFirst();
+    }
+
+    @Override
+    public boolean isDriverAvailable(UUID driverId, LocalDateTime start, LocalDateTime end, UUID excludeTripId) {
+        try {
+            checkDriverConflict(driverId, start, end, excludeTripId, "Tài xế");
+            return true;
+        } catch (AppException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean isCoachAvailable(UUID coachId, LocalDateTime start, LocalDateTime end, UUID routeId, UUID excludeTripId) {
+        List<Trip> coachTrips = tripRepository.findAllTripsByCoach(coachId);
+        
+        // Lấy thông tin tuyến đường mới để check vị trí
+        var newRoute = routeId != null ? routeRepository.findById(routeId).orElse(null) : null;
+        String newStartLocation = newRoute != null ? newRoute.getDepartureLocation().getName() : null;
+        String newEndLocation = newRoute != null ? newRoute.getArrivalLocation().getName() : null;
+
+        for (Trip existing : coachTrips) {
+            if (excludeTripId != null && existing.getId().equals(excludeTripId)) continue;
+            
+            // 1. Check xung đột thời gian (Overlap) với 60 phút nghỉ ngơi
+            if (start.isBefore(existing.getArrivalTime().plusMinutes(60)) && 
+                end.isAfter(existing.getDepartureTime().minusMinutes(60))) {
+                return false;
+            }
+
+            // 2. Check xung đột vị trí nếu có routeId
+            if (newRoute != null) {
+                // Nếu chuyến mới sau chuyến cũ
+                if (start.isAfter(existing.getArrivalTime())) {
+                    String lastStop = existing.getRoute().getArrivalLocation().getName();
+                    if (!lastStop.equalsIgnoreCase(newStartLocation)) {
+                        return false;
+                    }
+                }
+                // Nếu chuyến mới trước chuyến cũ
+                if (end.isBefore(existing.getDepartureTime())) {
+                    String nextStart = existing.getRoute().getDepartureLocation().getName();
+                    if (!newEndLocation.equalsIgnoreCase(nextStart)) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public List<UUID> getAvailableDriverIds(LocalDateTime start, LocalDateTime end, UUID excludeTripId) {
+        return accountRepository.findByRoleAndStatusOrderByFullNameAsc("DRIVER", StatusEnum.ACTIVE).stream()
+                .filter(a -> isDriverAvailable(a.getId(), start, end, excludeTripId))
+                .map(sp26.group.busticket.infrastructure.persistence.BaseEntity::getId)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UUID> getAvailableCoachIds(LocalDateTime start, LocalDateTime end, UUID routeId, UUID excludeTripId) {
+        return coachRepository.findAll().stream()
+                .filter(c -> isCoachAvailable(c.getId(), start, end, routeId, excludeTripId))
+                .map(sp26.group.busticket.infrastructure.persistence.BaseEntity::getId)
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public Optional<UUID> updateTrip(UUID id, TripRequestDTO req) {
         validateTripBusinessRules(req, false);
-        boolean newDriverMode = req.getDriverInputMode() != null
-                && "new".equalsIgnoreCase(req.getDriverInputMode().trim());
-        Account driver = resolveDriverAccount(req, newDriverMode);
         Trip trip = tripRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
 
         trip.setRoute(routeRepository.findById(req.getRouteId()).orElseThrow(() -> new AppException(ErrorCode.ROUTE_NOT_FOUND)));
         trip.setCoach(coachRepository.findById(req.getCoachId()).orElseThrow(() -> new AppException(ErrorCode.COACH_NOT_FOUND)));
-        trip.setDriver(driver);
+        trip.setDriver(accountRepository.findById(req.getDriverId()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND)));
         trip.setSecondDriver(req.getSecondDriverId() != null
                 ? accountRepository.findById(req.getSecondDriverId()).orElse(null)
                 : null);
@@ -214,7 +322,7 @@ public class TripServiceImpl implements TripService {
         trip.setTripStatus(req.getStatus());
 
         tripRepository.save(trip);
-        return newDriverMode ? Optional.of(driver.getId()) : Optional.empty();
+        return Optional.empty();
     }
 
     @Override
@@ -403,39 +511,7 @@ public class TripServiceImpl implements TripService {
         }
     }
 
-    private Account resolveDriverAccount(TripRequestDTO req, boolean newDriverMode) {
-        if (newDriverMode) {
-            String email = req.getNewDriverEmail().trim().toLowerCase();
-            if (accountRepository.existsByEmail(email)) {
-                throw new AppException(ErrorCode.DRIVER_EMAIL_EXISTS);
-            }
-            String phone = req.getNewDriverPhone().trim();
-            if (accountRepository.existsByPhone(phone)) {
-                throw new AppException(ErrorCode.INVALID_INPUT, "Số điện thoại tài xế đã tồn tại trong hệ thống.");
-            }
-            Account created = Account.builder()
-                    .email(email)
-                    .password(passwordEncoder.encode(TripAdminConstants.NEW_DRIVER_TEMP_PASSWORD))
-                    .fullName(req.getNewDriverFullName().trim())
-                    .phone(phone)
-                    .driverLicenseNumber(trimToNull(req.getNewDriverLicense()))
-                    .status(StatusEnum.ACTIVE)
-                    .role("DRIVER")
-                    .build();
-            return accountRepository.save(created);
-        }
-        if (req.getDriverId() == null) {
-            throw new AppException(ErrorCode.TRIP_DRIVER_REQUIRED);
-        }
-        Account driver = accountRepository.findById(req.getDriverId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        assertDriverAssignable(driver);
-        if (StringUtils.hasText(req.getExistingDriverLicenseUpdate())) {
-            driver.setDriverLicenseNumber(req.getExistingDriverLicenseUpdate().trim());
-            accountRepository.save(driver);
-        }
-        return driver;
-    }
+
 
     private static void assertDriverAssignable(Account driver) {
         if (!"DRIVER".equalsIgnoreCase(driver.getRole())) {

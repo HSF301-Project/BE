@@ -659,7 +659,7 @@
 
         // 1. Gợi ý mã tuyến
         try {
-            const resp = await fetch(`/admin/infrastructure/routes/api/generate-code?depId=${depId}&arrId=${arrId}`);
+            const resp = await fetch(`/admin/infrastructure/routes/generate-code?depId=${depId}&arrId=${arrId}`);
             const data = await resp.json();
             if (data.code && (forceUpdateCode || !document.getElementById('routeCode').value)) {
                 document.getElementById('routeCode').value = data.code;

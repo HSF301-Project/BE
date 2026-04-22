@@ -194,19 +194,19 @@ public class AdminInfrastructureController {
         return "redirect:/admin/infrastructure?tab=routes";
     }
 
-    @GetMapping("/routes/api/smart-waypoints")
+    @GetMapping("/routes/smart-waypoints")
     @ResponseBody
     public List<Location> getSmartWaypoints(@RequestParam java.util.UUID depId, @RequestParam java.util.UUID arrId) {
         return routeService.getSmartWaypoints(depId, arrId);
     }
 
-    @PostMapping("/routes/api/calculate")
+    @PostMapping("/routes/calculate")
     @ResponseBody
     public RouteRequestDTO calculateMetrics(@RequestBody RouteRequestDTO req) {
         return routeService.calculateMetrics(req);
     }
 
-    @GetMapping("/routes/api/generate-code")
+    @GetMapping("/routes/generate-code")
     @ResponseBody
     public Map<String, String> generateCode(@RequestParam java.util.UUID depId, @RequestParam java.util.UUID arrId) {
         return Map.of("code", routeService.generateRouteCode(depId, arrId));

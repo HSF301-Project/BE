@@ -46,4 +46,7 @@ public interface TripRepository extends JpaRepository<Trip, UUID> {
             UUID assistantId, Collection<TripStatusEnum> statuses2);
 
     long countByTripStatus(sp26.group.busticket.modules.enumType.TripStatusEnum status);
+
+    @Query("SELECT t FROM Trip t WHERE (t.driver.id = :id OR t.secondDriver.id = :id OR t.assistant.id = :id) AND t.tripStatus <> 'CANCELLED'")
+    List<Trip> findAllTripsByStaff(@Param("id") UUID id);
 }
