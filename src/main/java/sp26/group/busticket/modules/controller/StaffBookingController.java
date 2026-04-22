@@ -22,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import sp26.group.busticket.common.exception.AppException;
+import sp26.group.busticket.common.exception.ErrorCode;
 import sp26.group.busticket.modules.dto.booking.request.StaffBookingRequestDTO;
 import sp26.group.busticket.modules.dto.trip.request.TripSearchRequestDTO;
 import sp26.group.busticket.modules.entity.Account;
@@ -107,8 +108,11 @@ public class StaffBookingController {
 
     // 4. Màn hình thành công
     @GetMapping("/success/{bookingId}")
-    public String showSuccess(@PathVariable UUID bookingId, Model model) {
-        model.addAttribute("ticket", bookingService.getBookingSuccessInfo(bookingId));
+    public String showSuccess(@PathVariable UUID bookingId, 
+                             @AuthenticationPrincipal UserDetails userDetails,
+                             Model model) {
+        Account staff = accountRepository.findByEmail(userDetails.getUsername()).orElseThrow();
+        model.addAttribute("ticket", bookingService.getBookingSuccessInfo(bookingId, staff.getId()));
         return "staff/booking-success";
     }
 }

@@ -53,4 +53,7 @@ public class Booking extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "NVARCHAR(255)")
     private BookingStatusEnum status;
+
+    @Column(name = "booking_code", nullable = false, unique = true)
+    private String bookingCode;
 }

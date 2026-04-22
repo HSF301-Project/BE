@@ -37,6 +37,17 @@
         <p th:text="${errorMessage}"></p>
     </div>
 
+    <div th:if="${trip.isExpired}"
+         class="mb-8 p-6 bg-error-container/10 text-on-error-container rounded-2xl flex items-center gap-4 border-2 border-error/20 shadow-sm animate-pulse">
+        <div class="w-12 h-12 rounded-full bg-error text-white flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-2xl">timer_off</span>
+        </div>
+        <div>
+            <p class="font-black text-lg" style="font-family:'Plus Jakarta Sans',sans-serif">Hết thời gian đặt vé trực tuyến!</p>
+            <p class="text-sm opacity-90">Chuyến xe này sẽ khởi hành trong ít hơn 1 tiếng nữa. Để đảm bảo hành trình, vui lòng liên hệ hotline hoặc đến trực tiếp quầy vé tại bến.</p>
+        </div>
+    </div>
+
     <form th:action="@{/booking/confirm}" th:object="${bookingForm}" method="post" id="booking-form">
         <input type="hidden" name="tripId" th:value="${trip.id}"/>
 
@@ -230,17 +241,24 @@
 
                      <!-- Dữ liệu điền sẵn nếu có (từ Flash Attributes) -->
                      <div id="prefilled-booking-data" class="hidden"
-                          th:if="${bookingForm != null and not #lists.isEmpty(bookingForm.passengers)}"
-                          th:data-passengers="${@bookingServiceImpl.toJson(bookingForm.passengers)}">
+                          th:if="${prefilledPassengersJson != null}"
+                          th:data-passengers="${prefilledPassengersJson}">
                      </div>
                 </div>
 
                 <button type="submit" id="btn-continue-payment"
                         disabled
+                        th:if="${!trip.isExpired}"
                         class="w-full bg-gradient-to-r from-primary to-primary-container text-white py-5 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all flex items-center justify-center space-x-3 group active:scale-95 duration-150 opacity-50 cursor-not-allowed">
                     <span>Tiếp tục thanh toán</span>
                     <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
                 </button>
+                
+                <div th:if="${trip.isExpired}"
+                     class="w-full bg-surface-dim text-on-surface-variant py-5 rounded-2xl font-bold text-lg shadow-sm flex items-center justify-center space-x-3 opacity-60 cursor-not-allowed">
+                    <span class="material-symbols-outlined">timer_off</span>
+                    <span>Hết thời gian đặt vé</span>
+                </div>
                 <p class="text-center text-xs text-on-surface-variant px-4">
                     Bằng việc nhấn tiếp tục, bạn đồng ý với
                     <a class="underline font-bold" href="#">Điều khoản vận chuyển</a>.
