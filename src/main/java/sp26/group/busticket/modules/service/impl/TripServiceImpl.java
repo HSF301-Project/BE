@@ -137,6 +137,7 @@ public class TripServiceImpl implements TripService {
                 .coachId(trip.getCoach().getId())
                 .driverInputMode("existing")
                 .driverId(trip.getDriver() != null ? trip.getDriver().getId() : null)
+                .secondDriverId(trip.getSecondDriver() != null ? trip.getSecondDriver().getId() : null)
                 .assistantId(trip.getAssistant() != null ? trip.getAssistant().getId() : null)
                 .departureTime(trip.getDepartureTime())
                 .arrivalTime(trip.getArrivalTime())
@@ -167,10 +168,14 @@ public class TripServiceImpl implements TripService {
         boolean newDriverMode = req.getDriverInputMode() != null
                 && "new".equalsIgnoreCase(req.getDriverInputMode().trim());
         Account driver = resolveDriverAccount(req, newDriverMode);
+        
         Trip trip = Trip.builder()
                 .route(routeRepository.findById(req.getRouteId()).orElseThrow(() -> new AppException(ErrorCode.ROUTE_NOT_FOUND)))
                 .coach(coachRepository.findById(req.getCoachId()).orElseThrow(() -> new AppException(ErrorCode.COACH_NOT_FOUND)))
                 .driver(driver)
+                .secondDriver(req.getSecondDriverId() != null
+                        ? accountRepository.findById(req.getSecondDriverId()).orElse(null)
+                        : null)
                 .assistant(req.getAssistantId() != null
                         ? accountRepository.findById(req.getAssistantId()).orElse(null)
                         : null)
@@ -196,6 +201,9 @@ public class TripServiceImpl implements TripService {
         trip.setRoute(routeRepository.findById(req.getRouteId()).orElseThrow(() -> new AppException(ErrorCode.ROUTE_NOT_FOUND)));
         trip.setCoach(coachRepository.findById(req.getCoachId()).orElseThrow(() -> new AppException(ErrorCode.COACH_NOT_FOUND)));
         trip.setDriver(driver);
+        trip.setSecondDriver(req.getSecondDriverId() != null
+                ? accountRepository.findById(req.getSecondDriverId()).orElse(null)
+                : null);
         trip.setAssistant(req.getAssistantId() != null
                 ? accountRepository.findById(req.getAssistantId()).orElse(null)
                 : null);
@@ -366,15 +374,32 @@ public class TripServiceImpl implements TripService {
         }
 
         if (req.getDriverId() != null) {
-            List<Trip> driverTrips = tripRepository.findAll().stream()
-                .filter(t -> t.getDriver() != null && t.getDriver().getId().equals(req.getDriverId()))
-                .filter(t -> !t.getTripStatus().equals(TripStatusEnum.COMPLETED))
-                .filter(t -> excludeId == null || !t.getId().equals(excludeId))
-                .filter(t -> t.getDepartureTime().isBefore(arr) && t.getArrivalTime().isAfter(dep))
-                .collect(Collectors.toList());
-            if (!driverTrips.isEmpty()) {
-                throw new AppException(ErrorCode.INVALID_INPUT, "Tài xế này đã được xếp vào một chuyến đi khác trong khoảng thời gian này.");
+            checkDriverConflict(req.getDriverId(), dep, arr, excludeId, "Tài xế chính");
+        }
+
+        // 5. Kiểm tra Tài xế 2 (Bắt buộc cho chuyến > 4 tiếng)
+        long durationMinutes = java.time.Duration.between(dep, arr).toMinutes();
+        if (durationMinutes > 240) {
+            if (req.getSecondDriverId() == null) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Chuyến đi kéo dài hơn 4 tiếng (" + durationMinutes + " phút), bắt buộc phải có tài xế thứ hai.");
             }
+            if (req.getSecondDriverId().equals(req.getDriverId())) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Tài xế thứ hai không được trùng với tài xế chính.");
+            }
+            checkDriverConflict(req.getSecondDriverId(), dep, arr, excludeId, "Tài xế thứ hai");
+        }
+    }
+
+    private void checkDriverConflict(UUID driverId, LocalDateTime dep, LocalDateTime arr, UUID excludeId, String roleLabel) {
+        List<Trip> driverTrips = tripRepository.findAll().stream()
+            .filter(t -> (t.getDriver() != null && t.getDriver().getId().equals(driverId)) || 
+                         (t.getSecondDriver() != null && t.getSecondDriver().getId().equals(driverId)))
+            .filter(t -> !t.getTripStatus().equals(TripStatusEnum.COMPLETED))
+            .filter(t -> excludeId == null || !t.getId().equals(excludeId))
+            .filter(t -> t.getDepartureTime().isBefore(arr) && t.getArrivalTime().isAfter(dep))
+            .collect(Collectors.toList());
+        if (!driverTrips.isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_INPUT, roleLabel + " đã được xếp vào một chuyến đi khác trong khoảng thời gian này.");
         }
     }
 

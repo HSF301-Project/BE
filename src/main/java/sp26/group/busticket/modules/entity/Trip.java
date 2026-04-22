@@ -51,7 +51,12 @@ public class Trip extends BaseEntity {
     @JoinColumn(name = "driver_id")
     private Account driver;
 
-    /** Phụ xe / phụ lái. */
+    /** Tài xế thứ hai (Bắt buộc cho các chuyến > 4 tiếng). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "second_driver_id")
+    private Account secondDriver;
+
+    /** Phụ xe / phụ lái (Nhân viên phục vụ). */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assistant_id")
     private Account assistant;

@@ -37,17 +37,9 @@ public class Location extends BaseEntity {
     @Column(columnDefinition = "NVARCHAR(500)")
     private String address;
 
-    /** Loại địa điểm: TERMINAL (bến chính), STOP (trạm dừng), TRANSFER (trung chuyển). */
+    /** Loại địa điểm: TERMINAL (bến chính), STOP (trạm dừng). */
     @Column(name = "location_type", nullable = false, columnDefinition = "NVARCHAR(32)")
-    private String locationType; // TERMINAL | STOP | TRANSFER
-
-    /** Vĩ độ (latitude) – dùng cho bản đồ. */
-    @Column(name = "latitude")
-    private Double latitude;
-
-    /** Kinh độ (longitude) – dùng cho bản đồ. */
-    @Column(name = "longitude")
-    private Double longitude;
+    private String locationType; // TERMINAL | STOP
 
     /** Ghi chú thêm (giờ hoạt động, số điện thoại bến xe, v.v.). */
     @Column(columnDefinition = "NVARCHAR(500)")

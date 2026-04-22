@@ -16,7 +16,7 @@
             <a th:href="@{/admin/infrastructure(tab='routes')}" class="text-sm font-semibold text-ink-muted hover:text-ink">← Quay lại Hạ tầng</a>
         </div>
 
-        <form id="routeForm" th:action="@{/admin/infrastructure/routes/save}" th:object="${routeRequest}" method="post" class="space-y-8">
+        <form id="routeForm" th:action="@{/admin/infrastructure/routes/save}" th:object="${routeRequest}" method="post" class="space-y-8" onsubmit="return beforeSubmit()">
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
             <input type="hidden" th:field="*{id}" />
             
@@ -28,38 +28,157 @@
                     <span class="ms text-brand-600">route</span> Thông tin tuyến
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Điểm đi -->
+                    <div class="relative" id="departureContainer">
+                        <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Điểm đi (Bến chính)</label>
+                        <input type="hidden" th:field="*{departureLocationId}" id="departureLocationId">
+                        <div class="relative group">
+                            <input type="text" id="departureSearch" 
+                                   autocomplete="off"
+                                   placeholder="Tìm bến đi..." 
+                                   class="w-full rounded-xl border-surface-border bg-white pr-10 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                                   onclick="showDropdown('departure')"
+                                   onfocus="showDropdown('departure')"
+                                   oninput="filterDropdown('departure')">
+                            <span class="ms absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint pointer-events-none group-focus-within:text-brand-600">search</span>
+                        </div>
+                        <div id="departureDropdown" class="absolute z-50 w-full mt-1 bg-white border border-surface-border rounded-xl shadow-xl max-h-64 overflow-y-auto hidden divide-y divide-surface-border">
+                            <div th:each="l : ${terminals}" 
+                                 th:data-id="${l.id}" 
+                                 th:data-label="${l.city + ' • ' + l.name}"
+                                 th:data-search="${l.city.toLowerCase() + ' ' + l.name.toLowerCase()}"
+                                 onclick="selectOption('departure', this)"
+                                 class="px-4 py-3 hover:bg-brand-50 cursor-pointer transition-colors flex items-center gap-3 option-item">
+                                <span class="ms text-brand-600 text-[20px]">location_on</span>
+                                <div>
+                                    <div class="text-sm font-bold text-ink" th:text="${l.city}"></div>
+                                    <div class="text-xs text-ink-muted" th:text="${l.name}"></div>
+                                </div>
+                            </div>
+                            <div class="no-results px-4 py-8 text-center text-ink-faint hidden">
+                                <span class="ms text-4xl block mb-2">search_off</span>
+                                <p class="text-xs font-bold">Không tìm thấy bến xe nào</p>
+                            </div>
+                        </div>
+                        <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('departureLocationId')}" th:errors="*{departureLocationId}"></p>
+                    </div>
+
+                    <!-- Điểm đến -->
+                    <div class="relative" id="arrivalContainer">
+                        <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Điểm đến (Bến chính)</label>
+                        <input type="hidden" th:field="*{arrivalLocationId}" id="arrivalLocationId">
+                        <div class="relative group">
+                            <input type="text" id="arrivalSearch" 
+                                   autocomplete="off"
+                                   placeholder="Tìm bến đến..." 
+                                   class="w-full rounded-xl border-surface-border bg-white pr-10 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                                   onclick="showDropdown('arrival')"
+                                   onfocus="showDropdown('arrival')"
+                                   oninput="filterDropdown('arrival')">
+                            <span class="ms absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint pointer-events-none group-focus-within:text-brand-600">search</span>
+                        </div>
+                        <div id="arrivalDropdown" class="absolute z-50 w-full mt-1 bg-white border border-surface-border rounded-xl shadow-xl max-h-64 overflow-y-auto hidden divide-y divide-surface-border">
+                            <div th:each="l : ${terminals}" 
+                                 th:data-id="${l.id}" 
+                                 th:data-label="${l.city + ' • ' + l.name}"
+                                 th:data-search="${l.city.toLowerCase() + ' ' + l.name.toLowerCase()}"
+                                 onclick="selectOption('arrival', this)"
+                                 class="px-4 py-3 hover:bg-brand-50 cursor-pointer transition-colors flex items-center gap-3 option-item">
+                                <span class="ms text-brand-600 text-[20px]">location_on</span>
+                                <div>
+                                    <div class="text-sm font-bold text-ink" th:text="${l.city}"></div>
+                                    <div class="text-xs text-ink-muted" th:text="${l.name}"></div>
+                                </div>
+                            </div>
+                            <div class="no-results px-4 py-8 text-center text-ink-faint hidden">
+                                <span class="ms text-4xl block mb-2">search_off</span>
+                                <p class="text-xs font-bold">Không tìm thấy bến xe nào</p>
+                            </div>
+                        </div>
+                        <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('arrivalLocationId')}" th:errors="*{arrivalLocationId}"></p>
+                    </div>
+
                     <div>
                         <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Mã/Tên tuyến</label>
-                        <input th:field="*{routeCode}" placeholder="Ví dụ: SG-DL-01" class="w-full rounded-xl border-surface-border bg-white"/>
+                        <input th:field="*{routeCode}" id="routeCode" placeholder="Ví dụ: SG-DL-01" 
+                               oninput="updateReturnPreview()"
+                               class="w-full rounded-xl border-surface-border bg-white"/>
                         <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('routeCode')}" th:errors="*{routeCode}"></p>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Khoảng cách (km)</label>
-                            <input type="number" step="0.1" min="0" th:field="*{distanceKm}" class="w-full rounded-xl border-surface-border bg-white"/>
+                            <input type="number" step="0.1" min="0" th:field="*{distanceKm}" id="distanceKm" 
+                                   oninput="updateReturnPreview()"
+                                   class="w-full rounded-xl border-surface-border bg-white"/>
                             <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('distanceKm')}" th:errors="*{distanceKm}"></p>
                         </div>
                         <div>
-                            <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Thời lượng (phút)</label>
-                            <input type="number" step="1" min="1" th:field="*{durationMinutes}" class="w-full rounded-xl border-surface-border bg-white"/>
+                            <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">
+                                Thời lượng (phút)
+                                <span class="normal-case font-medium text-[10px] opacity-60 ml-1">(t = S/v * 1.2, v=50km/h)</span>
+                            </label>
+                            <input type="number" step="1" min="1" th:field="*{durationMinutes}" id="durationMinutes" 
+                                   oninput="updateReturnPreview()"
+                                   class="w-full rounded-xl border-surface-border bg-white"/>
                             <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('durationMinutes')}" th:errors="*{durationMinutes}"></p>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Điểm đi</label>
-                        <select th:field="*{departureLocationId}" class="w-full rounded-xl border-surface-border bg-white">
-                            <option value="">— Chọn điểm đi —</option>
-                            <option th:each="l : ${locations}" th:value="${l.id}" th:text="${l.city + ' • ' + l.name}"></option>
-                        </select>
-                        <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('departureLocationId')}" th:errors="*{departureLocationId}"></p>
+                </div>
+                <div class="mt-4 flex flex-col gap-4">
+                    <div class="flex items-center gap-4">
+                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="createReturn" id="createReturnCheckbox" value="true" 
+                                   onchange="toggleReturnPreview()"
+                                   class="rounded border-surface-border text-brand-700 focus:ring-brand-500"/>
+                            <span class="text-sm font-semibold text-ink">Tự động tạo tuyến khứ hồi (đảo ngược)</span>
+                        </label>
                     </div>
-                    <div>
-                        <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Điểm đến</label>
-                        <select th:field="*{arrivalLocationId}" class="w-full rounded-xl border-surface-border bg-white">
-                            <option value="">— Chọn điểm đến —</option>
-                            <option th:each="l : ${locations}" th:value="${l.id}" th:text="${l.city + ' • ' + l.name}"></option>
-                        </select>
-                        <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('arrivalLocationId')}" th:errors="*{arrivalLocationId}"></p>
+
+                    <!-- Return Route Preview -->
+                    <div id="returnRoutePreview" class="hidden border-t border-dashed border-surface-border pt-6 mt-2 space-y-6">
+                        <div class="flex items-center gap-2">
+                            <span class="ms text-brand-500 text-[20px]">swap_calls</span>
+                            <span class="text-xs font-black uppercase tracking-widest text-brand-600">Thông tin tuyến khứ hồi (Dự kiến)</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Điểm đi khứ hồi -->
+                            <div>
+                                <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Điểm đi</label>
+                                <div id="previewReturnDep" class="w-full px-4 py-2.5 rounded-xl border border-surface-border bg-surface-hover text-sm font-bold text-ink-muted"></div>
+                            </div>
+                            <!-- Điểm đến khứ hồi -->
+                            <div>
+                                <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Điểm đến</label>
+                                <div id="previewReturnArr" class="w-full px-4 py-2.5 rounded-xl border border-surface-border bg-surface-hover text-sm font-bold text-ink-muted"></div>
+                            </div>
+                            
+                            <!-- Mã khứ hồi -->
+                            <div>
+                                <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Mã/Tên tuyến khứ hồi</label>
+                                <input type="text" id="previewReturnCode" placeholder="Mã khứ hồi..." 
+                                       class="w-full rounded-xl border-surface-border bg-white font-bold text-brand-700"/>
+                            </div>
+                            
+                            <!-- KM & Thời gian khứ hồi -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Khoảng cách (km)</label>
+                                    <input type="number" step="0.1" id="previewReturnKm" 
+                                           class="w-full rounded-xl border-surface-border bg-white"/>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">
+                                         Thời lượng (phút)
+                                         <span class="normal-case font-medium text-[10px] opacity-60 ml-1">(t = S/v * 1.2)</span>
+                                     </label>
+                                    <input type="number" step="1" id="previewReturnDuration" 
+                                           class="w-full rounded-xl border-surface-border bg-white"/>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-ink-muted italic">* Lưu ý: Tuyến khứ hồi sẽ được tạo tự động với các waypoint được đảo ngược thứ tự.</p>
                     </div>
                 </div>
             </section>
@@ -72,12 +191,23 @@
                         </h2>
                         <p class="text-sm text-ink-muted mt-1">Mỗi waypoint có thể là <b>chỉ đón</b>, <b>chỉ trả</b> hoặc <b>cả hai</b>. Offset phút sẽ ưu tiên hơn km khi tính ETA.</p>
                     </div>
-                    <button type="button" onclick="addWaypoint()" class="px-4 py-2 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-sm hover:opacity-95">
-                        <span class="ms text-[18px] align-[-3px]">add</span> Thêm waypoint
-                    </button>
+                    <div class="flex flex-col items-end">
+                        <button type="button" onclick="addWaypoint()" class="px-4 py-2 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-sm hover:opacity-95">
+                            <span class="ms text-[18px] align-[-3px]">add</span> Thêm waypoint
+                        </button>
+                        <div id="distanceStatus" class="mt-2 text-[11px] font-bold px-3 py-1 rounded-full bg-surface-hover border border-surface-border">
+                            Tổng WP: <span id="wpSumDisplay">0</span> / <span id="totalLimitDisplay">0</span> km
+                        </div>
+                    </div>
                 </div>
 
-                <ul id="waypointList" class="space-y-3"></ul>
+                <div id="distanceWarning" class="hidden mb-4 p-3 rounded-xl bg-red-50 border border-red-100 flex items-center gap-3 text-red-700">
+                    <span class="ms text-[20px]">warning</span>
+                    <p class="text-xs font-bold text-red-600">Tổng khoảng cách các Waypoint đang vượt quá tổng chiều dài toàn tuyến!</p>
+                </div>
+
+                <!-- Waypoints List -->
+                <ul id="waypointList" class="space-y-3 mb-6"></ul>
 
                 <template id="waypointItemTpl">
                     <li class="bg-white border border-surface-border rounded-2xl p-4 flex gap-3 items-start" draggable="true">
@@ -94,7 +224,9 @@
                             </div>
                             <div class="md:col-span-2">
                                 <label class="block text-[11px] font-extrabold uppercase tracking-wider text-ink-faint mb-1">Km</label>
-                                <input type="number" step="0.1" min="0" class="wp-km w-full rounded-xl border-surface-border bg-white" placeholder="15"/>
+                                <input type="number" step="0.1" min="0" 
+                                       oninput="autoCalcDuration(this)"
+                                       class="wp-km w-full rounded-xl border-surface-border bg-white" placeholder="15"/>
                             </div>
                             <div class="md:col-span-3">
                                 <label class="block text-[11px] font-extrabold uppercase tracking-wider text-ink-faint mb-1">Loại điểm</label>
@@ -105,7 +237,10 @@
                                 </select>
                             </div>
                             <div class="md:col-span-2">
-                                <label class="block text-[11px] font-extrabold uppercase tracking-wider text-ink-faint mb-1">+Phút</label>
+                                <label class="block text-[11px] font-extrabold uppercase tracking-wider text-ink-faint mb-1">
+                                     +Phút
+                                     <span class="normal-case font-medium text-[9px] opacity-60">(t = S/v * 1.2)</span>
+                                 </label>
                                 <input type="number" step="1" min="0" class="wp-offset w-full rounded-xl border-surface-border bg-white" placeholder="45"/>
                             </div>
                         </div>
@@ -118,7 +253,7 @@
 
             <div class="flex justify-end gap-3">
                 <a th:href="@{/admin/infrastructure(tab='routes')}" class="px-5 py-2.5 rounded-xl border border-surface-border text-sm font-bold text-ink-muted hover:bg-surface-hover">Huỷ</a>
-                <button type="submit" onclick="beforeSubmit()" class="px-6 py-2.5 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-sm hover:opacity-95">
+                <button type="submit" id="saveRouteBtn" class="px-6 py-2.5 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-sm hover:opacity-95 transition-all">
                     Lưu tuyến
                 </button>
             </div>
@@ -142,9 +277,19 @@
 
     function removeWaypoint(btn) {
         btn.closest('li').remove();
+        recalculateTotals();
     }
 
+    let isDistanceValid = true;
+
     function beforeSubmit() {
+        recalculateTotals(); // Final check before submitting
+        
+        if (!isDistanceValid) {
+            alert("Không thể lưu: Tổng khoảng cách các Waypoint đang vượt quá tổng chiều dài toàn tuyến!");
+            return false;
+        }
+
         const container = document.getElementById('stopsContainer');
         container.innerHTML = ''; // Clear old
 
@@ -174,6 +319,8 @@
             
             validIndex++;
         });
+
+        return true;
     }
 
     // Drag & drop
@@ -203,6 +350,220 @@
                 li.before(dragEl);
             }
         });
+    }
+
+    // --- SEARCHABLE DROPDOWN LOGIC ---
+    function showDropdown(type) {
+        document.getElementById(`${type}Dropdown`).classList.remove('hidden');
+        filterDropdown(type); // Reset filter on show
+    }
+
+    function hideDropdown(type) {
+        // Delay to allow click event to register
+        setTimeout(() => {
+            document.getElementById(`${type}Dropdown`).classList.add('hidden');
+        }, 200);
+    }
+
+    function filterDropdown(type) {
+        const searchInput = document.getElementById(`${type}Search`);
+        const dropdown = document.getElementById(`${type}Dropdown`);
+        const items = dropdown.querySelectorAll('.option-item');
+        const filter = searchInput.value.toLowerCase().trim();
+        const oppositeId = document.getElementById(type === 'departure' ? 'arrivalLocationId' : 'departureLocationId').value;
+        
+        let hasVisible = false;
+        items.forEach(item => {
+            const id = item.getAttribute('data-id');
+            const searchTerms = item.getAttribute('data-search').toLowerCase();
+            const matchesSearch = searchTerms.includes(filter);
+            const isOpposite = (id === oppositeId);
+
+            if (matchesSearch && !isOpposite) {
+                item.classList.remove('hidden');
+                hasVisible = true;
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+
+        const noResults = dropdown.querySelector('.no-results');
+        if (hasVisible) {
+            noResults.classList.add('hidden');
+            dropdown.classList.remove('hidden'); // Ensure dropdown is shown if there are matches
+        } else {
+            noResults.classList.remove('hidden');
+        }
+    }
+
+    function selectOption(type, element) {
+        const id = element.getAttribute('data-id');
+        const label = element.getAttribute('data-label');
+        
+        document.getElementById(`${type}LocationId`).value = id;
+        document.getElementById(`${type}Search`).value = label;
+        document.getElementById(`${type}Dropdown`).classList.add('hidden');
+        
+        // Trigger smart features
+        onLocationChange(true); // Force update code
+    }
+
+    // Close dropdowns on outside click
+    document.addEventListener('click', (e) => {
+        if (!document.getElementById('departureContainer').contains(e.target)) {
+            document.getElementById('departureDropdown').classList.add('hidden');
+        }
+        if (!document.getElementById('arrivalContainer').contains(e.target)) {
+            document.getElementById('arrivalDropdown').classList.add('hidden');
+        }
+    });
+
+    // Initialize labels for edit mode
+    window.addEventListener('DOMContentLoaded', () => {
+        ['departure', 'arrival'].forEach(type => {
+            const id = document.getElementById(`${type}LocationId`).value;
+            if (id) {
+                const item = document.querySelector(`#${type}Dropdown [data-id="${id}"]`);
+                if (item) {
+                    const label = item.getAttribute('data-label');
+                    document.getElementById(`${type}Search`).value = label;
+                }
+            }
+        });
+
+        // Initial validation
+         recalculateTotals();
+     });
+
+    // --- AUTO CALCULATION & VALIDATION LOGIC ---
+    function recalculateTotals() {
+        const waypointKms = [...list.querySelectorAll('.wp-km')];
+        const currentWpSum = waypointKms.reduce((s, i) => s + (parseFloat(i.value.replace(',', '.')) || 0), 0);
+        
+        const totalInput = document.getElementById('distanceKm');
+        const totalLimit = parseFloat(totalInput.value.replace(',', '.')) || 0;
+        
+        // Update status displays
+        document.getElementById('wpSumDisplay').innerText = currentWpSum.toFixed(1).replace('.', ',');
+        document.getElementById('totalLimitDisplay').innerText = totalLimit.toFixed(1).replace('.', ',');
+        
+        const statusBox = document.getElementById('distanceStatus');
+        const warningBox = document.getElementById('distanceWarning');
+        const saveBtn = document.getElementById('saveRouteBtn');
+
+        if (currentWpSum > totalLimit && totalLimit > 0) {
+            isDistanceValid = false;
+            statusBox.classList.add('bg-red-100', 'border-red-300', 'text-red-700');
+            statusBox.classList.remove('bg-surface-hover', 'border-surface-border');
+            warningBox.classList.remove('hidden');
+            
+            // Lock and style button as disabled
+            saveBtn.disabled = true;
+            saveBtn.classList.remove('bg-brand-700', 'hover:opacity-95');
+            saveBtn.classList.add('bg-surface-border', 'text-ink-faint', 'cursor-not-allowed', 'opacity-60');
+        } else {
+            isDistanceValid = true;
+            statusBox.classList.remove('bg-red-100', 'border-red-300', 'text-red-700');
+            statusBox.classList.add('bg-surface-hover', 'border-surface-border');
+            warningBox.classList.add('hidden');
+            
+            // Unlock and restore original style
+            saveBtn.disabled = false;
+            saveBtn.classList.add('bg-brand-700', 'hover:opacity-95');
+            saveBtn.classList.remove('bg-surface-border', 'text-ink-faint', 'cursor-not-allowed', 'opacity-60');
+        }
+
+        updateReturnPreview();
+    }
+
+    function autoCalcDuration(input) {
+        let valStr = input.value.replace(',', '.');
+        const km = parseFloat(valStr);
+        if (isNaN(km)) return;
+
+        const duration = Math.round(km * 1.44);
+        if (input.id === 'distanceKm') {
+            document.getElementById('durationMinutes').value = duration;
+            recalculateTotals(); // Re-validate when total limit changes
+        } else if (input.classList.contains('wp-km')) {
+            const li = input.closest('li');
+            li.querySelector('.wp-offset').value = duration;
+            recalculateTotals();
+        }
+    }
+
+    // Attach listener to waypoint offsets to trigger totals update
+    document.addEventListener('input', (e) => {
+        if (e.target.classList.contains('wp-offset')) {
+            recalculateTotals();
+        }
+    });
+
+    // Attach listener to main distance input
+    document.getElementById('distanceKm').addEventListener('input', function() {
+        autoCalcDuration(this);
+    });
+
+    // Attach listener to preview distance input
+    document.getElementById('previewReturnKm').addEventListener('input', function() {
+        const km = parseFloat(this.value.replace(',', '.'));
+        if (!isNaN(km)) {
+            document.getElementById('previewReturnDuration').value = Math.round(km * 1.44);
+        }
+    });
+
+    // --- SMART FEATURES ---
+    function toggleReturnPreview() {
+        const checkbox = document.getElementById('createReturnCheckbox');
+        const preview = document.getElementById('returnRoutePreview');
+        preview.classList.toggle('hidden', !checkbox.checked);
+        if (checkbox.checked) updateReturnPreview();
+    }
+
+    function updateReturnPreview() {
+        const depSearch = document.getElementById('departureSearch').value;
+        const arrSearch = document.getElementById('arrivalSearch').value;
+        const code = document.getElementById('routeCode').value;
+        const km = document.getElementById('distanceKm').value;
+        const duration = document.getElementById('durationMinutes').value;
+
+        document.getElementById('previewReturnDep').innerText = arrSearch || '— Chọn điểm đến —';
+        document.getElementById('previewReturnArr').innerText = depSearch || '— Chọn điểm đi —';
+        document.getElementById('previewReturnKm').value = km || '';
+        document.getElementById('previewReturnDuration').value = duration || '';
+        
+        // Reverse code logic: SG-DL-01 -> DL-SG-01
+        if (code && code.includes('-')) {
+            const parts = code.split('-');
+            if (parts.length >= 2) {
+                document.getElementById('previewReturnCode').value = parts[1] + '-' + parts[0] + (parts[2] ? '-' + parts[2] : '');
+            }
+        } else {
+            document.getElementById('previewReturnCode').value = '';
+        }
+    }
+
+    async function onLocationChange(forceUpdateCode = false) {
+        const depId = document.getElementById('departureLocationId').value;
+        const arrId = document.getElementById('arrivalLocationId').value;
+        
+        if (!depId || !arrId) return;
+
+        // Update preview if active
+        updateReturnPreview();
+
+        // 1. Gợi ý mã tuyến
+        try {
+            const resp = await fetch(`/admin/infrastructure/routes/api/generate-code?depId=${depId}&arrId=${arrId}`);
+            const data = await resp.json();
+            if (data.code && (forceUpdateCode || !document.getElementById('routeCode').value)) {
+                document.getElementById('routeCode').value = data.code;
+                updateReturnPreview();
+            }
+        } catch (e) { console.error("Lỗi generate code", e); }
+
+        // 2. Cập nhật preview khứ hồi
+        updateReturnPreview();
     }
 
     // Seed 1 empty item for UX if new, else render existing

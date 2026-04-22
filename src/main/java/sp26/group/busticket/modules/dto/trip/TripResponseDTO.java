@@ -35,8 +35,9 @@ public class TripResponseDTO {
     private String statusLabel;     // "Đã xác nhận", ...
 
     private String driverName;
-
     private String driverPhone;
+    private String secondDriverName;
+    private String secondDriverPhone;
     private String assistantName;
     private String assistantPhone;
     private String coachPlate;

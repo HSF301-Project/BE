@@ -65,13 +65,24 @@
                 <p class="text-error text-xs mb-4" th:if="${#fields.hasErrors('newDriverFieldsValid')}" th:errors="*{newDriverFieldsValid}"></p>
 
                 <div id="existingDriverBlock" class="grid gap-5">
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Tài xế</label>
-                        <select th:field="*{driverId}" class="w-full rounded-xl border-slate-200 text-sm focus:ring-2 focus:ring-primary/30">
-                            <option value="">— Chọn tài xế —</option>
-                            <option th:each="d : ${drivers}" th:value="${d.id}"
-                                    th:text="${'[' + d.readinessLabel + '] ' + d.fullName + ' | ' + d.phone + (d.licenseNumber != null ? ' | GPLX ' + d.licenseNumber : '')}"></option>
-                        </select>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Tài xế chính</label>
+                            <select th:field="*{driverId}" class="w-full rounded-xl border-slate-200 text-sm focus:ring-2 focus:ring-primary/30">
+                                <option value="">— Chọn tài xế —</option>
+                                <option th:each="d : ${drivers}" th:value="${d.id}"
+                                        th:text="${'[' + d.readinessLabel + '] ' + d.fullName + ' | ' + d.phone + (d.licenseNumber != null ? ' | GPLX ' + d.licenseNumber : '')}"></option>
+                            </select>
+                            <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('driverId')}" th:errors="*{driverId}"></p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Tài xế 2 (Dự phòng)</label>
+                            <select th:field="*{secondDriverId}" class="w-full rounded-xl border-slate-200 text-sm focus:ring-2 focus:ring-primary/30">
+                                <option value="">— Chọn tài xế —</option>
+                                <option th:each="d : ${drivers}" th:value="${d.id}" th:text="${d.fullName + ' | ' + d.phone}"></option>
+                            </select>
+                            <p class="text-error text-xs mt-1" th:if="${#fields.hasErrors('secondDriverId')}" th:errors="*{secondDriverId}"></p>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Cập nhật số GPLX (tuỳ chọn)</label>

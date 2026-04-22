@@ -29,4 +29,6 @@ public class TripResponseDTO {
     private String arrivalStation;
     private String duration;
     private Integer seatsLeft;
+    private String driverName;
+    private String secondDriverName;
 }

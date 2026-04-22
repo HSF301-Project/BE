@@ -52,6 +52,7 @@ public class TripRequestDTO {
     /** Cập nhật GPLX cho tài xế đã chọn (tùy chọn). */
     private String existingDriverLicenseUpdate;
 
+    private UUID secondDriverId;
     private UUID assistantId;
 
     @NotNull(message = "Thời gian khởi hành không được để trống")

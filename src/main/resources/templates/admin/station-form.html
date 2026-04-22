@@ -26,15 +26,32 @@
                         <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Tên địa điểm</label>
                         <input th:field="*{name}" required placeholder="Ví dụ: Bến xe Miền Đông, Trạm An Sương..." class="w-full rounded-xl border-surface-border bg-white"/>
                     </div>
-                    <div>
+                    <div class="relative" id="cityContainer">
                         <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Thành phố/Tỉnh</label>
-                        <input th:field="*{city}" required placeholder="Ví dụ: TP. Hồ Chí Minh" class="w-full rounded-xl border-surface-border bg-white"/>
+                        <input type="hidden" th:field="*{city}" id="cityInput">
+                        <div class="relative group">
+                            <input type="text" id="citySearch" 
+                                   autocomplete="off"
+                                   placeholder="Tìm thành phố/tỉnh..." 
+                                   class="w-full rounded-xl border-surface-border bg-white pr-10 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                                   onclick="showCityDropdown()"
+                                   onfocus="showCityDropdown()"
+                                   oninput="filterCityDropdown()">
+                            <span class="ms absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint pointer-events-none group-focus-within:text-brand-600">search</span>
+                        </div>
+                        <div id="cityDropdown" class="absolute z-50 w-full mt-1 bg-white border border-surface-border rounded-xl shadow-xl max-h-64 overflow-y-auto hidden divide-y divide-surface-border">
+                            <!-- JS will populate this or we can use Thymeleaf if we pass the list from controller -->
+                            <!-- For now, let's hardcode the list in JS for simplicity as it's static data -->
+                            <div class="no-results px-4 py-8 text-center text-ink-faint hidden">
+                                <span class="ms text-4xl block mb-2">search_off</span>
+                                <p class="text-xs font-bold">Không tìm thấy tỉnh thành nào</p>
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Loại địa điểm</label>
                         <select th:field="*{locationType}" class="w-full rounded-xl border-surface-border bg-white">
                             <option value="TERMINAL">Bến chính (Terminal)</option>
-                            <option value="TRANSFER">Trung chuyển (Transfer)</option>
                             <option value="STOP">Trạm dừng (Stop)</option>
                         </select>
                     </div>
@@ -59,5 +76,77 @@
     </div>
 </main>
 
+<script th:inline="javascript">
+    const provinces = [
+        "An Giang", "Bắc Ninh", "Cà Mau", "Cao Bằng", "TP. Cần Thơ", "TP. Đà Nẵng", "Đắk Lắk", "Điện Biên", "Đồng Nai", "Đồng Tháp", "Gia Lai", "TP. Hà Nội", "Hà Tĩnh", "TP. Hải Phòng", "TP. Hồ Chí Minh", "TP. Huế", "Hưng Yên", "Khánh Hoà", "Lai Châu", "Lạng Sơn", "Lào Cai", "Lâm Đồng", "Nghệ An", "Ninh Bình", "Phú Thọ", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị", "Sơn La", "Tây Ninh", "Thái Nguyên", "Thanh Hóa", "Tuyên Quang", "Vĩnh Long"
+    ];
+
+    function initCityDropdown() {
+        const dropdown = document.getElementById('cityDropdown');
+        const noResults = dropdown.querySelector('.no-results');
+        
+        provinces.forEach(city => {
+            const div = document.createElement('div');
+            div.className = 'px-4 py-3 hover:bg-brand-50 cursor-pointer transition-colors flex items-center gap-3 city-item';
+            div.setAttribute('data-city', city);
+            div.innerHTML = `
+                <span class="ms text-brand-600 text-[20px]">location_city</span>
+                <div class="text-sm font-bold text-ink">${city}</div>
+            `;
+            div.onclick = () => selectCity(city);
+            dropdown.insertBefore(div, noResults);
+        });
+    }
+
+    function showCityDropdown() {
+        document.getElementById('cityDropdown').classList.remove('hidden');
+        filterCityDropdown();
+    }
+
+    function filterCityDropdown() {
+        const search = document.getElementById('citySearch').value.toLowerCase().trim();
+        const dropdown = document.getElementById('cityDropdown');
+        
+        // Ensure dropdown is visible when typing
+        dropdown.classList.remove('hidden');
+        
+        const items = dropdown.querySelectorAll('.city-item');
+        let hasVisible = false;
+
+        items.forEach(item => {
+            const city = item.getAttribute('data-city').toLowerCase();
+            if (city.includes(search)) {
+                item.classList.remove('hidden');
+                hasVisible = true;
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+
+        dropdown.querySelector('.no-results').classList.toggle('hidden', hasVisible);
+    }
+
+    function selectCity(city) {
+        document.getElementById('cityInput').value = city;
+        document.getElementById('citySearch').value = city;
+        document.getElementById('cityDropdown').classList.add('hidden');
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+        if (!document.getElementById('cityContainer').contains(e.target)) {
+            document.getElementById('cityDropdown').classList.add('hidden');
+        }
+    });
+
+    // Initialize labels for edit mode
+    window.addEventListener('DOMContentLoaded', () => {
+        initCityDropdown();
+        const currentCity = document.getElementById('cityInput').value;
+        if (currentCity) {
+            document.getElementById('citySearch').value = currentCity;
+        }
+    });
+</script>
 </body>
 </html>

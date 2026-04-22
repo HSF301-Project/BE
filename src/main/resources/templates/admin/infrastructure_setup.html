@@ -16,8 +16,9 @@
                 <p class="text-on-surface-variant">Cấu hình mạng lưới nhà điểm đón, trả, tối ưu hóa các tuyến đường du lịch và tùy chỉnh sơ đồ xe giường nằm cho trải nghiệm cao cấp.</p>
             </div>
             <a th:href="${activeTab == 'routes' ? '/admin/infrastructure/routes/new' : '/admin/infrastructure/stations/new'}"
-               class="px-6 py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-lg font-bold shadow-lg shadow-primary/10 flex items-center gap-2">
-                <span class="material-symbols-outlined">add</span> Thêm mới
+               class="inline-flex items-center gap-2 px-6 py-2.5 bg-brand-700 hover:bg-brand-800 text-white rounded-xl font-bold shadow-md hover:shadow-lg transform active:scale-95 transition-all">
+                <span class="ms text-[20px]">add_circle</span> 
+                <span>Thêm mới</span>
             </a>
         </div>
 
@@ -37,12 +38,21 @@
             <!-- ===== STATION LIST ===== -->
             <div th:if="${activeTab == 'stations' or activeTab == null}" class="col-span-12 bg-surface-card rounded-2xl p-6 border border-surface-border shadow-sm">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold">Mạng lưới điểm đón, trả Hoạt động</h2>
-                    <a th:href="@{/admin/infrastructure/stations}"
-                       class="text-primary text-sm font-semibold flex items-center gap-1 hover:underline">
-                        Xem toàn bộ danh sách
-                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                    </a>
+                    <div>
+                        <h2 class="text-xl font-bold">Mạng lưới điểm đón, trả Hoạt động</h2>
+                        <!-- Location Type Filters -->
+                        <div class="flex gap-2 mt-4">
+                            <a th:href="@{/admin/infrastructure(tab='stations', type='ALL')}"
+                               th:classappend="${activeType == null or activeType == 'ALL'} ? 'bg-brand-100 text-brand-700' : 'bg-surface-hover text-ink-muted hover:text-brand-600'"
+                               class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all">Tất cả</a>
+                            <a th:href="@{/admin/infrastructure(tab='stations', type='TERMINAL')}"
+                               th:classappend="${activeType == 'TERMINAL'} ? 'bg-brand-100 text-brand-700' : 'bg-surface-hover text-ink-muted hover:text-brand-600'"
+                               class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all">Bến chính</a>
+                            <a th:href="@{/admin/infrastructure(tab='stations', type='STOP')}"
+                               th:classappend="${activeType == 'STOP'} ? 'bg-brand-100 text-brand-700' : 'bg-surface-hover text-ink-muted hover:text-brand-600'"
+                               class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all">Trạm dừng</a>
+                        </div>
+                    </div>
                 </div>
                 <table class="w-full text-left">
                     <thead>
@@ -60,15 +70,17 @@
                         <td class="py-4 font-medium" th:text="${station.name}">Bến xe Miền Đông</td>
                         <td class="py-4 text-on-surface-variant" th:text="${station.city}">TP. Hồ Chí Minh</td>
                         <td class="py-4">
-                            <span th:classappend="${station.locationType == 'TERMINAL'} ? 'bg-brand-50 text-brand-700' : (${station.locationType == 'TRANSFER'} ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-700')"
+                            <span th:classappend="${station.locationType == 'TERMINAL'} ? 'bg-brand-50 text-brand-700' : 'bg-slate-100 text-slate-700'"
                                   class="px-2 py-1 rounded text-xs font-bold"
-                                  th:text="${station.locationType == 'TERMINAL' ? 'Bến chính' : (station.locationType == 'TRANSFER' ? 'Trung chuyển' : 'Trạm dừng')}">Bến chính</span>
+                                  th:text="${station.locationType == 'TERMINAL' ? 'Bến chính' : 'Trạm dừng'}">Bến chính</span>
                         </td>
                         <td class="py-4 text-ink-muted text-xs" th:text="${station.address != null ? station.address : '—'}">—</td>
                         <td class="py-4 text-right">
                             <a th:href="@{/admin/infrastructure/stations/{id}/edit(id=${station.id})}"
-                               class="text-ink-faint hover:text-brand-600 transition-colors">
-                                <span class="material-symbols-outlined">edit</span>
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-brand-700 bg-brand-50 hover:bg-brand-600 hover:text-white font-bold text-xs transition-all border border-brand-100 shadow-sm group"
+                               title="Chỉnh sửa địa điểm">
+                                <span class="ms text-[16px] group-hover:rotate-12 transition-transform">edit</span>
+                                <span>Chỉnh sửa</span>
                             </a>
                         </td>
                     </tr>
@@ -85,9 +97,9 @@
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-xl font-bold">Danh sách Tuyến đường</h2>
                     <a th:href="@{/admin/infrastructure/routes}"
-                       class="text-primary text-sm font-semibold flex items-center gap-1 hover:underline">
+                       class="inline-flex items-center gap-2 px-4 py-2 bg-brand-50 text-brand-700 rounded-xl font-bold text-sm shadow-sm hover:bg-brand-100 transition-all border border-brand-100">
                         Xem toàn bộ danh sách
-                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                        <span class="ms text-[18px]">trending_flat</span>
                     </a>
                 </div>
                 <table class="w-full text-left">
@@ -104,16 +116,38 @@
                     <tr th:each="r : ${routes}">
                         <td class="py-4 font-bold text-primary" th:text="${r.routeCode}">SG-DL</td>
                         <td class="py-4 font-medium text-sm">
-                            <span th:text="${r.departureLocation.name}">Bến Xe Miền Đông</span>
-                            <span class="material-symbols-outlined text-on-surface-variant text-sm align-middle mx-1">arrow_forward</span>
-                            <span th:text="${r.arrivalLocation.name}">Bến Xe Đà Lạt</span>
+                                            <div class="flex items-center gap-4">
+                                                <div class="flex flex-col">
+                                                    <span class="text-[10px] uppercase tracking-wider text-ink-muted font-bold mb-0.5">Điểm đi</span>
+                                                    <span th:text="${r.departureLocation.name}" class="font-bold text-ink">Bến Xe Miền Đông</span>
+                                                </div>
+                                                <div class="flex items-center justify-center h-8 w-8 rounded-full bg-brand-50">
+                                                    <span class="ms text-brand-600 text-[18px]">multiple_stop</span>
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span class="text-[10px] uppercase tracking-wider text-ink-muted font-bold mb-0.5">Điểm đến</span>
+                                                    <span th:text="${r.arrivalLocation.name}" class="font-bold text-ink">Bến Xe Đà Lạt</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                        <td class="py-4 text-on-surface-variant text-sm">
+                            <div class="flex items-center gap-1.5">
+                                <span class="ms text-slate-400 text-[18px]">straighten</span>
+                                <span th:text="${r.distance + ' km'}">300 km</span>
+                            </div>
                         </td>
-                        <td class="py-4 text-on-surface-variant text-sm" th:text="${r.distance + ' km'}">300 km</td>
-                        <td class="py-4 text-on-surface-variant text-sm" th:text="${r.duration + ' phút'}">360 phút</td>
+                        <td class="py-4 text-on-surface-variant text-sm">
+                            <div class="flex items-center gap-1.5">
+                                <span class="ms text-slate-400 text-[18px]">schedule</span>
+                                <span th:text="${r.duration + ' phút'}">360 phút</span>
+                            </div>
+                        </td>
                         <td class="py-4 text-right">
                             <a th:href="@{/admin/infrastructure/routes/{id}/edit(id=${r.id})}"
-                               class="text-outline hover:text-primary transition-colors" title="Chỉnh sửa tuyến">
-                                <span class="material-symbols-outlined">edit</span>
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-brand-700 bg-brand-50 hover:bg-brand-600 hover:text-white font-bold text-xs transition-all border border-brand-100 shadow-sm group"
+                               title="Chỉnh sửa tuyến">
+                                <span class="ms text-[16px] group-hover:rotate-12 transition-transform">edit</span>
+                                <span>Chỉnh sửa</span>
                             </a>
                         </td>
                     </tr>

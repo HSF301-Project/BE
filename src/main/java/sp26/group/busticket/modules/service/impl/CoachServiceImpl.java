@@ -209,6 +209,8 @@ public class CoachServiceImpl implements CoachService {
                 .coachType(coach.getCoachType())
                 .driverName(trip.getDriver() != null ? trip.getDriver().getFullName() : "N/A")
                 .driverPhone(trip.getDriver() != null ? trip.getDriver().getPhone() : "N/A")
+                .secondDriverName(trip.getSecondDriver() != null ? trip.getSecondDriver().getFullName() : "N/A")
+                .secondDriverPhone(trip.getSecondDriver() != null ? trip.getSecondDriver().getPhone() : "N/A")
                 .assistantName(trip.getAssistant() != null ? trip.getAssistant().getFullName() : "Chưa phân công")
                 .assistantPhone(trip.getAssistant() != null ? trip.getAssistant().getPhone() : "N/A")
                 .pickUpAddress(trip.getRoute().getDepartureLocation().getName() + ", " + trip.getRoute().getDepartureLocation().getCity())

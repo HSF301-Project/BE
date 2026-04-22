@@ -6,8 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import sp26.group.busticket.modules.entity.*;
-import sp26.group.busticket.modules.enumType.StatusEnum;
-import sp26.group.busticket.modules.enumType.StopTypeEnum;
+import sp26.group.busticket.modules.enumType.*;
 import sp26.group.busticket.modules.repository.*;
 
 import java.math.BigDecimal;
@@ -34,60 +33,74 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        if (coachRepository.count() > 0) return; // Tránh nạp lại data nếu đã có
-
-        // 1. Initialize Accounts
+        // 1. Initialize Accounts (Roles are handled as strings in Account)
         initAccounts();
-        Account user = accountRepository.findByEmail("user@gmail.com").get();
 
         // 2. Initialize Locations
-        Location saigon = initLocation("Bến xe Miền Đông", "TP. Hồ Chí Minh", "TERMINAL");
+        // Miền Nam
+        Location sg1 = initLocation("Bến xe Miền Đông", "TP. Hồ Chí Minh", "TERMINAL");
+        Location sg2 = initLocation("Bến xe Miền Tây", "TP. Hồ Chí Minh", "TERMINAL");
+        Location canTho = initLocation("Bến xe Cần Thơ", "TP. Cần Thơ", "TERMINAL");
+        Location vungTau = initLocation("Bến xe Vũng Tàu", "Bà Rịa - Vũng Tàu", "TERMINAL");
+        Location caMau = initLocation("Bến xe Cà Mau", "Cà Mau", "TERMINAL");
         Location dalat = initLocation("Bến xe Đà Lạt", "Lâm Đồng", "TERMINAL");
-        Location danang = initLocation("Bến xe Đà Nẵng", "Đà Nẵng", "TERMINAL");
-        Location cantho = initLocation("Bến xe Cần Thơ", "Cần Thơ", "TERMINAL");
-        Location hue = initLocation("Bến xe Huế", "Thừa Thiên Huế", "TERMINAL");
-        Location hanoi = initLocation("Bến xe Mỹ Đình", "Hà Nội", "TERMINAL");
 
-        // 3. Initialize Routes with proper RouteStop entities
-        Route sgDl = initRoute(saigon, dalat, 300f, 420);
-        initRouteStop(sgDl, initLocation("Ngã ba Dầu Giây", "Đồng Nai", "INTERMEDIATE"), 1, StopTypeEnum.BOTH, 60, 60f);
-        initRouteStop(sgDl, initLocation("Trạm nghỉ Xuân Lộc", "Đồng Nai", "INTERMEDIATE"), 2, StopTypeEnum.BOTH, 110, 110f);
-        initRouteStop(sgDl, initLocation("TP. Bảo Lộc", "Lâm Đồng", "INTERMEDIATE"), 3, StopTypeEnum.BOTH, 180, 180f);
-        initRouteStop(sgDl, initLocation("Ngã 3 Liên Khương", "Lâm Đồng", "INTERMEDIATE"), 4, StopTypeEnum.DROPOFF, 260, 260f);
+        // Miền Trung
+        Location danang = initLocation("Bến xe Trung tâm Đà Nẵng", "TP. Đà Nẵng", "TERMINAL");
+        Location hue = initLocation("Bến xe Phía Nam Huế", "TP. Huế", "TERMINAL");
+        Location nhaTrang = initLocation("Bến xe Phía Nam Nha Trang", "Khánh Hoà", "TERMINAL");
+        Location quyNhon = initLocation("Bến xe Quy Nhơn", "Bình Định", "TERMINAL");
 
-        Route sgDn = initRoute(saigon, danang, 900f, 960);
-        initRouteStop(sgDn, initLocation("Trạm nghỉ Phan Thiết", "Bình Thuận", "INTERMEDIATE"), 1, StopTypeEnum.BOTH, 180, 200f);
-        initRouteStop(sgDn, initLocation("Trạm nghỉ Nha Trang", "Khánh Hòa", "INTERMEDIATE"), 2, StopTypeEnum.BOTH, 430, 450f);
-        initRouteStop(sgDn, initLocation("Trạm nghỉ Quy Nhơn", "Bình Định", "INTERMEDIATE"), 3, StopTypeEnum.BOTH, 650, 680f);
+        // Miền Bắc
+        Location hanoi1 = initLocation("Bến xe Mỹ Đình", "TP. Hà Nội", "TERMINAL");
+        Location hanoi2 = initLocation("Bến xe Giáp Bát", "TP. Hà Nội", "TERMINAL");
+        Location haiPhong = initLocation("Bến xe Niệm Nghĩa", "TP. Hải Phòng", "TERMINAL");
+        Location laoCai = initLocation("Bến xe Lào Cai", "Lào Cai", "TERMINAL");
 
-        // New Routes
-        Route sgCt = initRoute(saigon, cantho, 170f, 180);
-        initRouteStop(sgCt, initLocation("Trạm dừng chân Mekong Rest Stop", "Tiền Giang", "INTERMEDIATE"), 1, StopTypeEnum.BOTH, 60, 70f);
+        // 3. Initialize Routes
+        // Tuyến TP.HCM - Đà Lạt
+        Route sgDl = initRoute("SG-DL-01", sg1, dalat, 308f, 420);
+        initRouteStop(sgDl, initLocation("Trạm dừng chân Xuân Lộc", "Đồng Nai", "STOP"), 1, StopTypeEnum.BOTH, 110, 110f);
+        initRouteStop(sgDl, initLocation("Trạm dừng chân Bảo Lộc", "Lâm Đồng", "STOP"), 2, StopTypeEnum.BOTH, 180, 180f);
+        
+        Route dlSg = initRoute("DL-SG-01", dalat, sg1, 308f, 420);
+        initRouteStop(dlSg, initLocation("Trạm dừng chân Madagui", "Lâm Đồng", "STOP"), 1, StopTypeEnum.BOTH, 120, 120f);
 
-        Route ctSg = initRoute(cantho, saigon, 170f, 180);
-        initRouteStop(ctSg, initLocation("Trạm dừng chân Cái Bè", "Tiền Giang", "INTERMEDIATE"), 1, StopTypeEnum.BOTH, 90, 100f);
+        // Tuyến TP.HCM - Cần Thơ
+        Route sgCt = initRoute("SG-CT-01", sg2, canTho, 165f, 180);
+        initRouteStop(sgCt, initLocation("Trạm dừng chân Mekong Rest Stop", "Tiền Giang", "STOP"), 1, StopTypeEnum.BOTH, 60, 70f);
+        
+        Route ctSg = initRoute("CT-SG-01", canTho, sg2, 165f, 180);
+        initRouteStop(ctSg, initLocation("Trạm dừng chân Cái Bè", "Tiền Giang", "STOP"), 1, StopTypeEnum.BOTH, 90, 100f);
 
-        Route dnHue = initRoute(danang, hue, 100f, 120);
-        initRouteStop(dnHue, initLocation("Hầm Hải Vân", "Đà Nẵng", "INTERMEDIATE"), 1, StopTypeEnum.BOTH, 30, 35f);
+        // Tuyến Đà Nẵng - Huế
+        Route dnHue = initRoute("DN-HUE-01", danang, hue, 105f, 120);
+        initRouteStop(dnHue, initLocation("Trạm dừng chân Hầm Hải Vân", "TP. Đà Nẵng", "STOP"), 1, StopTypeEnum.BOTH, 30, 35f);
+        
+        Route hueDn = initRoute("HUE-DN-01", hue, danang, 105f, 120);
+        initRouteStop(hueDn, initLocation("Điểm dừng chân Lăng Cô", "TP. Huế", "STOP"), 1, StopTypeEnum.BOTH, 40, 45f);
 
-        Route hueDn = initRoute(hue, danang, 100f, 120);
-        initRouteStop(hueDn, initLocation("Lăng Cô", "Thừa Thiên Huế", "INTERMEDIATE"), 1, StopTypeEnum.BOTH, 40, 45f);
+        // Tuyến TP.HCM - Đà Nẵng
+        Route sgDn = initRoute("SG-DN-01", sg1, danang, 942f, 960);
+        initRouteStop(sgDn, initLocation("Trạm dừng chân Phan Thiết", "Bình Thuận", "STOP"), 1, StopTypeEnum.BOTH, 180, 200f);
+        initRouteStop(sgDn, initLocation("Trạm dừng chân Nha Trang", "Khánh Hoà", "STOP"), 2, StopTypeEnum.BOTH, 430, 450f);
 
-        Route sgHn = initRoute(saigon, hanoi, 1700f, 1800); // Khoảng 30 tiếng
-        initRouteStop(sgHn, initLocation("Trạm dừng chân Dầu Giây", "Đồng Nai", "INTERMEDIATE"), 1, StopTypeEnum.BOTH, 60, 60f);
-        initRouteStop(sgHn, initLocation("Trạm dừng chân Phan Thiết", "Bình Thuận", "INTERMEDIATE"), 2, StopTypeEnum.BOTH, 240, 250f);
-        initRouteStop(sgHn, initLocation("Trạm dừng chân Nha Trang", "Khánh Hòa", "INTERMEDIATE"), 3, StopTypeEnum.BOTH, 600, 620f);
-        initRouteStop(sgHn, initLocation("Trạm dừng chân Quy Nhơn", "Bình Định", "INTERMEDIATE"), 4, StopTypeEnum.BOTH, 900, 930f);
-        initRouteStop(sgHn, initLocation("Trạm dừng chân Đà Nẵng", "Đà Nẵng", "INTERMEDIATE"), 5, StopTypeEnum.BOTH, 1200, 1250f);
-        initRouteStop(sgHn, initLocation("Trạm dừng chân Đồng Hới", "Quảng Bình", "INTERMEDIATE"), 6, StopTypeEnum.BOTH, 1500, 1550f);
+        Route dnSg = initRoute("DN-SG-01", danang, sg1, 942f, 960);
+        
+        // Tuyến Hà Nội - Lào Cai (Sapa)
+        Route hnLc = initRoute("HN-LC-01", hanoi1, laoCai, 320f, 300);
+        initRouteStop(hnLc, initLocation("Trạm dừng chân Phú Thọ", "Phú Thọ", "STOP"), 1, StopTypeEnum.BOTH, 120, 130f);
+        
+        Route lcHn = initRoute("LC-HN-01", laoCai, hanoi1, 320f, 300);
 
-        Route hnSg = initRoute(hanoi, saigon, 1700f, 1800); // Khoảng 30 tiếng
-        initRouteStop(hnSg, initLocation("Trạm dừng chân Ninh Bình", "Ninh Bình", "INTERMEDIATE"), 1, StopTypeEnum.BOTH, 120, 130f);
-        initRouteStop(hnSg, initLocation("Trạm dừng chân Vinh", "Nghệ An", "INTERMEDIATE"), 2, StopTypeEnum.BOTH, 360, 380f);
-        initRouteStop(hnSg, initLocation("Trạm dừng chân Huế", "Thừa Thiên Huế", "INTERMEDIATE"), 3, StopTypeEnum.BOTH, 720, 750f);
-        initRouteStop(hnSg, initLocation("Trạm dừng chân Đà Nẵng", "Đà Nẵng", "INTERMEDIATE"), 4, StopTypeEnum.BOTH, 840, 870f);
-        initRouteStop(hnSg, initLocation("Trạm dừng chân Quy Nhơn", "Bình Định", "INTERMEDIATE"), 5, StopTypeEnum.BOTH, 1140, 1180f);
-        initRouteStop(hnSg, initLocation("Trạm dừng chân Phan Thiết", "Bình Thuận", "INTERMEDIATE"), 6, StopTypeEnum.BOTH, 1560, 1600f);
+        // Tuyến TP.HCM - Hà Nội (Xuyên Việt)
+        Route sgHn = initRoute("SG-HN-01", sg1, hanoi2, 1720f, 1800);
+        initRouteStop(sgHn, nhaTrang, 1, StopTypeEnum.BOTH, 450, 480f);
+        initRouteStop(sgHn, danang, 2, StopTypeEnum.BOTH, 950, 1000f);
+        
+        Route hnSg = initRoute("HN-SG-01", hanoi2, sg1, 1720f, 1800);
+        initRouteStop(hnSg, danang, 1, StopTypeEnum.BOTH, 750, 800f);
+        initRouteStop(hnSg, nhaTrang, 2, StopTypeEnum.BOTH, 1250, 1300f);
 
         // 4. Initialize Coaches & Seats
         Coach limousine = initCoach("51B-12345", "Limousine", 22);
@@ -104,31 +117,32 @@ public class DataInitializer implements CommandLineRunner {
 
         Account a1 = accountRepository.findByEmail("assistant1@gmail.com").get();
         Account a2 = accountRepository.findByEmail("assistant2@gmail.com").get();
+        Account user = accountRepository.findByEmail("user@gmail.com").get();
 
         // Chuyến đi này có thể bắt đầu ngay (lùi 1 phút so với hiện tại)
-        Trip trip1 = initTrip(sgDl, limousine, LocalDateTime.now().minusMinutes(1), "0912345678", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d1, a1);
+        Trip trip1 = initTrip(sgDl, limousine, LocalDateTime.now().minusMinutes(1), "0912345678", 350000, TripStatusEnum.SCHEDULED, d1, a1);
         
         // Chuyến đi này sẽ bị khóa nút bắt đầu (còn 30 phút nữa mới tới giờ)
-        Trip trip3 = initTrip(sgDn, sleeper, LocalDateTime.now().plusMinutes(30), "0987654321", 500000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d3, a2);
+        Trip trip3 = initTrip(sgDn, sleeper, LocalDateTime.now().plusMinutes(30), "0987654321", 500000, TripStatusEnum.SCHEDULED, d3, a2);
 
-        Trip trip10_today = initTrip(sgDl, seater, LocalDateTime.now().plusHours(5), "0901230000", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d4, a2);
-        Trip trip2 = initTrip(sgDl, limousine, LocalDateTime.now().minusHours(5), "0912345678", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.DEPARTED, d2, a1);
+        Trip trip10_today = initTrip(sgDl, seater, LocalDateTime.now().plusHours(5), "0901230000", 350000, TripStatusEnum.SCHEDULED, d4, a2);
+        Trip trip2 = initTrip(sgDl, limousine, LocalDateTime.now().minusHours(5), "0912345678", 350000, TripStatusEnum.DEPARTED, d2, a1);
 
         // New Trips
-        Trip trip4 = initTrip(sgCt, seater, LocalDateTime.now().plusDays(1).plusHours(9), "0901112233", 150000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d4, a1);
-        Trip trip5 = initTrip(ctSg, seater, LocalDateTime.now().plusDays(1).plusHours(14), "0904445566", 150000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d5, a2);
-        Trip trip6 = initTrip(dnHue, limousine, LocalDateTime.now().plusHours(6), "0907778899", 100000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d6, a1);
-        Trip trip7 = initTrip(hueDn, limousine, LocalDateTime.now().minusDays(1), "0901231231", 100000, sp26.group.busticket.modules.enumType.TripStatusEnum.COMPLETED, d1, a2);
-        Trip trip8 = initTrip(sgHn, sleeper, LocalDateTime.now().plusDays(2).plusHours(10), "0904564564", 1000000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d2, a1);
-        Trip trip9 = initTrip(hnSg, sleeper, LocalDateTime.now().plusDays(3).plusHours(18), "0907897897", 1000000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d3, a2);
-        Trip trip10 = initTrip(sgDl, seater, LocalDateTime.now().plusDays(1).plusHours(3), "0901230000", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d4, a1);
-        Trip trip11 = initTrip(sgDn, seater, LocalDateTime.now().plusHours(7), "0904561111", 500000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d5, a2);
-        Trip trip12 = initTrip(sgCt, limousine, LocalDateTime.now().plusDays(1).plusHours(11), "0907892222", 150000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d6, a1);
-        Trip trip13 = initTrip(ctSg, sleeper, LocalDateTime.now().plusDays(1).plusHours(16), "0901233333", 150000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d1, a2);
-        Trip trip14 = initTrip(dnHue, limousine, LocalDateTime.now().plusHours(4), "0904564444", 100000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d2, a1);
-        Trip trip15 = initTrip(hueDn, seater, LocalDateTime.now().minusDays(2), "0907895555", 100000, sp26.group.busticket.modules.enumType.TripStatusEnum.COMPLETED, d3, a2);
-        Trip trip16 = initTrip(sgHn, seater, LocalDateTime.now().plusDays(2).plusHours(12), "0901236666", 1000000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d4, a1);
-        Trip trip17 = initTrip(hnSg, limousine, LocalDateTime.now().plusDays(3).plusHours(20), "0904567777", 1000000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d5, a2);
+        Trip trip4 = initTrip(sgCt, seater, LocalDateTime.now().plusDays(1).plusHours(9), "0901112233", 150000, TripStatusEnum.SCHEDULED, d4, a1);
+        Trip trip5 = initTrip(ctSg, seater, LocalDateTime.now().plusDays(1).plusHours(14), "0904445566", 150000, TripStatusEnum.SCHEDULED, d5, a2);
+        Trip trip6 = initTrip(dnHue, limousine, LocalDateTime.now().plusHours(6), "0907778899", 100000, TripStatusEnum.SCHEDULED, d6, a1);
+        Trip trip7 = initTrip(hueDn, limousine, LocalDateTime.now().minusDays(1), "0901231231", 100000, TripStatusEnum.COMPLETED, d1, a2);
+        Trip trip8 = initTrip(sgHn, sleeper, LocalDateTime.now().plusDays(2).plusHours(10), "0904564564", 1000000, TripStatusEnum.SCHEDULED, d2, a1);
+        Trip trip9 = initTrip(hnSg, sleeper, LocalDateTime.now().plusDays(3).plusHours(18), "0907897897", 1000000, TripStatusEnum.SCHEDULED, d3, a2);
+        Trip trip10 = initTrip(sgDl, seater, LocalDateTime.now().plusDays(1).plusHours(3), "0901230000", 350000, TripStatusEnum.SCHEDULED, d4, a1);
+        Trip trip11 = initTrip(sgDn, seater, LocalDateTime.now().plusHours(7), "0904561111", 500000, TripStatusEnum.SCHEDULED, d5, a2);
+        Trip trip12 = initTrip(sgCt, limousine, LocalDateTime.now().plusDays(1).plusHours(11), "0907892222", 150000, TripStatusEnum.SCHEDULED, d6, a1);
+        Trip trip13 = initTrip(ctSg, sleeper, LocalDateTime.now().plusDays(1).plusHours(16), "0901233333", 150000, TripStatusEnum.SCHEDULED, d1, a2);
+        Trip trip14 = initTrip(dnHue, limousine, LocalDateTime.now().plusHours(4), "0904564444", 100000, TripStatusEnum.SCHEDULED, d2, a1);
+        Trip trip15 = initTrip(hueDn, seater, LocalDateTime.now().minusDays(2), "0907895555", 100000, TripStatusEnum.COMPLETED, d3, a2);
+        Trip trip16 = initTrip(sgHn, seater, LocalDateTime.now().plusDays(2).plusHours(12), "0901236666", 1000000, TripStatusEnum.SCHEDULED, d4, a1);
+        Trip trip17 = initTrip(hnSg, limousine, LocalDateTime.now().plusDays(3).plusHours(20), "0904567777", 1000000, TripStatusEnum.SCHEDULED, d5, a2);
         //Trip tripTestCancelBlock = initTrip(sgDl, limousine, LocalDateTime.now().plusMinutes(90), "0900111222", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d1);
 
         // 6. Initialize Bookings & Tickets for testing
@@ -296,13 +310,14 @@ public class DataInitializer implements CommandLineRunner {
                         .build()));
     }
 
-    private Route initRoute(Location dep, Location arr, Float dist, Integer dur) {
+    private Route initRoute(String code, Location dep, Location arr, Float dist, Integer dur) {
         // Simple check to avoid duplicates (could be improved)
         return routeRepository.findAll().stream()
                 .filter(r -> r.getDepartureLocation().getId().equals(dep.getId()) && 
                              r.getArrivalLocation().getId().equals(arr.getId()))
                 .findFirst()
                 .orElseGet(() -> routeRepository.save(Route.builder()
+                        .routeCode(code)
                         .departureLocation(dep)
                         .arrivalLocation(arr)
                         .distance(dist)
@@ -317,7 +332,7 @@ public class DataInitializer implements CommandLineRunner {
                             .plateNumber(plate)
                             .coachType(type)
                             .totalSeats(seats)
-                            .status(sp26.group.busticket.modules.enumType.CoachStatusEnum.AVAILABLE)
+                            .status(CoachStatusEnum.AVAILABLE)
                             .build());
                     
                     // Generate Seats
@@ -345,7 +360,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private Trip initTrip(Route route, Coach coach, LocalDateTime depTime, String phone,
-                          int price, sp26.group.busticket.modules.enumType.TripStatusEnum status, Account driver, Account assistant) {
+                          int price, TripStatusEnum status, Account driver, Account assistant) {
         return tripRepository.save(Trip.builder()
                 .route(route)
                 .coach(coach)
@@ -372,16 +387,16 @@ public class DataInitializer implements CommandLineRunner {
                 .pickupLocation(pickupLocation)
                 .dropoffLocation(dropoffLocation)
                 .totalAmount(trip.getPriceBase().multiply(BigDecimal.valueOf(seatNumbers.size())))
-                .status(sp26.group.busticket.modules.enumType.BookingStatusEnum.CONFIRMED)
+                .status(BookingStatusEnum.CONFIRMED)
                 .bookingCode("INIT-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase())
                 .build();
         booking = bookingRepository.save(booking);
 
-        paymentRepository.save(sp26.group.busticket.modules.entity.Payment.builder()
+        paymentRepository.save(Payment.builder()
                 .booking(booking)
                 .amount(booking.getTotalAmount())
                 .paymentMethod("CASH")
-                .status(sp26.group.busticket.modules.enumType.PaymentStatusEnum.PAID)
+                .status(PaymentStatusEnum.PAID)
                 .paidAt(LocalDateTime.now())
                 .build());
 

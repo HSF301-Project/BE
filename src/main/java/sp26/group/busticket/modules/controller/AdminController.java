@@ -44,7 +44,7 @@ public class AdminController {
 
     @InitBinder("tripRequest")
     public void initTripRequestBinder(WebDataBinder binder) {
-        for (String field : new String[]{"assistantId", "driverId"}) {
+        for (String field : new String[]{"assistantId", "driverId", "secondDriverId"}) {
             binder.registerCustomEditor(UUID.class, field, new PropertyEditorSupport() {
                 @Override
                 public void setAsText(String text) throws IllegalArgumentException {
