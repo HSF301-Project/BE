@@ -215,12 +215,35 @@
                             <span class="ms text-[20px]">drag_indicator</span>
                         </button>
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 flex-1">
-                            <div class="md:col-span-5">
+                            <div class="md:col-span-5 relative wp-container">
                                 <label class="block text-[11px] font-extrabold uppercase tracking-wider text-ink-faint mb-1">Địa điểm dừng</label>
-                                <select class="wp-location w-full rounded-xl border-surface-border bg-white">
-                                    <option value="">— Chọn địa điểm —</option>
-                                    <option th:each="l : ${locations}" th:value="${l.id}" th:text="${l.city + ' • ' + l.name}"></option>
-                                </select>
+                                <input type="hidden" class="wp-location-id" value="">
+                                <div class="relative">
+                                    <input type="text" 
+                                           class="wp-search w-full rounded-xl border-surface-border bg-white text-sm pr-10 focus:ring-brand-500 focus:border-brand-500" 
+                                           placeholder="Tìm địa điểm..."
+                                           onfocus="showWpDropdown(this)"
+                                           oninput="filterWpDropdown(this)">
+                                    <span class="ms absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint text-[18px] pointer-events-none">search</span>
+                                </div>
+                                
+                                <!-- Dropdown Menu -->
+                                <div class="wp-dropdown hidden absolute z-50 left-0 right-0 mt-1 bg-white border border-surface-border rounded-xl shadow-xl max-h-60 overflow-y-auto scrollbar-thin">
+                                    <div class="p-1">
+                                        <div th:each="l : ${locations}" 
+                                             class="wp-option-item flex flex-col px-3 py-2 hover:bg-brand-50 rounded-lg cursor-pointer group"
+                                             th:data-id="${l.id}"
+                                             th:data-label="${l.city + ' • ' + l.name}"
+                                             th:data-search="${l.city + ' ' + l.name}"
+                                             onclick="selectWpOption(this)">
+                                            <span class="text-xs font-bold text-ink group-hover:text-brand-700" th:text="${l.city + ' • ' + l.name}">Hà Nội • Bến xe Mỹ Đình</span>
+                                        </div>
+                                        <div class="wp-no-results hidden p-4 text-center">
+                                            <span class="ms text-ink-faint text-[32px] mb-2">search_off</span>
+                                            <p class="text-xs text-ink-muted">Không tìm thấy địa điểm</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="md:col-span-2">
                                 <label class="block text-[11px] font-extrabold uppercase tracking-wider text-ink-faint mb-1">Km</label>
@@ -267,7 +290,16 @@
 
     function addWaypoint(initial = {}) {
         const node = tpl.content.firstElementChild.cloneNode(true);
-        if (initial.locationId) node.querySelector('.wp-location').value = initial.locationId;
+        const idInput = node.querySelector('.wp-location-id');
+        const searchInput = node.querySelector('.wp-search');
+        
+        if (initial.locationId) {
+            idInput.value = initial.locationId;
+            // Set initial label
+            const item = node.querySelector(`.wp-option-item[data-id="${initial.locationId}"]`);
+            if (item) searchInput.value = item.getAttribute('data-label');
+        }
+        
         node.querySelector('.wp-km').value = initial.distanceFromStart ?? '';
         node.querySelector('.wp-type').value = initial.stopType || 'BOTH';
         node.querySelector('.wp-offset').value = initial.offsetMinutes ?? '';
@@ -297,7 +329,7 @@
         let validIndex = 0;
         
         items.forEach((li) => {
-            const locId = li.querySelector('.wp-location').value.trim();
+            const locId = li.querySelector('.wp-location-id').value.trim();
             if (!locId) return; // Skip empty rows
             
             const km = li.querySelector('.wp-km').value.trim();
@@ -370,16 +402,22 @@
         const dropdown = document.getElementById(`${type}Dropdown`);
         const items = dropdown.querySelectorAll('.option-item');
         const filter = searchInput.value.toLowerCase().trim();
+        
+        // Exclude: Opposite (Dep/Arr) AND any used Waypoints
         const oppositeId = document.getElementById(type === 'departure' ? 'arrivalLocationId' : 'departureLocationId').value;
+        const usedWpIds = [...document.querySelectorAll('.wp-location-id')]
+            .map(el => el.value)
+            .filter(id => id !== "");
         
         let hasVisible = false;
         items.forEach(item => {
             const id = item.getAttribute('data-id');
             const searchTerms = item.getAttribute('data-search').toLowerCase();
             const matchesSearch = searchTerms.includes(filter);
-            const isOpposite = (id === oppositeId);
+            
+            const isExcluded = (id === oppositeId || usedWpIds.includes(id));
 
-            if (matchesSearch && !isOpposite) {
+            if (matchesSearch && !isExcluded) {
                 item.classList.remove('hidden');
                 hasVisible = true;
             } else {
@@ -408,14 +446,81 @@
         onLocationChange(true); // Force update code
     }
 
+    // Waypoint Dropdown Functions
+    function showWpDropdown(input) {
+        const container = input.closest('.wp-container');
+        const dropdown = container.querySelector('.wp-dropdown');
+        dropdown.classList.remove('hidden');
+        filterWpDropdown(input);
+    }
+
+    function filterWpDropdown(input) {
+        const container = input.closest('.wp-container');
+        const dropdown = container.querySelector('.wp-dropdown');
+        const items = dropdown.querySelectorAll('.wp-option-item');
+        const filter = input.value.toLowerCase().trim();
+        
+        // Get excluded IDs: Departure, Arrival, and other Waypoints
+        const depId = document.getElementById('departureLocationId').value;
+        const arrId = document.getElementById('arrivalLocationId').value;
+        const otherWpIds = [...document.querySelectorAll('.wp-location-id')]
+            .filter(el => el !== container.querySelector('.wp-location-id')) // Don't exclude current WP's own value
+            .map(el => el.value)
+            .filter(id => id !== "");
+
+        let hasVisible = false;
+        items.forEach(item => {
+            const id = item.getAttribute('data-id');
+            const searchTerms = item.getAttribute('data-search').toLowerCase();
+            
+            const isExcluded = (id === depId || id === arrId || otherWpIds.includes(id));
+            const matchesSearch = searchTerms.includes(filter);
+
+            if (matchesSearch && !isExcluded) {
+                item.classList.remove('hidden');
+                hasVisible = true;
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+
+        const noResults = dropdown.querySelector('.wp-no-results');
+        if (hasVisible) {
+            noResults.classList.add('hidden');
+        } else {
+            noResults.classList.remove('hidden');
+        }
+    }
+
+    function selectWpOption(element) {
+        const container = element.closest('.wp-container');
+        const idInput = container.querySelector('.wp-location-id');
+        const searchInput = container.querySelector('.wp-search');
+        const dropdown = container.querySelector('.wp-dropdown');
+        
+        idInput.value = element.getAttribute('data-id');
+        searchInput.value = element.getAttribute('data-label');
+        dropdown.classList.add('hidden');
+        
+        recalculateTotals();
+    }
+
     // Close dropdowns on outside click
     document.addEventListener('click', (e) => {
+        // Global dropdowns
         if (!document.getElementById('departureContainer').contains(e.target)) {
             document.getElementById('departureDropdown').classList.add('hidden');
         }
         if (!document.getElementById('arrivalContainer').contains(e.target)) {
             document.getElementById('arrivalDropdown').classList.add('hidden');
         }
+        
+        // Waypoint dropdowns
+        document.querySelectorAll('.wp-container').forEach(container => {
+            if (!container.contains(e.target)) {
+                container.querySelector('.wp-dropdown').classList.add('hidden');
+            }
+        });
     });
 
     // Initialize labels for edit mode
