@@ -19,4 +19,8 @@ public class BookingFormDTO {
     @Builder.Default
     private List<PriceItemDTO> priceItems = new ArrayList<>();
     private String totalFormatted;
+
+    public List<PassengerInfoDTO> getPassengers() {
+        return passengers;
+    }
 }
