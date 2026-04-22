@@ -129,7 +129,7 @@ public class DataInitializer implements CommandLineRunner {
         Trip trip15 = initTrip(hueDn, seater, LocalDateTime.now().minusDays(2), "0907895555", 100000, sp26.group.busticket.modules.enumType.TripStatusEnum.COMPLETED, d3, a2);
         Trip trip16 = initTrip(sgHn, seater, LocalDateTime.now().plusDays(2).plusHours(12), "0901236666", 1000000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d4, a1);
         Trip trip17 = initTrip(hnSg, limousine, LocalDateTime.now().plusDays(3).plusHours(20), "0904567777", 1000000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d5, a2);
-        Trip tripTestCancelBlock = initTrip(sgDl, limousine, LocalDateTime.now().plusMinutes(90), "0900111222", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d1);
+//        Trip tripTestCancelBlock = initTrip(sgDl, limousine, LocalDateTime.now().plusMinutes(90), "0900111222", 350000, sp26.group.busticket.modules.enumType.TripStatusEnum.SCHEDULED, d1);
 
         // 6. Initialize Bookings & Tickets for testing
         initBooking(trip1, user, List.of("A01", "A02"), "Nguyễn Văn A", "0901234567",
