@@ -22,4 +22,8 @@ public class BookingFormDTO {
     private String totalFormatted;
     private UUID pickupLocationId;
     private UUID dropoffLocationId;
+
+    public List<PassengerInfoDTO> getPassengers() {
+        return passengers;
+    }
 }

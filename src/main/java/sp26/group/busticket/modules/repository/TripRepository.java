@@ -42,6 +42,8 @@ public interface TripRepository extends JpaRepository<Trip, UUID> {
     List<Trip> findAllTripsToday(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     List<Trip> findByDriver_IdAndTripStatusInOrAssistant_IdAndTripStatusInOrderByDepartureTimeAsc(
-            UUID driverId, Collection<TripStatusEnum> statuses1, 
+            UUID driverId, Collection<TripStatusEnum> statuses1,
             UUID assistantId, Collection<TripStatusEnum> statuses2);
+
+    long countByTripStatus(sp26.group.busticket.modules.enumType.TripStatusEnum status);
 }

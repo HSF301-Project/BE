@@ -46,7 +46,6 @@ public class AdminInfrastructureController {
     @GetMapping
     public String infrastructure(@RequestParam(name = "tab", defaultValue = "stations") String tab, 
                                  @AuthenticationPrincipal UserDetails userDetails, Model model) {
-        attachAdminUser(userDetails, model);
         model.addAttribute("activeTab", tab);
 
         // Thống kê thực tế từ DB
@@ -70,33 +69,32 @@ public class AdminInfrastructureController {
         // Danh sách địa điểm và tuyến đường cho tab
         model.addAttribute("stations", listLocations());
         model.addAttribute("routes", routeRepository.findAll());
+        model.addAttribute("activePage", "infrastructure");
         return "Admin/infrastructure_setup";
     }
 
     // ==================== STATIONS ====================
 
     @GetMapping("/stations/new")
-    public String newStation(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        attachAdminUser(userDetails, model);
+    public String newStation(Model model) {
         model.addAttribute("location", new Location());
+        model.addAttribute("activePage", "infrastructure");
         return "Admin/station-form";
     }
 
     @GetMapping("/stations/{id}/edit")
-    public String editStation(@PathVariable java.util.UUID id, @AuthenticationPrincipal UserDetails userDetails, Model model) {
-        attachAdminUser(userDetails, model);
+    public String editStation(@PathVariable java.util.UUID id, Model model) {
         Location location = locationRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy địa điểm."));
         model.addAttribute("location", location);
+        model.addAttribute("activePage", "infrastructure");
         return "Admin/station-form";
     }
 
     @PostMapping("/stations/save")
     public String saveStation(@ModelAttribute("location") Location location,
-                              @AuthenticationPrincipal UserDetails userDetails,
                               Model model,
                               RedirectAttributes redirectAttributes) {
-        attachAdminUser(userDetails, model);
         if (location.getId() != null) {
             Location existing = locationRepository.findById(location.getId())
                     .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy địa điểm."));
@@ -116,16 +114,15 @@ public class AdminInfrastructureController {
     // ==================== ROUTES ====================
 
     @GetMapping("/routes/new")
-    public String newRoute(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        attachAdminUser(userDetails, model);
+    public String newRoute(Model model) {
         model.addAttribute("routeRequest", RouteRequestDTO.builder().build());
         model.addAttribute("locations", listLocations());
+        model.addAttribute("activePage", "infrastructure");
         return "Admin/route-form";
     }
 
     @GetMapping("/routes/{id}/edit")
-    public String editRoute(@PathVariable java.util.UUID id, @AuthenticationPrincipal UserDetails userDetails, Model model) {
-        attachAdminUser(userDetails, model);
+    public String editRoute(@PathVariable java.util.UUID id, Model model) {
         Route route = routeRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy tuyến đường."));
         
@@ -152,16 +149,15 @@ public class AdminInfrastructureController {
 
         model.addAttribute("routeRequest", req);
         model.addAttribute("locations", listLocations());
+        model.addAttribute("activePage", "infrastructure");
         return "Admin/route-form";
     }
 
     @PostMapping("/routes/save")
     public String saveRoute(@Valid @ModelAttribute("routeRequest") RouteRequestDTO req,
                             BindingResult result,
-                            @AuthenticationPrincipal UserDetails userDetails,
                             Model model,
                             RedirectAttributes redirectAttributes) {
-        attachAdminUser(userDetails, model);
         if (result.hasErrors()) {
             model.addAttribute("locations", listLocations());
             return "Admin/route-form";
@@ -224,10 +220,6 @@ public class AdminInfrastructureController {
     // Helpers
     // =====================================================================
 
-    private void attachAdminUser(UserDetails userDetails, Model model) {
-        Account admin = accountRepository.findByEmail(userDetails.getUsername()).orElse(null);
-        model.addAttribute("adminUser", admin);
-    }
 
     private List<Location> listLocations() {
         return locationRepository.findAll().stream()

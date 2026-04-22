@@ -155,7 +155,7 @@ public class TripServiceImpl implements TripService {
                         .fullName(a.getFullName())
                         .phone(a.getPhone())
                         .licenseNumber(a.getDriverLicenseNumber())
-                        .readinessLabel("Hoạt động — sẵn sàng nhận chuyến")
+                        .readinessLabel("Sẵn sàng")
                         .build())
                 .collect(Collectors.toList());
     }
@@ -497,9 +497,11 @@ public class TripServiceImpl implements TripService {
 
         return TripResponseDTO.builder()
                 .id(trip.getId())
-                .tripCode("TRP-" + trip.getId())
+                .tripCode("TRP-" + trip.getId().toString().substring(0, 8).toUpperCase())
                 .fromStation(trip.getRoute().getDepartureLocation().getName())
                 .toStation(trip.getRoute().getArrivalLocation().getName())
+                .fromCity(trip.getRoute().getDepartureLocation().getCity())
+                .toCity(trip.getRoute().getArrivalLocation().getCity())
                 .busType(trip.getCoach().getCoachType())
                 .busTypeLabel("Hạng " + trip.getCoach().getCoachType())
                 .departureTime(trip.getDepartureTime().format(timeFmt))
@@ -515,6 +517,8 @@ public class TripServiceImpl implements TripService {
                 .assistantPhone(trip.getAssistant() != null ? trip.getAssistant().getPhone() : "N/A")
                 .coachPlate(trip.getCoach() != null ? trip.getCoach().getPlateNumber() : "N/A")
                 .departureDateTime(trip.getDepartureTime().format(dateTimeFmt))
+                .arrivalDateTime(trip.getArrivalTime().format(dateTimeFmt))
+                .arrivalTime(trip.getArrivalTime().format(timeFmt))
                 .routeTimeline(timeline)
                 .nextStopLabel(nextStop)
                 .minutesUntilDeparture(minutesUntilDeparture)

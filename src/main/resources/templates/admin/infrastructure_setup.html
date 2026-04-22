@@ -13,7 +13,7 @@
         <div class="flex justify-between items-end mb-10">
             <div class="max-w-xl">
                 <h1 class="text-4xl font-extrabold tracking-tight mb-2">Thiết lập Hạ tầng</h1>
-                <p class="text-on-surface-variant">Cấu hình mạng lưới nhà ga, tối ưu hóa các tuyến đường du lịch và tùy chỉnh sơ đồ xe giường nằm cho trải nghiệm cao cấp.</p>
+                <p class="text-on-surface-variant">Cấu hình mạng lưới nhà điểm đón, trả, tối ưu hóa các tuyến đường du lịch và tùy chỉnh sơ đồ xe giường nằm cho trải nghiệm cao cấp.</p>
             </div>
             <a th:href="${activeTab == 'routes' ? '/admin/infrastructure/routes/new' : '/admin/infrastructure/stations/new'}"
                class="px-6 py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-lg font-bold shadow-lg shadow-primary/10 flex items-center gap-2">
@@ -37,7 +37,7 @@
             <!-- ===== STATION LIST ===== -->
             <div th:if="${activeTab == 'stations' or activeTab == null}" class="col-span-12 bg-surface-card rounded-2xl p-6 border border-surface-border shadow-sm">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold">Mạng lưới Nhà ga Hoạt động</h2>
+                    <h2 class="text-xl font-bold">Mạng lưới điểm đón, trả Hoạt động</h2>
                     <a th:href="@{/admin/infrastructure/stations}"
                        class="text-primary text-sm font-semibold flex items-center gap-1 hover:underline">
                         Xem toàn bộ danh sách

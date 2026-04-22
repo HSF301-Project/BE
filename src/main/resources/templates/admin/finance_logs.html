@@ -1,124 +1,12 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Transit Admin - Quản lý Thanh toán</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"/>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"/>
-    <script>
-        tailwind.config = {
-            theme: { extend: {
-                    colors: {
-                        "surface-container":"#ededf5","surface-container-high":"#e8e7f0","surface-container-low":"#f3f3fb",
-                        "surface-container-lowest":"#ffffff","surface-container-highest":"#e2e2ea","surface-bright":"#faf8ff",
-                        "surface-variant":"#e2e2ea","on-surface":"#1a1b21","on-surface-variant":"#434652",
-                        "secondary-container":"#fe5825","secondary":"#b02e00","on-secondary":"#ffffff",
-                        "secondary-fixed":"#ffdbd1","on-secondary-fixed":"#3b0900",
-                        "primary-container":"#0d47a1","primary":"#003178","on-primary":"#ffffff",
-                        "primary-fixed":"#d9e2ff","on-primary-fixed":"#001945","on-primary-container":"#a1bbff",
-                        "tertiary-container":"#005914","tertiary-fixed":"#a3f69c","on-tertiary-fixed":"#002204",
-                        "outline":"#737783","outline-variant":"#c3c6d4","background":"#faf8ff",
-                        "error":"#ba1a1a","error-container":"#ffdad6"
-                    },
-                    fontFamily: { headline:["Plus Jakarta Sans"], body:["Inter"] }
-                }}
-        }
-    </script>
-    <style>
-        .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; display:inline-block; line-height:1; }
-        body { font-family:'Inter',sans-serif; }
-        .font-headline { font-family:'Plus Jakarta Sans',sans-serif; }
-    </style>
-</head>
-<body class="bg-background text-on-surface">
+<head th:replace="~{Admin/fragments/layout :: admin-head('Quản lý Thanh toán')}"></head>
+<body class="bg-surface min-h-screen text-ink antialiased">
 
-<!-- ===== SIDEBAR ===== -->
-<aside class="fixed left-0 top-0 h-full z-40 flex flex-col w-64 bg-slate-50 font-semibold tracking-tight" style="font-family:'Plus Jakarta Sans',sans-serif;">
-    <div class="p-6 flex flex-col gap-6 h-full">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white">
-                <span class="material-symbols-outlined">directions_bus</span>
-            </div>
-            <div>
-                <h1 class="text-xl font-bold tracking-tighter text-blue-900 leading-none">Quản trị Transit</h1>
-                <p class="text-xs text-on-surface-variant opacity-70">Quản lý Cơ quan</p>
-            </div>
-        </div>
-        <nav class="flex-1 flex flex-col gap-1">
-            <a th:href="@{/admin/dashboard}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
-                <span class="material-symbols-outlined">dashboard</span><span>Bảng điều khiển</span>
-            </a>
-            <a th:href="@{/admin/trips}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
-                <span class="material-symbols-outlined">directions_bus</span><span>Chuyến đi</span>
-            </a>
-            <a th:href="@{/admin/coaches}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
-                <span class="material-symbols-outlined">rv_hookup</span><span>Quản lý Xe</span>
-            </a>
-            <a th:href="@{/admin/infrastructure}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
-                <span class="material-symbols-outlined">construction</span><span>Cơ sở hạ tầng</span>
-            </a>
-            <a th:href="@{/admin/users}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
-                <span class="material-symbols-outlined">badge</span><span>Quản lý Nhân viên</span>
-            </a>
-            <a th:href="@{/admin/customers}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
-                <span class="material-symbols-outlined">group</span><span>Quản lý Khách hàng</span>
-            </a>
-            <!-- ACTIVE -->
-            <a th:href="@{/admin/payments}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-blue-700 font-bold border-r-4 border-blue-700 bg-slate-200/50">
-                <span class="material-symbols-outlined">payments</span><span>Thanh toán</span>
-            </a>
-            <a th:href="@{/admin/reports}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
-                <span class="material-symbols-outlined">analytics</span><span>Báo cáo</span>
-            </a>
-        </nav>
-        <div class="mt-auto flex flex-col gap-1 border-t border-slate-200 pt-4">
-            <a th:href="@{/admin/settings}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
-                <span class="material-symbols-outlined">settings</span><span>Cài đặt</span>
-            </a>
-            <a th:href="@{/admin/help}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 transition-colors">
-                <span class="material-symbols-outlined">help_center</span><span>Hỗ trợ</span>
-            </a>
-            <!-- admin profile card -->
-            <div class="mt-4 p-4 bg-primary rounded-xl text-white">
-                <img th:src="@{/images/default-admin.png}"
-                     th:alt="${adminUser != null ? adminUser.fullName : 'Admin'}"
-                     class="w-10 h-10 rounded-full border-2 border-primary-fixed mb-3 object-cover"/>
-                <p class="text-xs font-semibold opacity-80">Quản lý Cơ quan</p>
-                <p class="text-sm font-bold truncate" th:text="${adminUser != null ? adminUser.fullName : 'Admin'}">Alex Rivera</p>
-            </div>
-        </div>
-    </div>
-</aside>
+<aside th:replace="~{Admin/fragments/layout :: admin-sidebar('payments')}"></aside>
+<header th:replace="~{Admin/fragments/layout :: admin-topnav('Quản lý Giao dịch')}"></header>
 
-<!-- ===== MAIN ===== -->
-<main class="pl-64 min-h-screen">
-    <!-- Top Nav -->
-    <header class="flex justify-between items-center w-full h-16 px-8 bg-white/80 backdrop-blur-xl shadow-sm sticky top-0 z-30" style="font-family:'Plus Jakarta Sans',sans-serif;">
-        <div class="flex items-center gap-4">
-            <span class="text-lg font-black text-blue-900 tracking-tight font-headline">The Premium Transit Authority</span>
-            <span class="w-px h-6 bg-slate-200 mx-2"></span>
-            <span class="text-sm font-semibold text-slate-500">Quản lý Giao dịch</span>
-        </div>
-        <div class="flex items-center gap-6">
-            <form th:action="@{/admin/payments}" method="get" class="relative">
-                <input type="text" name="q" th:value="${searchQuery}"
-                       placeholder="Tìm kiếm ID Giao dịch..."
-                       class="w-64 pl-10 pr-4 py-2 bg-surface-container-low border-0 rounded-full text-sm focus:ring-2 focus:ring-primary/20"/>
-                <span class="material-symbols-outlined absolute left-3 top-2 text-on-surface-variant text-lg">search</span>
-            </form>
-            <div class="flex items-center gap-3">
-                <button class="p-2 hover:bg-surface-container-high rounded-full transition-colors relative">
-                    <span class="material-symbols-outlined text-slate-600">notifications</span>
-                    <span th:if="${hasAlerts}" class="absolute top-2 right-2 w-2 h-2 bg-secondary rounded-full border-2 border-white"></span>
-                </button>
-                <button class="p-2 hover:bg-surface-container-high rounded-full">
-                    <span class="material-symbols-outlined text-slate-600">account_circle</span>
-                </button>
-            </div>
-        </div>
-    </header>
+<main class="ml-60 pt-14 min-h-screen">
 
     <div class="p-8 max-w-7xl mx-auto">
 
@@ -132,19 +20,19 @@
                     <h2 class="text-4xl font-black font-headline tracking-tight" th:text="${finance.todayRevenueFormatted}">$42,890.50</h2>
                     <div th:if="${finance.growthPercent != null}"
                          class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-semibold backdrop-blur-md">
-                        <span class="material-symbols-outlined text-sm">trending_up</span>
+                        <span class="ms text-sm">trending_up</span>
                         <span th:text="'+' + ${finance.growthPercent} + '% so với hôm qua'">+12.5% so với hôm qua</span>
                     </div>
                 </div>
                 <div class="absolute -right-10 -bottom-10 opacity-10 group-hover:scale-110 transition-transform duration-700">
-                    <span class="material-symbols-outlined text-[12rem]">payments</span>
+                    <span class="ms text-[12rem]">payments</span>
                 </div>
             </div>
 
             <!-- Success rate -->
             <div class="p-6 rounded-[2rem] bg-surface-container-lowest shadow-sm flex flex-col justify-between">
                 <div class="w-12 h-12 rounded-2xl bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center">
-                    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">check_circle</span>
+                    <span class="ms" style="font-variation-settings:'FILL' 1;">check_circle</span>
                 </div>
                 <div>
                     <p class="text-on-surface-variant text-sm font-medium mb-1">Tỉ lệ thành công</p>
@@ -156,7 +44,7 @@
             <!-- Failure rate -->
             <div class="p-6 rounded-[2rem] bg-surface-container-lowest shadow-sm flex flex-col justify-between">
                 <div class="w-12 h-12 rounded-2xl bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
-                    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">error</span>
+                    <span class="ms" style="font-variation-settings:'FILL' 1;">error</span>
                 </div>
                 <div>
                     <p class="text-on-surface-variant text-sm font-medium mb-1">Thanh toán thất bại</p>
@@ -176,11 +64,11 @@
                 </div>
                 <div class="flex gap-2">
                     <button class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface font-semibold text-sm hover:bg-surface-container-highest transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-lg">filter_list</span> Bộ lọc
+                        <span class="ms text-lg">filter_list</span> Bộ lọc
                     </button>
                     <a th:href="@{/admin/payments/export}"
                        class="px-4 py-2 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-container transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-lg">download</span> Xuất dữ liệu
+                        <span class="ms text-lg">download</span> Xuất dữ liệu
                     </a>
                 </div>
             </div>
@@ -261,7 +149,7 @@
                     <a th:href="@{/admin/payments(page=${pagination.currentPage - 1})}"
                        th:classappend="${pagination.currentPage <= 1} ? 'opacity-40 pointer-events-none' : ''"
                        class="w-9 h-9 flex items-center justify-center rounded-lg border border-surface-container-highest hover:bg-surface-container-low transition-colors">
-                        <span class="material-symbols-outlined text-sm">chevron_left</span>
+                        <span class="ms text-sm">chevron_left</span>
                     </a>
                     <!-- Page numbers -->
                     <th:block th:each="pageNum : ${pagination.pageNumbers}">
@@ -273,7 +161,7 @@
                     <a th:href="@{/admin/payments(page=${pagination.currentPage + 1})}"
                        th:classappend="${!pagination.hasNext} ? 'opacity-40 pointer-events-none' : ''"
                        class="w-9 h-9 flex items-center justify-center rounded-lg border border-surface-container-highest hover:bg-surface-container-low transition-colors">
-                        <span class="material-symbols-outlined text-sm">chevron_right</span>
+                        <span class="ms text-sm">chevron_right</span>
                     </a>
                 </div>
             </div>
@@ -319,7 +207,7 @@
                 <a th:href="@{/admin/reports/revenue-forecast}"
                    class="text-primary font-semibold text-sm flex items-center gap-1 hover:underline">
                     Xem chi tiết dự báo
-                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    <span class="ms text-sm">arrow_forward</span>
                 </a>
                 <!-- Simplified bar chart (visual only) -->
                 <div class="mt-6 flex items-end gap-2 h-20">
