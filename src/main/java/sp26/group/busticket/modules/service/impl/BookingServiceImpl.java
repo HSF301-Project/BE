@@ -342,6 +342,23 @@ public class BookingServiceImpl implements BookingService {
             throw new AppException(ErrorCode.FORBIDDEN, "Bạn không có quyền xem thông tin vé này.");
         }
         
+        return buildTicketConfirmationDTO(booking);
+    }
+
+    @Override
+    public TicketConfirmationDTO getStaffBookingSuccessInfo(UUID bookingId, UUID staffId) {
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow();
+
+        // Kiểm tra xem nhân viên này có phải là người tạo booking này không?
+        if (booking.getCreatedBy() == null || !booking.getCreatedBy().getId().equals(staffId)) {
+            throw new AppException(ErrorCode.FORBIDDEN, "Bạn không có quyền xem thông tin vé do người khác đặt.");
+        }
+
+        return buildTicketConfirmationDTO(booking);
+    }
+
+    private TicketConfirmationDTO buildTicketConfirmationDTO(Booking booking) {
+        UUID bookingId = booking.getId();
         List<Ticket> tickets = ticketRepository.findAll().stream()
                 .filter(t -> t.getBooking().getId().equals(bookingId))
                 .collect(Collectors.toList());

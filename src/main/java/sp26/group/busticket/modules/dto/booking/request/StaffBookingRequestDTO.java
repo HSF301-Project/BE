@@ -27,7 +27,8 @@ public class StaffBookingRequestDTO {
     @NotEmpty(message = "Vui lòng chọn ít nhất một ghế")
     private List<String> selectedSeats; // List seat numbers (e.g., A1, A2)
 
-    private String paymentMethod; // CASH, POS
+    @NotBlank(message = "Vui lòng chọn phương thức thanh toán")
+    private String paymentMethod; // CASH
 
     private UUID pickupLocationId;
     private UUID dropoffLocationId;

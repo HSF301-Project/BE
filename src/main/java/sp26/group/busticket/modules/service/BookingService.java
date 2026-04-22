@@ -19,6 +19,7 @@ public interface BookingService {
     PaymentResponseDTO getPaymentInfo(UUID bookingId, UUID accountId);
     void processPayment(UUID bookingId, String paymentMethod, UUID accountId);
     TicketConfirmationDTO getBookingSuccessInfo(UUID bookingId, UUID accountId);
+    TicketConfirmationDTO getStaffBookingSuccessInfo(UUID bookingId, UUID staffId);
     List<MyTripResponseDTO> getMyTrips(UUID accountId, String tab);
     UserProfileDTO getUserProfile(Account account);
     UUID cancelBooking(UUID bookingId, UUID accountId);
