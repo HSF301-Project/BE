@@ -65,16 +65,28 @@ public class TripServiceImpl implements TripService {
     // =====================================================================
     @Override
     public TripSearchResultDTO searchTrips(TripSearchRequestDTO request) {
-        LocalDate date = (request.getDate() != null && !request.getDate().isBlank())
-                ? LocalDate.parse(request.getDate())
-                : LocalDate.now();
-
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime searchStart = date.equals(now.toLocalDate()) ? now : date.atStartOfDay();
-        LocalDateTime searchEnd = date.atTime(LocalTime.MAX);
+        boolean hasDate = request.getDate() != null && !request.getDate().isBlank();
 
-        List<Trip> trips = tripRepository.findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeBetween(
-                request.getFrom(), request.getTo(), searchStart, searchEnd);
+        List<Trip> trips;
+        String dateLabel;
+        String dateValue;
+
+        if (hasDate) {
+            LocalDate date = LocalDate.parse(request.getDate());
+            LocalDateTime searchStart = date.equals(now.toLocalDate()) ? now : date.atStartOfDay();
+            LocalDateTime searchEnd = date.atTime(LocalTime.MAX);
+            trips = tripRepository.findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeBetween(
+                    request.getFrom(), request.getTo(), searchStart, searchEnd);
+            dateLabel = date.format(DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy"));
+            dateValue = date.toString();
+        } else {
+            // Không chọn ngày → tìm tất cả chuyến tương lai
+            trips = tripRepository.findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeAfter(
+                    request.getFrom(), request.getTo(), now);
+            dateLabel = "Tất cả ngày";
+            dateValue = "";
+        }
 
         List<sp26.group.busticket.modules.dto.trip.response.TripResponseDTO> tripDTOs = trips.stream()
                 .filter(t -> request.getBusType() == null || request.getBusType().isEmpty() ||
@@ -88,8 +100,8 @@ public class TripServiceImpl implements TripService {
         return TripSearchResultDTO.builder()
                 .fromCity(request.getFrom())
                 .toCity(request.getTo())
-                .date(date.toString())
-                .dateLabel(date.format(DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy")))
+                .date(dateValue)
+                .dateLabel(dateLabel)
                 .trips(tripDTOs)
                 .totalCount((long) tripDTOs.size())
                 .build();

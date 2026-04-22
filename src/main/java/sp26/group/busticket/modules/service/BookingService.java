@@ -7,6 +7,7 @@ import sp26.group.busticket.modules.dto.booking.response.MyTripResponseDTO;
 import sp26.group.busticket.modules.dto.booking.response.PaymentResponseDTO;
 import sp26.group.busticket.modules.dto.booking.response.TicketConfirmationDTO;
 import sp26.group.busticket.modules.dto.booking.response.TicketDetailResponseDTO;
+import sp26.group.busticket.modules.dto.route.response.PopularRouteDTO;
 import sp26.group.busticket.modules.entity.Account;
 
 import java.util.List;
@@ -25,4 +26,5 @@ public interface BookingService {
     UUID cancelBooking(UUID bookingId, UUID accountId);
     BookingFormDTO getBookingFormFromBooking(UUID bookingId, UUID accountId);
     TicketDetailResponseDTO getTicketDetailByBookingCode(String bookingCode, UUID accountId);
+    List<PopularRouteDTO> getTopPopularRoutesAllTime(int limit);
 }

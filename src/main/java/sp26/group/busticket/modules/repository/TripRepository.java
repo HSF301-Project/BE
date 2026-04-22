@@ -29,9 +29,11 @@ public interface TripRepository extends JpaRepository<Trip, UUID> {
                                         @Param("soonTime") LocalDateTime soonTime, 
                                         Pageable pageable);
 
-    // Query dành cho khách hàng tìm kiếm chuyến đi
     List<Trip> findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeBetween(
             String from, String to, LocalDateTime start, LocalDateTime end);
+
+    List<Trip> findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeAfter(
+            String from, String to, LocalDateTime after);
 
     @Query("SELECT t FROM Trip t WHERE t.coach.id = :coachId AND t.tripStatus <> 'CANCELLED' ORDER BY t.departureTime ASC")
     List<Trip> findAllTripsByCoach(@Param("coachId") UUID coachId);

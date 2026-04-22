@@ -6,10 +6,13 @@ import sp26.group.busticket.modules.enumType.TripStatusEnum;
 import sp26.group.busticket.modules.repository.BookingRepository;
 import sp26.group.busticket.modules.repository.TripRepository;
 import sp26.group.busticket.modules.repository.PaymentRepository;
+import sp26.group.busticket.modules.entity.Booking;
+import sp26.group.busticket.modules.enumType.BookingStatusEnum;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -34,15 +37,31 @@ public class ReportService {
         BigDecimal monthlyRevenue = paymentRepository.sumMonthlyRevenue(now.getMonthValue(), now.getYear());
         if (monthlyRevenue == null) monthlyRevenue = BigDecimal.ZERO;
         
-        List<Map<String, Object>> topRoutes = bookingRepository.getTopRoutesByBookingCount().stream()
+        List<Booking> confirmedBookings = bookingRepository.findAll().stream()
+                .filter(b -> b.getStatus() == BookingStatusEnum.CONFIRMED || b.getStatus() == BookingStatusEnum.COMPLETED)
+                .toList();
+
+        List<Map<String, Object>> topRoutes = confirmedBookings.stream()
+            .collect(Collectors.groupingBy(
+                b -> b.getTrip().getRoute().getRouteCode(),
+                Collectors.collectingAndThen(
+                    Collectors.toList(),
+                    list -> {
+                        Map<String, Object> map = new java.util.HashMap<>();
+                        map.put("name", list.get(0).getTrip().getRoute().getRouteCode());
+                        map.put("count", (long) list.size());
+                        BigDecimal total = list.stream()
+                                .map(Booking::getTotalAmount)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                        map.put("revenue", vnCurrency.format(total));
+                        map.put("bookingCount", (long) list.size());
+                        return map;
+                    }
+                )
+            ))
+            .values().stream()
+            .sorted((m1, m2) -> Long.compare((long) m2.get("bookingCount"), (long) m1.get("bookingCount")))
             .limit(5)
-            .map(row -> {
-                Map<String, Object> map = new java.util.HashMap<>();
-                map.put("name", row[0]);
-                map.put("count", row[1]);
-                map.put("revenue", vnCurrency.format(row[2] != null ? row[2] : BigDecimal.ZERO));
-                return map;
-            })
             .collect(Collectors.toList());
 
         List<Map<String, Object>> monthlyStats = paymentRepository.getMonthlyRevenueStats(now.getYear()).stream()

@@ -28,47 +28,48 @@
             </div>
 
             <div class="w-full max-w-5xl mx-auto">
-                <form th:action="@{/search}" th:object="${searchForm}" method="get"
+                <form th:action="@{/search}" method="get" id="searchForm"
                       class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] shadow-2xl flex flex-col md:flex-row gap-4 items-end">
 
                     <div class="flex-1 w-full space-y-2">
                         <label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">Điểm đi</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary">location_on</span>
-                            <select th:field="*{from}"
-                                    class="w-full pl-12 pr-6 py-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-surface-tint text-on-surface font-semibold"
-                                    style="font-family:'Inter',sans-serif">
-                                <option value="">-- Chọn điểm đi --</option>
-                                <option th:each="loc : ${locations}"
-                                        th:value="${loc.name}"
-                                        th:text="${loc.name}">
-                                </option>
-                            </select>
+                        <div class="relative" id="fromCombobox">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">location_on</span>
+                            <input type="text" id="fromSearch" autocomplete="off" placeholder="Nhập hoặc chọn điểm đi"
+                                   class="w-full pl-12 pr-10 py-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-surface-tint text-on-surface font-semibold"
+                                   style="font-family:'Inter',sans-serif"/>
+                            <input type="hidden" name="from" id="fromValue" th:value="${searchForm?.from}"/>
+                            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 cursor-pointer transition-transform" id="fromArrow">expand_more</span>
+                            <ul id="fromDropdown" class="absolute z-50 w-full bg-white rounded-2xl shadow-2xl border border-outline-variant/20 mt-2 max-h-60 overflow-y-auto hidden">
+                                <li th:each="loc : ${locations}" th:data-value="${loc.name}" th:text="${loc.name}"
+                                    class="px-5 py-3 cursor-pointer hover:bg-primary/5 text-on-surface font-medium text-sm transition-colors combobox-option"></li>
+                            </ul>
                         </div>
                     </div>
 
                     <div class="flex-1 w-full space-y-2">
                         <label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">Điểm đến</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary">near_me</span>
-                            <select th:field="*{to}"
-                                    class="w-full pl-12 pr-6 py-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-surface-tint text-on-surface font-semibold"
-                                    style="font-family:'Inter',sans-serif">
-                                <option value="">-- Chọn điểm đến --</option>
-                                <option th:each="loc : ${locations}"
-                                        th:value="${loc.name}"
-                                        th:text="${loc.name}">
-                                </option>
-                            </select>
+                        <div class="relative" id="toCombobox">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">near_me</span>
+                            <input type="text" id="toSearch" autocomplete="off" placeholder="Nhập hoặc chọn điểm đến"
+                                   class="w-full pl-12 pr-10 py-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-surface-tint text-on-surface font-semibold"
+                                   style="font-family:'Inter',sans-serif"/>
+                            <input type="hidden" name="to" id="toValue" th:value="${searchForm?.to}"/>
+                            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 cursor-pointer transition-transform" id="toArrow">expand_more</span>
+                            <ul id="toDropdown" class="absolute z-50 w-full bg-white rounded-2xl shadow-2xl border border-outline-variant/20 mt-2 max-h-60 overflow-y-auto hidden">
+                                <li th:each="loc : ${locations}" th:data-value="${loc.name}" th:text="${loc.name}"
+                                    class="px-5 py-3 cursor-pointer hover:bg-primary/5 text-on-surface font-medium text-sm transition-colors combobox-option"></li>
+                            </ul>
                         </div>
                     </div>
 
                     <div class="flex-none w-full md:w-52 space-y-2">
-                        <label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">Ngày đi</label>
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">Ngày đi <span class="text-on-surface-variant/40 normal-case">(tùy chọn)</span></label>
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary">calendar_today</span>
-                            <input th:field="*{date}"
+                            <input name="date" id="homepage-date"
                                    type="date"
+                                   th:value="${searchForm?.date}"
                                    class="w-full pl-12 pr-6 py-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-surface-tint text-on-surface font-semibold"
                                    style="font-family:'Inter',sans-serif"/>
                         </div>
@@ -83,7 +84,7 @@
         </div>
     </section>
 
-    <section class="max-w-7xl mx-auto px-8 py-24">
+    <section class="max-w-7xl mx-auto px-8 py-24" th:if="${popularRoutes != null and !popularRoutes.isEmpty()}">
         <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
             <div>
                 <span class="text-secondary font-bold tracking-[0.2em] uppercase text-sm mb-4 block">Hành trình gợi ý</span>
@@ -95,100 +96,134 @@
             </a>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="md:col-span-2 relative group overflow-hidden rounded-3xl bg-surface-container-low aspect-[16/9]">
+        <div class="grid grid-cols-1 md:grid-cols-3 md:auto-rows-[220px] gap-8">
+            <a th:each="route, stat : ${popularRoutes}"
+               th:href="@{/search(from=${route.fromLocationName}, to=${route.toLocationName}, date=${#dates.format(new java.util.Date(), 'yyyy-MM-dd')})}"
+               th:class="${stat.index == 0} ? 'md:col-span-2 md:row-span-2 relative group overflow-hidden rounded-3xl bg-surface-container-low h-full min-h-[320px] block cursor-pointer' : (${stat.index == 1} ? 'md:row-span-2 relative group overflow-hidden rounded-3xl bg-surface-container-low h-full min-h-[320px] block cursor-pointer' : 'relative group overflow-hidden rounded-3xl bg-surface-container-low h-full min-h-[220px] block cursor-pointer')">
                 <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                     src="https://images.unsplash.com/photo-1577717903315-1691ae25ab3f?w=800&q=80" alt="Đà Lạt"/>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                <div class="absolute bottom-0 left-0 p-8 w-full flex justify-between items-end">
+                     th:src="${route.imageUrl}"
+                     th:alt="${route.toCity}"/>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+
+                <div th:if="${stat.index == 0}" class="absolute bottom-0 left-0 p-8 w-full flex justify-between items-end z-10">
                     <div>
-                        <p class="text-white/70 text-sm font-medium mb-1">Sài Gòn → Đà Lạt</p>
-                        <h3 class="text-white text-3xl font-black editorial-heading">Thành Phố Ngàn Hoa</h3>
+                        <p class="text-white/80 text-sm font-medium mb-1" th:text="${route.fromCity + ' -> ' + route.toCity}"></p>
+                        <h3 class="text-white text-3xl font-black editorial-heading drop-shadow-md" th:text="${route.toCity}"></h3>
                         <div class="flex items-center gap-2 mt-2">
-                            <span class="material-symbols-outlined text-on-tertiary-container text-sm" style="font-variation-settings:'FILL' 1">star</span>
-                            <span class="text-white/60 text-xs">4.9 (482 đánh giá)</span>
+                            <span class="material-symbols-outlined text-on-tertiary-container text-sm">trending_up</span>
+                            <span class="text-white/90 text-xs font-medium" th:text="${route.bookingsCount + ' lượt đặt'}"></span>
                         </div>
                     </div>
                     <div class="text-right">
-                        <span class="block text-white/60 text-xs font-bold uppercase tracking-widest">Chỉ từ</span>
-                        <span class="text-secondary-container text-3xl font-black" style="font-family:'Inter',sans-serif">350.000đ</span>
+                        <span class="block text-white/80 text-xs font-bold uppercase tracking-widest drop-shadow-sm">Chỉ từ</span>
+                        <span class="text-secondary-container text-3xl font-black drop-shadow-md" style="font-family:'Inter',sans-serif" th:text="${route.priceDisplay}"></span>
                     </div>
                 </div>
-            </div>
 
-            <div class="relative group overflow-hidden rounded-3xl bg-surface-container-low">
-                <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                     src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80" alt="Vũng Tàu"/>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div class="absolute bottom-0 left-0 p-6 w-full">
-                    <p class="text-white/70 text-xs font-medium mb-1">Sài Gòn → Vũng Tàu</p>
-                    <h3 class="text-white text-xl font-black editorial-heading mb-4">Biển Xanh Nắng Vàng</h3>
+                <div th:if="${stat.index != 0}" class="absolute bottom-0 left-0 p-6 w-full z-10">
+                    <p class="text-white/80 text-xs font-medium mb-1" th:text="${route.fromCity + ' -> ' + route.toCity}"></p>
+                    <h3 class="text-white text-xl font-black editorial-heading mb-4 drop-shadow-md" th:text="${route.toCity}"></h3>
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-1 text-on-tertiary-container">
-                            <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">star</span>
-                            <span class="text-white font-bold">4.8</span>
+                            <span class="material-symbols-outlined text-sm">trending_up</span>
+                            <span class="text-white font-bold" th:text="${route.bookingsCount}"></span>
                         </div>
-                        <span class="text-secondary-container font-black" style="font-family:'Inter',sans-serif">180.000đ</span>
+                        <span class="text-secondary-container font-black drop-shadow-md" style="font-family:'Inter',sans-serif" th:text="${route.priceDisplay}"></span>
                     </div>
                 </div>
-            </div>
-
-            <div class="relative group overflow-hidden rounded-3xl bg-surface-container-low">
-                <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                     src="https://images.unsplash.com/photo-1559693801-9d9f6eb3f8cd?w=600&q=80" alt="Huế"/>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div class="absolute bottom-0 left-0 p-6 w-full">
-                    <p class="text-white/70 text-xs font-medium mb-1">Đà Nẵng → Huế</p>
-                    <h3 class="text-white text-xl font-black editorial-heading mb-4">Cố Đô Trầm Mặc</h3>
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-1 text-on-tertiary-container">
-                            <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">star</span>
-                            <span class="text-white font-bold">4.7</span>
-                        </div>
-                        <span class="text-secondary-container font-black" style="font-family:'Inter',sans-serif">150.000đ</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="relative group overflow-hidden rounded-3xl bg-surface-container-low">
-                <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                     src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=600&q=80" alt="Hạ Long"/>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div class="absolute bottom-0 left-0 p-6 w-full">
-                    <p class="text-white/70 text-xs font-medium mb-1">Hà Nội → Hạ Long</p>
-                    <h3 class="text-white text-xl font-black editorial-heading mb-4">Kỳ Quan Thiên Nhiên</h3>
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-1 text-on-tertiary-container">
-                            <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">star</span>
-                            <span class="text-white font-bold">4.9</span>
-                        </div>
-                        <span class="text-secondary-container font-black" style="font-family:'Inter',sans-serif">250.000đ</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="relative group overflow-hidden rounded-3xl bg-surface-container-low">
-                <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                     src="https://images.unsplash.com/photo-1540918795756-25a03e4e0c3b?w=600&q=80" alt="Nha Trang"/>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div class="absolute bottom-0 left-0 p-6 w-full">
-                    <p class="text-white/70 text-xs font-medium mb-1">Sài Gòn → Nha Trang</p>
-                    <h3 class="text-white text-xl font-black editorial-heading mb-4">Vịnh Biển Thiên Đường</h3>
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-1 text-on-tertiary-container">
-                            <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">star</span>
-                            <span class="text-white font-bold">4.6</span>
-                        </div>
-                        <span class="text-secondary-container font-black" style="font-family:'Inter',sans-serif">420.000đ</span>
-                    </div>
-                </div>
-            </div>
+            </a>
         </div>
     </section>
 </main>
 
 <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 <th:block th:replace="~{fragments/mobile-nav :: mobile-nav(activeTab='search')}"></th:block>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('homepage-date');
+        if (dateInput) {
+            dateInput.setAttribute('min', new Date().toISOString().split('T')[0]);
+        }
+
+        function initCombobox(searchId, hiddenId, dropdownId, arrowId, otherHiddenId) {
+            const searchInput = document.getElementById(searchId);
+            const hiddenInput = document.getElementById(hiddenId);
+            const dropdown = document.getElementById(dropdownId);
+            const arrow = document.getElementById(arrowId);
+            const allOptions = Array.from(dropdown.querySelectorAll('.combobox-option'));
+
+            if (hiddenInput.value) {
+                searchInput.value = hiddenInput.value;
+            }
+
+            function filterAndShow() {
+                const query = searchInput.value.toLowerCase();
+                const otherVal = document.getElementById(otherHiddenId).value;
+                let hasVisible = false;
+                allOptions.forEach(opt => {
+                    const val = opt.getAttribute('data-value');
+                    const matchSearch = val.toLowerCase().includes(query);
+                    const notDuplicate = val !== otherVal;
+                    if (matchSearch && notDuplicate) {
+                        opt.style.display = '';
+                        hasVisible = true;
+                    } else {
+                        opt.style.display = 'none';
+                    }
+                });
+                dropdown.classList.toggle('hidden', !hasVisible);
+                arrow.style.transform = hasVisible ? 'translateY(-50%) rotate(180deg)' : '';
+            }
+
+            searchInput.addEventListener('focus', filterAndShow);
+            searchInput.addEventListener('input', function() {
+                hiddenInput.value = '';
+                filterAndShow();
+            });
+
+            arrow.addEventListener('click', function() {
+                if (dropdown.classList.contains('hidden')) {
+                    searchInput.focus();
+                    filterAndShow();
+                } else {
+                    dropdown.classList.add('hidden');
+                    arrow.style.transform = '';
+                }
+            });
+
+            allOptions.forEach(opt => {
+                opt.addEventListener('click', function() {
+                    const val = this.getAttribute('data-value');
+                    searchInput.value = val;
+                    hiddenInput.value = val;
+                    dropdown.classList.add('hidden');
+                    arrow.style.transform = '';
+                });
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !dropdown.contains(e.target) && !arrow.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                    arrow.style.transform = '';
+                }
+            });
+        }
+
+        initCombobox('fromSearch', 'fromValue', 'fromDropdown', 'fromArrow', 'toValue');
+        initCombobox('toSearch', 'toValue', 'toDropdown', 'toArrow', 'fromValue');
+
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            const from = document.getElementById('fromValue').value;
+            const to = document.getElementById('toValue').value;
+            if (!from || !to) {
+                e.preventDefault();
+                alert('Vui lòng chọn cả điểm đi và điểm đến.');
+            }
+        });
+    });
+</script>
 
 </body>
 </html>
