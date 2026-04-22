@@ -50,24 +50,20 @@ public class BookingServiceImpl implements BookingService {
     private final LocationRepository locationRepository;
     private final TripService tripService;
     private final PasswordEncoder passwordEncoder;
-    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     private static final int CLEANUP_MINUTES = 7;
-
-    public String toJson(Object obj) {
-        try {
-            return objectMapper.writeValueAsString(obj);
-        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            log.error("Error converting object to JSON", e);
-            return "[]";
-        }
-    }
 
     @Override
     @Transactional
     public UUID createBooking(UUID tripId, BookingFormDTO form, Account currentAccount) {
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+
+        // Chặn đặt vé nếu gần đến thời gian khởi hành dưới 1 tiếng
+        if (trip.getDepartureTime().minusHours(1).isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.INVALID_INPUT, 
+                "Chuyến xe sắp khởi hành trong dưới 1 tiếng, không thể đặt vé trực tuyến. Vui lòng liên đặt vé tại quầy.");
+        }
 
         // Kiểm tra trùng ghế (Concurrency Check)
         List<String> selectedSeatNumbers = form.getPassengers().stream()
@@ -120,6 +116,7 @@ public class BookingServiceImpl implements BookingService {
                 .dropoffLocation(dropoffLocation)
                 .totalAmount(totalAmount)
                 .status(BookingStatusEnum.PENDING)
+                .bookingCode("PTA-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
                 .build();
         booking = bookingRepository.save(booking);
 
@@ -158,6 +155,12 @@ public class BookingServiceImpl implements BookingService {
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
 
+        // Nhân viên vẫn có thể đặt vé cho đến sát giờ khởi hành 15 phút
+        if (trip.getDepartureTime().minusMinutes(15).isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.INVALID_INPUT, 
+                "Đã hết thời gian đặt vé cho chuyến xe này (15 phút nữa sẽ đến giờ khởi hành).");
+        }
+
         // 1. Xử lý Account (Ưu tiên tìm Account thật theo SĐT, nếu không có mới dùng GUEST)
         Account userAccount = accountRepository.findByPhone(form.getCustomerPhone())
                 .orElseGet(() -> accountRepository.findByEmail("guest@busticket.com")
@@ -191,6 +194,7 @@ public class BookingServiceImpl implements BookingService {
                 .dropoffLocation(dropoffLocation)
                 .totalAmount(totalAmount)
                 .status(BookingStatusEnum.CONFIRMED)
+                .bookingCode("OFFLINE-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
                 .build();
         booking = bookingRepository.save(booking);
 
@@ -250,8 +254,13 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public PaymentResponseDTO getPaymentInfo(UUID bookingId) {
+    public PaymentResponseDTO getPaymentInfo(UUID bookingId, UUID accountId) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
+
+        if (!booking.getUser().getId().equals(accountId)) {
+            throw new AppException(ErrorCode.FORBIDDEN, "Bạn không có quyền xem thông tin thanh toán này.");
+        }
+
         Trip trip = booking.getTrip();
         LocalDateTime expiryAt = booking.getCreatedAt().plusMinutes(CLEANUP_MINUTES);
         Locale localeVN = new Locale("vi", "VN");
@@ -297,9 +306,13 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public void processPayment(UUID bookingId, String paymentMethod) {
+    public void processPayment(UUID bookingId, String paymentMethod, UUID accountId) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
-        
+
+        if (!booking.getUser().getId().equals(accountId)) {
+            throw new AppException(ErrorCode.FORBIDDEN, "Bạn không có quyền thanh toán cho đơn hàng này.");
+        }
+
         // Kiểm tra nếu booking đã bị hủy (ví dụ: quá hạn 7 phút)
         if (booking.getStatus() == BookingStatusEnum.CANCELLED) {
             throw new AppException(ErrorCode.INVALID_INPUT, 
@@ -325,8 +338,13 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public TicketConfirmationDTO getBookingSuccessInfo(UUID bookingId) {
+    public TicketConfirmationDTO getBookingSuccessInfo(UUID bookingId, UUID accountId) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
+
+        if (!booking.getUser().getId().equals(accountId)) {
+            throw new AppException(ErrorCode.FORBIDDEN, "Bạn không có quyền xem thông tin vé này.");
+        }
+        
         List<Ticket> tickets = ticketRepository.findAll().stream()
                 .filter(t -> t.getBooking().getId().equals(bookingId))
                 .collect(Collectors.toList());
@@ -436,9 +454,7 @@ public class BookingServiceImpl implements BookingService {
 
                     return MyTripResponseDTO.builder()
                             .id(b.getId())
-                            .bookingCode(ticketRepository.findAll().stream()
-                                    .filter(t -> t.getBooking().getId().equals(b.getId()))
-                                    .findFirst().map(Ticket::getTicketCode).orElse("N/A"))
+                            .bookingCode(b.getBookingCode())
                             .status(status)
                             .busTypeLabel(trip.getCoach().getCoachType())
                             .daysUntilDeparture(java.time.Duration.between(now, trip.getDepartureTime()).toDays())
@@ -521,9 +537,13 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingFormDTO getBookingFormFromBooking(UUID bookingId) {
+    public BookingFormDTO getBookingFormFromBooking(UUID bookingId, UUID accountId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+        if (!booking.getUser().getId().equals(accountId)) {
+            throw new AppException(ErrorCode.FORBIDDEN, "Bạn không có quyền xem thông tin booking này.");
+        }
 
         List<Ticket> tickets = ticketRepository.findByBooking_Trip_Id(booking.getTrip().getId())
                 .stream()
@@ -545,6 +565,49 @@ public class BookingServiceImpl implements BookingService {
                 .passengers(passengers)
                 .pickupLocationId(booking.getPickupLocation() != null ? booking.getPickupLocation().getId() : null)
                 .dropoffLocationId(booking.getDropoffLocation() != null ? booking.getDropoffLocation().getId() : null)
+                .build();
+    }
+
+    @Override
+    public sp26.group.busticket.modules.dto.booking.response.TicketDetailResponseDTO getTicketDetailByBookingCode(String bookingCode, UUID accountId) {
+        Booking booking = bookingRepository.findByBookingCode(bookingCode)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+        if (!booking.getUser().getId().equals(accountId)) {
+            throw new AppException(ErrorCode.FORBIDDEN, "Bạn không có quyền xem vé này.");
+        }
+
+        List<Ticket> tickets = ticketRepository.findByBooking_Trip_Id(booking.getTrip().getId())
+                .stream()
+                .filter(t -> t.getBooking().getId().equals(booking.getId()))
+                .toList();
+
+        if (tickets.isEmpty()) {
+            throw new AppException(ErrorCode.UNEXPECTED_ERROR, "Không tìm thấy thông tin vé!");
+        }
+
+        Ticket firstTicket = tickets.get(0);
+        Trip trip = booking.getTrip();
+        
+        return sp26.group.busticket.modules.dto.booking.response.TicketDetailResponseDTO.builder()
+                .bookingCode(booking.getBookingCode())
+                .status(booking.getStatus())
+                .bookingTime(booking.getCreatedAt())
+                .passengerName(firstTicket.getPassengerName())
+                .passengerPhone(firstTicket.getPassengerPhone())
+                .passengerEmail(firstTicket.getPassengerEmail())
+                .seatNumbers(tickets.stream().map(t -> t.getSeat().getSeatNumber()).toList())
+                .routeName(trip.getRoute().getDepartureLocation().getName() + " -> " + trip.getRoute().getArrivalLocation().getName())
+                .pickupPointName(booking.getPickupLocation() != null ? booking.getPickupLocation().getName() : "Tại văn phòng")
+                .pickupTime(trip.getDepartureTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")))
+                .dropoffPointName(booking.getDropoffLocation() != null ? booking.getDropoffLocation().getName() : "Tại văn phòng")
+                .dropoffTime(trip.getArrivalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")))
+                .coachPlate(trip.getCoach().getPlateNumber())
+                .coachType(trip.getCoach().getCoachType())
+                .basePrice(trip.getPriceBase().doubleValue())
+                .seatCount(tickets.size())
+                .totalAmount(booking.getTotalAmount().doubleValue())
+                .totalAmountFormatted(String.format("%,.0fđ", booking.getTotalAmount()))
                 .build();
     }
 

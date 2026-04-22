@@ -36,6 +36,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/booking")
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class BookingController {
 
     private final TripRepository tripRepository;
@@ -44,6 +45,7 @@ public class BookingController {
     private final BookingService bookingService;
     private final AccountRepository accountRepository;
     private final TripService tripService;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     @GetMapping("/{tripId}")
     public String showChooseSeat(@PathVariable UUID tripId, Model model) {
@@ -59,6 +61,7 @@ public class BookingController {
         tripDTO.setDepartureDateTimeLabel(trip.getDepartureTime().format(dateTimeFormatter));
         tripDTO.setArrivalDateTimeLabel(trip.getArrivalTime().format(dateTimeFormatter));
         tripDTO.setStopEtas(tripService.getTripStopEtas(tripId));
+        tripDTO.setExpired(trip.getDepartureTime().minusHours(1).isBefore(java.time.LocalDateTime.now()));
         
         model.addAttribute("trip", tripDTO);
         model.addAttribute("unitPrice", trip.getPriceBase());
@@ -99,6 +102,7 @@ public class BookingController {
             tripDTO.setDepartureDateTimeLabel(trip.getDepartureTime().format(dateTimeFormatter));
             tripDTO.setArrivalDateTimeLabel(trip.getArrivalTime().format(dateTimeFormatter));
             tripDTO.setStopEtas(tripService.getTripStopEtas(tripId));
+            tripDTO.setExpired(trip.getDepartureTime().minusHours(1).isBefore(java.time.LocalDateTime.now()));
 
             model.addAttribute("trip", tripDTO);
             model.addAttribute("unitPrice", trip.getPriceBase());
@@ -112,7 +116,8 @@ public class BookingController {
 
     @GetMapping("/payment")
     public String showPayment(@RequestParam UUID bookingId, Model model) {
-        model.addAttribute("payment", bookingService.getPaymentInfo(bookingId));
+        Account currentAccount = getCurrentAccount();
+        model.addAttribute("payment", bookingService.getPaymentInfo(bookingId, currentAccount.getId()));
         return "Passenger/basic/payment";
     }
 
@@ -121,7 +126,8 @@ public class BookingController {
                                 @RequestParam String paymentMethod, 
                                 RedirectAttributes redirectAttributes) {
         try {
-            bookingService.processPayment(bookingId, paymentMethod);
+            Account currentAccount = getCurrentAccount();
+            bookingService.processPayment(bookingId, paymentMethod, currentAccount.getId());
             return "redirect:/booking/success?bookingId=" + bookingId;
         } catch (AppException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -131,7 +137,8 @@ public class BookingController {
 
     @GetMapping("/success")
     public String showSuccess(@RequestParam UUID bookingId, Model model) {
-        model.addAttribute("ticket", bookingService.getBookingSuccessInfo(bookingId));
+        Account currentAccount = getCurrentAccount();
+        model.addAttribute("ticket", bookingService.getBookingSuccessInfo(bookingId, currentAccount.getId()));
         return "Passenger/basic/comfirm_payment";
     }
 
@@ -161,20 +168,40 @@ public class BookingController {
             Account currentAccount = getCurrentAccount();
             
             if (isPaymentPage) {
-                // Lấy thông tin form trước khi hủy để người dùng có thể chỉnh sửa lại
-                BookingFormDTO prefilledForm = bookingService.getBookingFormFromBooking(bookingId);
-                UUID tripId = bookingService.cancelBooking(bookingId, currentAccount.getId());
-                
-                redirectAttributes.addFlashAttribute("bookingForm", prefilledForm);
-                redirectAttributes.addFlashAttribute("successMessage", "Đã hủy giao dịch thanh toán. Bạn có thể chọn lại ghế hoặc chỉnh sửa thông tin.");
-                return "redirect:/booking/" + tripId;
-            } else {
+                 // Lấy thông tin form trước khi hủy để người dùng có thể chỉnh sửa lại
+                 BookingFormDTO prefilledForm = bookingService.getBookingFormFromBooking(bookingId, currentAccount.getId());
+                 UUID tripId = bookingService.cancelBooking(bookingId, currentAccount.getId());
+                 
+                 // Chuyển đổi sang JSON ngay tại đây để View sử dụng trực tiếp
+                 try {
+                     String passengersJson = objectMapper.writeValueAsString(prefilledForm.getPassengers());
+                     redirectAttributes.addFlashAttribute("prefilledPassengersJson", passengersJson);
+                 } catch (Exception e) {
+                     log.error("Error converting passengers to JSON", e);
+                 }
+
+                 redirectAttributes.addFlashAttribute("bookingForm", prefilledForm);
+                 redirectAttributes.addFlashAttribute("successMessage", "Đã hủy giao dịch thanh toán. Bạn có thể chọn lại ghế hoặc chỉnh sửa thông tin.");
+                 return "redirect:/booking/" + tripId;
+             } else {
                 bookingService.cancelBooking(bookingId, currentAccount.getId());
                 redirectAttributes.addFlashAttribute("successMessage", "Hủy đặt vé thành công!");
                 return "redirect:/booking/my-trips";
             }
         } catch (AppException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/booking/my-trips";
+        }
+    }
+
+    @GetMapping("/ticket/{bookingCode}")
+    public String viewTicket(@PathVariable String bookingCode, Model model) {
+        try {
+            Account currentAccount = getCurrentAccount();
+            var ticketDetail = bookingService.getTicketDetailByBookingCode(bookingCode, currentAccount.getId());
+            model.addAttribute("ticket", ticketDetail);
+            return "Passenger/basic/view_ticket";
+        } catch (AppException e) {
             return "redirect:/booking/my-trips";
         }
     }

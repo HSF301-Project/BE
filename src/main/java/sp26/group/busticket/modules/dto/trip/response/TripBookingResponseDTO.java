@@ -19,4 +19,5 @@ public class TripBookingResponseDTO {
     private String arrivalStation;
     private String arrivalDateTimeLabel;
     private List<TripStopEtaDTO> stopEtas;
+    private boolean isExpired; // Thêm trường này để check xem chuyến đi đã hết hạn đặt vé chưa
 }
