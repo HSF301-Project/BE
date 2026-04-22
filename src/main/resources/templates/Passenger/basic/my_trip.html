@@ -140,7 +140,7 @@
                                       th:classappend="${trip.status == 'CONFIRMED'} ? 'bg-primary animate-pulse' : (${trip.status == 'COMPLETED'} ? 'bg-secondary' : 'bg-error')"></span>
                                 <span class="text-xs font-bold uppercase tracking-wider"
                                       th:classappend="${trip.status == 'CONFIRMED'} ? 'text-primary' : (${trip.status == 'COMPLETED'} ? 'text-secondary' : 'text-error')"
-                                      th:text="${trip.statusLabel}">Đã xác nhận</span>
+                                      th:text="${trip.status.name() == 'CONFIRMED'} ? 'Đã xác nhận' : (${trip.status.name() == 'COMPLETED'} ? 'Đã hoàn thành' : (${trip.status.name() == 'CANCELLED'} ? 'Đã hủy' : 'Chờ thanh toán'))">Đã xác nhận</span>
                             </div>
                             <span class="text-xs font-bold text-on-surface-variant font-mono"
                                   th:text="${'#' + trip.bookingCode}">#PTA-0001</span>

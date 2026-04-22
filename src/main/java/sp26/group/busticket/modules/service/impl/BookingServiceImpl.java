@@ -14,23 +14,30 @@ import sp26.group.busticket.modules.dto.account.response.UserProfileDTO;
 import sp26.group.busticket.modules.dto.booking.request.BookingFormDTO;
 import sp26.group.busticket.modules.dto.booking.request.PassengerInfoDTO;
 import sp26.group.busticket.modules.dto.booking.request.StaffBookingRequestDTO;
+import sp26.group.busticket.modules.dto.route.response.PopularRouteDTO;
 import sp26.group.busticket.modules.entity.*;
 import sp26.group.busticket.modules.enumType.BookingStatusEnum;
 import sp26.group.busticket.modules.enumType.PaymentStatusEnum;
 import sp26.group.busticket.modules.enumType.StatusEnum;
 import sp26.group.busticket.modules.repository.*;
 import sp26.group.busticket.modules.service.BookingService;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +53,7 @@ public class BookingServiceImpl implements BookingService {
     private final AccountRepository accountRepository;
     private final LocationRepository locationRepository;
     private final TripService tripService;
+    private final ResourceLoader resourceLoader;
     private final PasswordEncoder passwordEncoder;
 
     private static final int CLEANUP_MINUTES = 7;
@@ -113,7 +121,7 @@ public class BookingServiceImpl implements BookingService {
                 .dropoffLocation(dropoffLocation)
                 .totalAmount(totalAmount)
                 .status(BookingStatusEnum.PENDING)
-                .bookingCode("PTA-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                .bookingCode("PTB-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
                 .build();
         booking = bookingRepository.save(booking);
 
@@ -138,7 +146,7 @@ public class BookingServiceImpl implements BookingService {
                     .passengerName(p.getFullName())
                     .passengerPhone(p.getPhoneNumber())
                     .passengerEmail(p.getEmail())
-                    .ticketCode("PTA-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                    .ticketCode("PTT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
                     .build();
             ticketRepository.save(ticket);
         }
@@ -191,7 +199,7 @@ public class BookingServiceImpl implements BookingService {
                 .dropoffLocation(dropoffLocation)
                 .totalAmount(totalAmount)
                 .status(BookingStatusEnum.CONFIRMED)
-                .bookingCode("OFFLINE-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                .bookingCode("PTBO-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
                 .build();
         booking = bookingRepository.save(booking);
 
@@ -218,7 +226,7 @@ public class BookingServiceImpl implements BookingService {
                     .passengerName(form.getCustomerName())
                     .passengerPhone(form.getCustomerPhone())
                     .passengerEmail(form.getCustomerEmail())
-                    .ticketCode("OFFLINE-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                    .ticketCode("PTTO-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
                     .build();
             ticketRepository.save(ticket);
         }
@@ -380,6 +388,10 @@ public class BookingServiceImpl implements BookingService {
                 .map(t -> t.getSeat().getSeatNumber())
                 .collect(Collectors.joining(", "));
 
+        List<String> seatTicketLines = tickets.stream()
+                .map(t -> "[" + t.getSeat().getSeatNumber() + " | " + t.getTicketCode() + "]")
+                .toList();
+
         // Lấy thời gian đặt (thanh toán thành công)
         String bookingDate = paymentRepository.findByBooking_Id(bookingId)
                 .map(p -> p.getPaidAt() != null ? p.getPaidAt().format(fullDateTimeFormatter) : booking.getCreatedAt().format(fullDateTimeFormatter))
@@ -405,7 +417,8 @@ public class BookingServiceImpl implements BookingService {
         return TicketConfirmationDTO.builder()
                 .id(firstTicket.getId())
                 .statusLabel("Đã xác nhận")
-                .bookingCode(firstTicket.getTicketCode())
+                .bookingCode(booking.getBookingCode())
+                .ticketCode(firstTicket.getTicketCode())
                 .fromCityShort(trip.getRoute().getDepartureLocation().getCity().toUpperCase())
                 .toCityShort(trip.getRoute().getArrivalLocation().getCity().toUpperCase())
                 .departureStation(trip.getRoute().getDepartureLocation().getName())
@@ -418,6 +431,7 @@ public class BookingServiceImpl implements BookingService {
                 .arrivalTime(trip.getArrivalTime().format(timeFormatter))
                 .departureDateLabel(trip.getDepartureTime().format(dateFormatter))
                 .seatLabel(allSeats)
+                .seatTicketLines(seatTicketLines)
                 .licensePlate(trip.getCoach().getPlateNumber())
                 .serviceType(trip.getCoach().getCoachType())
                 .passengerName(firstTicket.getPassengerName())
@@ -437,7 +451,7 @@ public class BookingServiceImpl implements BookingService {
                 .map(b -> {
                     Trip trip = b.getTrip();
                     BookingStatusEnum status = b.getStatus();
-                    
+
                     // Nếu đã thanh toán nhưng chuyến đi đã kết thúc thì coi là COMPLETED
                     if (status == BookingStatusEnum.CONFIRMED && trip.getArrivalTime().isBefore(now)) {
                         status = BookingStatusEnum.COMPLETED;
@@ -489,7 +503,7 @@ public class BookingServiceImpl implements BookingService {
                 .filter(dto -> {
                     if (tab == null || tab.equalsIgnoreCase("all")) return true;
                     if (tab.equalsIgnoreCase("upcoming")) {
-                        return dto.getStatus() == BookingStatusEnum.CONFIRMED || 
+                        return dto.getStatus() == BookingStatusEnum.CONFIRMED ||
                                dto.getStatus() == BookingStatusEnum.PENDING;
                     }
                     return dto.getStatus().name().equalsIgnoreCase(tab);
@@ -610,7 +624,7 @@ public class BookingServiceImpl implements BookingService {
                 .passengerName(firstTicket.getPassengerName())
                 .passengerPhone(firstTicket.getPassengerPhone())
                 .passengerEmail(firstTicket.getPassengerEmail())
-                .seatNumbers(tickets.stream().map(t -> t.getSeat().getSeatNumber()).toList())
+                .seatNumbers(tickets.stream().map(t -> "[" + t.getSeat().getSeatNumber() + " | " + t.getTicketCode() + "]").toList())
                 .routeName(trip.getRoute().getDepartureLocation().getName() + " -> " + trip.getRoute().getArrivalLocation().getName())
                 .pickupPointName(booking.getPickupLocation() != null ? booking.getPickupLocation().getName() : "Tại văn phòng")
                 .pickupTime(trip.getDepartureTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")))
@@ -623,6 +637,101 @@ public class BookingServiceImpl implements BookingService {
                 .totalAmount(booking.getTotalAmount().doubleValue())
                 .totalAmountFormatted(String.format("%,.0fđ", booking.getTotalAmount()))
                 .build();
+    }
+
+    @Override
+    public List<PopularRouteDTO> getTopPopularRoutesAllTime(int limit) {
+        List<Trip> allTrips = tripRepository.findAll();
+
+        Map<UUID, PopularRouteDTO> bestTripPerRoute = allTrips.stream()
+                .collect(Collectors.toMap(
+                        trip -> trip.getRoute().getId(),
+                        trip -> {
+                            long count = bookingRepository.countByTrip_IdAndStatus(trip.getId(), BookingStatusEnum.CONFIRMED);
+                            String fromCity = trip.getRoute().getDepartureLocation().getCity();
+                            String toCity = trip.getRoute().getArrivalLocation().getCity();
+
+                            return PopularRouteDTO.builder()
+                                    .tripId(trip.getId())
+                                    .fromCity(fromCity)
+                                    .toCity(toCity)
+                                    .price(trip.getPriceBase().longValue())
+                                    .bookingsCount(count)
+                                    .imageUrl(resolvePopularRouteImageUrl(fromCity, toCity))
+                                    .priceDisplay(formatPriceVN(trip.getPriceBase().longValue()))
+                                    .fromLocationName(trip.getRoute().getDepartureLocation().getName())
+                                    .toLocationName(trip.getRoute().getArrivalLocation().getName())
+                                    .build();
+                        },
+                        (left, right) -> left.getBookingsCount() >= right.getBookingsCount() ? left : right
+                ));
+
+        return bestTripPerRoute.values().stream()
+                .filter(dto -> dto.getBookingsCount() > 0)
+                .sorted(Comparator.comparing(PopularRouteDTO::getBookingsCount).reversed())
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    private String toSlug(String input) {
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+        String nfdNormalizedString = Normalizer.normalize(input, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        String result = pattern.matcher(nfdNormalizedString).replaceAll("");
+        result = result.replace('đ', 'd').replace('Đ', 'D');
+        return result.toLowerCase()
+                .replaceAll("[^a-z0-9\\s]", "")
+                .trim()
+                .replaceAll("\\s+", "");
+    }
+
+    private String resolvePopularRouteImageUrl(String fromCity, String toCity) {
+        List<String> keys = new ArrayList<>();
+        keys.add(normalizeImageKey(toCity));
+        keys.add(normalizeImageKey(fromCity));
+
+        for (String key : keys) {
+            if (key == null || key.isEmpty()) {
+                continue;
+            }
+            if (imageExists(key + ".jpg")) {
+                return "/images/" + key + ".jpg";
+            }
+            if (imageExists(key + ".png")) {
+                return "/images/" + key + ".png";
+            }
+        }
+
+        return "/images/default-admin.png";
+    }
+
+    private String normalizeImageKey(String city) {
+        String key = toSlug(city);
+        if ("tphochiminh".equals(key) || "hochiminh".equals(key)) {
+            return "saigon";
+        }
+        if ("lamdong".equals(key)) {
+            return "dalat";
+        }
+        if ("khanhhoa".equals(key)) {
+            return "nhatrang";
+        }
+        if ("binhthuan".equals(key)) {
+            return "phanthiet";
+        }
+        return key;
+    }
+
+    private boolean imageExists(String fileName) {
+        Resource resource = resourceLoader.getResource("classpath:/static/images/" + fileName);
+        return resource.exists();
+    }
+
+    private String formatPriceVN(long price) {
+        NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
+        return formatter.format(price) + "đ";
     }
 
     @Scheduled(fixedRate = 60000) // Chạy mỗi phút

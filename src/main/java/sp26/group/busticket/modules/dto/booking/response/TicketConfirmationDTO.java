@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -15,6 +16,7 @@ public class TicketConfirmationDTO {
     private UUID id;
     private String statusLabel;
     private String bookingCode;
+    private String ticketCode;
     private String fromCityShort;
     private String toCityShort;
     private String departureStation;
@@ -27,6 +29,7 @@ public class TicketConfirmationDTO {
     private String arrivalTime;
     private String departureDateLabel;
     private String seatLabel;
+    private List<String> seatTicketLines;
     private String licensePlate;
     private String serviceType;
     private String passengerName;

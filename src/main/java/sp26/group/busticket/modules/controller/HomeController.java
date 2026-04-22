@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import sp26.group.busticket.modules.dto.trip.request.TripSearchRequestDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripSearchResultDTO;
+import sp26.group.busticket.modules.service.BookingService;
 import sp26.group.busticket.modules.service.LocationService;
 import sp26.group.busticket.modules.service.TripService;
 
@@ -18,6 +19,7 @@ public class HomeController {
 
     private final TripService tripService;
     private final LocationService locationService;
+    private final BookingService bookingService;
 
     @GetMapping({"/", "/home"})
     public String homepage(Model model) {
@@ -26,19 +28,17 @@ public class HomeController {
                 .build();
         model.addAttribute("searchForm", searchForm);
         model.addAttribute("locations", locationService.getLocationsByType("TERMINAL"));
-        // Featured routes can be added here
+        model.addAttribute("popularRoutes", bookingService.getTopPopularRoutesAllTime(5));
         return "Passenger/basic/homepage";
     }
 
     @GetMapping("/search")
     public String searchTrips(@ModelAttribute("searchForm") TripSearchRequestDTO searchForm, Model model) {
-        if (searchForm.getDate() == null || searchForm.getDate().isEmpty()) {
-            searchForm.setDate(LocalDate.now().toString());
-        }
+        model.addAttribute("locations", locationService.getLocationsByType("TERMINAL"));
         
         TripSearchResultDTO searchResult = tripService.searchTrips(searchForm);
         model.addAttribute("searchResult", searchResult);
-        model.addAttribute("filterForm", searchForm); // Using same DTO for filters
+        model.addAttribute("filterForm", searchForm);
         return "Passenger/basic/search&result_page";
     }
 }

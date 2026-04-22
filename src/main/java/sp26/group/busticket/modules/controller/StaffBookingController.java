@@ -54,12 +54,7 @@ public class StaffBookingController {
     // 1. Xem danh sách chuyến đi (Staff Dashboard)
     @GetMapping("/trips")
     public String listTrips(@ModelAttribute TripSearchRequestDTO searchDTO, Model model) {
-        if (searchDTO.getDate() == null || searchDTO.getDate().isBlank()) {
-            searchDTO.setDate(LocalDate.now().toString());
-        }
-        
         model.addAttribute("locations", locationService.getLocationsByType("TERMINAL"));
-        // model.addAttribute("locations", locationService.getAllLocations());
         
         if (searchDTO.getFrom() == null || searchDTO.getTo() == null || searchDTO.getFrom().isBlank() || searchDTO.getTo().isBlank()) {
             model.addAttribute("trips", Collections.emptyList());

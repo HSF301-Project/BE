@@ -79,7 +79,12 @@
                         </div>
                         <div>
                             <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Số ghế</span>
-                            <p class="font-bold text-secondary text-lg" th:text="${ticket.seatLabel}">A1</p>
+                            <div th:if="${ticket.seatTicketLines != null and !ticket.seatTicketLines.isEmpty()}" class="space-y-1">
+                                <p class="font-bold text-secondary text-sm md:text-base whitespace-nowrap"
+                                   th:each="line : ${ticket.seatTicketLines}"
+                                   th:text="${#strings.trim(#strings.replace(#strings.substringBefore(line, '|'), '[', ''))}">A1</p>
+                            </div>
+                            <p th:if="${ticket.seatTicketLines == null or ticket.seatTicketLines.isEmpty()}" class="font-bold text-secondary text-lg" th:text="${ticket.seatLabel}">A1</p>
                         </div>
                         <div>
                             <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Biển số xe</span>
@@ -132,12 +137,15 @@
 
         <div class="lg:col-span-4 flex flex-col gap-6">
             <div class="bg-surface-container-lowest p-8 rounded-3xl shadow-[0_12px_32px_rgba(26,27,33,0.06)] border border-outline-variant/15 text-center">
-                <h3 class="font-bold text-primary mb-6" style="font-family:'Plus Jakarta Sans',sans-serif">Mã vé QR</h3>
-                <div class="w-48 h-48 mx-auto bg-slate-100 rounded-2xl flex items-center justify-center border-2 border-surface-container-high mb-4">
-                    <span class="material-symbols-outlined text-6xl text-primary/40">qr_code_2</span>
+                <h3 class="font-bold text-primary mb-6" style="font-family:'Plus Jakarta Sans',sans-serif">Mã vé của bạn</h3>
+                <div th:if="${ticket.seatTicketLines != null and !ticket.seatTicketLines.isEmpty()}" class="space-y-2">
+                    <p class="font-mono text-xs md:text-sm tracking-wide font-bold text-on-surface-variant whitespace-nowrap"
+                       th:each="line : ${ticket.seatTicketLines}"
+                       th:text="${line}">[A1 | PTT-0001]</p>
                 </div>
-                <p class="font-mono text-sm tracking-widest font-bold text-on-surface-variant"
-                   th:text="${ticket.bookingCode}">PTA-0001</p>
+                <p th:if="${ticket.seatTicketLines == null or ticket.seatTicketLines.isEmpty()}"
+                   class="font-mono text-sm tracking-widest font-bold text-on-surface-variant"
+                   th:text="${ticket.ticketCode}">PTT-0001</p>
                 <p class="mt-4 text-xs text-on-surface-variant leading-relaxed">
                     Xuất trình mã này cho nhân viên soát vé tại bến để lên xe.
                 </p>
