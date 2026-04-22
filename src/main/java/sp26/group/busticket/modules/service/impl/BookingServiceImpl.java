@@ -99,6 +99,8 @@ public class BookingServiceImpl implements BookingService {
                     .booking(booking)
                     .seat(seat)
                     .passengerName(p.getFullName())
+                    .passengerPhone(p.getPhoneNumber())
+                    .passengerEmail(p.getEmail())
                     .ticketCode("PTA-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
                     .build();
             ticketRepository.save(ticket);
@@ -163,6 +165,7 @@ public class BookingServiceImpl implements BookingService {
                     .seat(seat)
                     .passengerName(form.getCustomerName())
                     .passengerPhone(form.getCustomerPhone())
+                    .passengerEmail(form.getCustomerEmail())
                     .ticketCode("OFFLINE-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
                     .build();
             ticketRepository.save(ticket);
