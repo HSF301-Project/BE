@@ -51,7 +51,8 @@ public class StaffBookingController {
             searchDTO.setDate(LocalDate.now().toString());
         }
         
-        model.addAttribute("locations", locationService.getAllLocations());
+        model.addAttribute("locations", locationService.getLocationsByType("TERMINAL"));
+        // model.addAttribute("locations", locationService.getAllLocations());
         
         if (searchDTO.getFrom() == null || searchDTO.getTo() == null || searchDTO.getFrom().isBlank() || searchDTO.getTo().isBlank()) {
             model.addAttribute("trips", Collections.emptyList());

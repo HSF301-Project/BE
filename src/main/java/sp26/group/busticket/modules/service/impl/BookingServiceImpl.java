@@ -1,5 +1,6 @@
 package sp26.group.busticket.modules.service.impl;
 
+import sp26.group.busticket.modules.dto.booking.response.*;
 import sp26.group.busticket.modules.dto.trip.response.TripStopEtaDTO;
 import sp26.group.busticket.modules.service.TripService;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +14,6 @@ import sp26.group.busticket.modules.dto.account.response.UserProfileDTO;
 import sp26.group.busticket.modules.dto.booking.request.BookingFormDTO;
 import sp26.group.busticket.modules.dto.booking.request.PassengerInfoDTO;
 import sp26.group.busticket.modules.dto.booking.request.StaffBookingRequestDTO;
-import sp26.group.busticket.modules.dto.booking.response.MyTripResponseDTO;
-import sp26.group.busticket.modules.dto.booking.response.PaymentResponseDTO;
-import sp26.group.busticket.modules.dto.booking.response.PriceItemDTO;
-import sp26.group.busticket.modules.dto.booking.response.TicketConfirmationDTO;
 import sp26.group.busticket.modules.entity.*;
 import sp26.group.busticket.modules.enumType.BookingStatusEnum;
 import sp26.group.busticket.modules.enumType.PaymentStatusEnum;
@@ -569,7 +566,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public sp26.group.busticket.modules.dto.booking.response.TicketDetailResponseDTO getTicketDetailByBookingCode(String bookingCode, UUID accountId) {
+    public TicketDetailResponseDTO getTicketDetailByBookingCode(String bookingCode, UUID accountId) {
         Booking booking = bookingRepository.findByBookingCode(bookingCode)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
 
@@ -589,7 +586,7 @@ public class BookingServiceImpl implements BookingService {
         Ticket firstTicket = tickets.get(0);
         Trip trip = booking.getTrip();
         
-        return sp26.group.busticket.modules.dto.booking.response.TicketDetailResponseDTO.builder()
+        return TicketDetailResponseDTO.builder()
                 .bookingCode(booking.getBookingCode())
                 .status(booking.getStatus())
                 .bookingTime(booking.getCreatedAt())
