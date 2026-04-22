@@ -11,7 +11,7 @@
     <title th:text="${title} + ' — Transit Admin'">Transit Admin</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"/>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
     <script>
         tailwind.config = {
@@ -19,11 +19,12 @@
                 extend: {
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace']
+                        headline: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['ui-monospace', 'monospace']
                     },
                     colors: {
                         brand:   { 50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a' },
-                        surface: { DEFAULT:'#f8fafc', card:'#ffffff', border:'#e2e8f0', hover:'#f1f5f9' },
+                        surface: { DEFAULT:'#f8fafc', card:'#ffffff', border:'#e2e8f0', hover:'#f1f5f9', container:'#f1f5f9' },
                         ink:     { DEFAULT:'#0f172a', muted:'#64748b', faint:'#94a3b8' }
                     },
                     boxShadow: { card:'0 1px 3px 0 rgb(0 0 0 / .06), 0 1px 2px -1px rgb(0 0 0 / .04)' }
@@ -33,6 +34,7 @@
     </script>
     <style>
         * { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
         .ms { font-family: 'Material Symbols Rounded'; font-variation-settings: 'FILL' 0,'wght' 450,'GRAD' 0,'opsz' 24; line-height:1; display:inline-block; user-select:none; }
         .ms-fill { font-variation-settings: 'FILL' 1,'wght' 450,'GRAD' 0,'opsz' 24; }
 
@@ -160,18 +162,22 @@
             Cài đặt
         </a>
 
-        <div class="flex items-center gap-2.5 px-3 pt-3 mt-2 border-t border-surface-border">
-            <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-xs flex-shrink-0"
-                 th:text="${adminUser != null and adminUser.fullName != null ? adminUser.fullName.substring(0,2).toUpperCase() : 'AD'}">AD</div>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-ink truncate"
-                   th:text="${adminUser != null ? adminUser.fullName : 'Admin'}">Admin</p>
-                <p class="text-xs text-ink-faint truncate"
-                   th:text="${adminUser != null ? adminUser.role : ''}">ADMIN</p>
+        <div class="flex items-center gap-3 px-3 pt-3 mt-2 border-t border-surface-border">
+            <div class="relative">
+                <img th:src="@{/images/default-admin.png}"
+                     class="w-9 h-9 rounded-xl object-cover border border-surface-border shadow-sm"
+                     th:alt="${adminUser != null ? adminUser.fullName : 'Admin'}"/>
+                <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></div>
             </div>
-            <form th:action="@{/logout}" method="post">
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-ink truncate"
+                   th:text="${adminUser != null ? adminUser.fullName : 'Admin'}">Admin</p>
+                <p class="text-[10px] font-bold text-ink-faint uppercase tracking-tight"
+                   th:text="${adminUser != null ? adminUser.role : 'ADMIN'}">ADMIN</p>
+            </div>
+            <form th:action="@{/logout}" method="post" class="flex-shrink-0">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                <button type="submit" class="btn-icon" title="Đăng xuất">
+                <button type="submit" class="btn-icon hover:text-red-500" title="Đăng xuất">
                     <span class="ms text-[18px]">logout</span>
                 </button>
             </form>

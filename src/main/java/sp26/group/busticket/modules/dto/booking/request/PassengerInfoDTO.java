@@ -14,4 +14,6 @@ public class PassengerInfoDTO {
     private String seatLabel;
     private String deck;
     private String fullName;
+    private String phoneNumber;
+    private String email;
 }
