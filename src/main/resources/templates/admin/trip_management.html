@@ -101,6 +101,7 @@
                             <th class="th">Lộ trình</th>
                             <th class="th">Loại xe</th>
                             <th class="th">Xuất phát</th>
+                            <th class="th">Dự kiến đến</th>
                             <th class="th">Biển số</th>
                             <th class="th">Tài xế / Phụ xe</th>
                             <th class="th">Trạm kế tiếp</th>
@@ -142,12 +143,13 @@
                                     <div class="flex items-start justify-between gap-3">
                                         <div class="min-w-0">
                                             <div class="flex items-center gap-1 font-semibold text-ink">
-                                                <span th:text="${trip.fromStation}">Hồ Chí Minh</span>
+                                                <span th:text="${trip.fromCity}">Hồ Chí Minh</span>
                                                 <span class="ms text-[14px] text-ink-faint">arrow_forward</span>
-                                                <span th:text="${trip.toStation}">Đà Lạt</span>
+                                                <span th:text="${trip.toCity}">Đà Lạt</span>
                                             </div>
                                             <div class="text-[11px] text-ink-muted mt-1">
-                                                <span th:text="${trip.routeTimeline != null ? #lists.size(trip.routeTimeline) : 0}">0</span> điểm • click xem chi tiết
+                                                <span class="font-medium text-ink-faint" th:text="${trip.fromStation}">Bến xe Miền Tây</span> 
+                                                → <span class="font-medium text-ink-faint" th:text="${trip.toStation}">Bến xe Đà Lạt</span>
                                             </div>
                                         </div>
                                         <span class="ms text-ink-faint mt-0.5 group-open:rotate-180 transition-transform">expand_more</span>
@@ -197,6 +199,12 @@
                                th:text="'→ ' + ${trip.formattedDepartureCountdown} + ' nữa'"></p>
                             <p th:if="${trip.status == 'SCHEDULED' and trip.minutesUntilDeparture != null and trip.minutesUntilDeparture <= 0}"
                                class="text-[11px] font-semibold text-red-500 mt-0.5">→ Đến giờ</p>
+                        </td>
+
+                        <!-- Dự kiến đến -->
+                        <td class="td">
+                            <p class="font-semibold text-ink" th:text="${trip.arrivalDateTime}">15:45 20/04</p>
+                            <p class="text-[11px] text-ink-muted mt-0.5" th:text="${trip.arrivalTime}">15:45</p>
                         </td>
 
                         <!-- Biển số -->

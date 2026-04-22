@@ -15,6 +15,8 @@ public class TripResponseDTO {
     private String tripCode;        // Tự sinh hoặc lấy từ ID: "TRP-" + id
     private String fromStation;     // Lấy từ route.getStartLocation()
     private String toStation;       // Lấy từ route.getEndLocation()
+    private String fromCity;        // Tỉnh/Thành phố xuất phát
+    private String toCity;          // Tỉnh/Thành phố đích
 
     // Thông tin xe
     private String busType;         // Lấy từ coach.getType() (ví dụ: LIMOUSINE)
@@ -39,6 +41,8 @@ public class TripResponseDTO {
     private String assistantPhone;
     private String coachPlate;
     private String departureDateTime; // "HH:mm dd/MM/yyyy"
+    private String arrivalDateTime;   // "HH:mm dd/MM/yyyy"
+    private String arrivalTime;       // "HH:mm"
 
     private boolean hasIssue;
     private Integer minutesUntilDeparture;
