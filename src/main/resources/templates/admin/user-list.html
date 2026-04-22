@@ -11,15 +11,15 @@
     <main class="ml-60 pt-14 min-h-screen">
         <div class="px-8 py-7 max-w-screen-2xl mx-auto">
             <div class="mb-12">
-                <h1 class="text-5xl font-black tracking-tight text-blue-900 mb-2 italic">Quản lý Nhân viên</h1>
-                <p class="text-slate-500 font-medium italic">Điều chỉnh quyền hạn và trạng thái của các nhân viên hệ
+                <h1 class="text-2xl font-extrabold text-ink tracking-tight">Quản lý Nhân viên</h1>
+                <p class="text-sm text-ink-muted mt-0.5">Điều chỉnh quyền hạn và trạng thái của các nhân viên hệ
                     thống.
                 </p>
             </div>
 
             <div th:if="${successMessage}"
                 class="mb-8 p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl flex items-center gap-3 font-bold animate-pulse">
-                <span class="material-symbols-outlined">check_circle</span>
+                <span class="ms ms-fill text-[20px]">check_circle</span>
                 <span th:text="${successMessage}"></span>
             </div>
 
@@ -38,7 +38,7 @@
                             kiếm</label>
                         <div class="relative">
                             <span
-                                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                                class="ms absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
                             <input type="text" name="q" th:value="${keyword}"
                                 placeholder="Tìm theo tên, email hoặc SĐT..."
                                 class="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 transition-all font-medium text-sm" />
@@ -90,7 +90,7 @@
                                     <div class="flex items-center gap-4">
                                         <div
                                             class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-all">
-                                            <span class="material-symbols-outlined">person</span>
+                                            <span class="ms text-[20px]">badge</span>
                                         </div>
                                         <div>
                                             <span class="block font-black text-blue-900 text-sm"
@@ -119,27 +119,19 @@
                                     </span>
                                 </td>
                                 <td class="px-8 py-6 text-right" onclick="event.stopPropagation()">
-                                    <div class="inline-flex items-center gap-2 rounded-2xl bg-slate-50 p-1.5 border border-slate-100">
+                                    <div class="inline-flex items-center gap-1.5 rounded-2xl bg-slate-50 p-1 border border-slate-100">
                                         <a th:href="@{/admin/staff/edit/{id}(id=${user.id})}"
                                             class="h-9 w-9 inline-flex items-center justify-center rounded-xl text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 transition-all shadow-sm"
                                             title="Chỉnh sửa">
-                                            <span class="material-symbols-outlined text-[20px]">edit</span>
+                                            <span class="ms text-[20px]">edit_square</span>
                                         </a>
                                         <form th:action="@{/admin/staff/status/{id}(id=${user.id})}" method="post"
                                             class="inline">
                                             <button type="submit"
                                                 th:class="${user.status.name() == 'ACTIVE' ? 'h-9 w-9 inline-flex items-center justify-center rounded-xl text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600 transition-all shadow-sm' : 'h-9 w-9 inline-flex items-center justify-center rounded-xl text-emerald-600 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-700 transition-all shadow-sm'}"
                                                 th:title="${user.status.name() == 'ACTIVE' ? 'Khóa tài khoản' : 'Kích hoạt tài khoản'}">
-                                                <span class="material-symbols-outlined text-[20px]"
-                                                    th:text="${user.status.name() == 'ACTIVE' ? 'lock' : 'lock_open'}">lock</span>
-                                            </button>
-                                        </form>
-                                        <form th:action="@{/admin/staff/delete/{id}(id=${user.id})}" method="post"
-                                            class="inline" onsubmit="return confirm('Bạn chắc chắn muốn xóa staff này?')">
-                                            <button type="submit"
-                                                class="h-9 w-9 inline-flex items-center justify-center rounded-xl text-slate-500 bg-white hover:bg-slate-100 hover:text-slate-700 transition-all border border-slate-200"
-                                                title="Xóa nhân viên">
-                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                                <span class="ms text-[20px]"
+                                                    th:text="${user.status.name() == 'ACTIVE' ? 'lock_person' : 'lock_open_right'}">lock_person</span>
                                             </button>
                                         </form>
                                     </div>
@@ -167,7 +159,7 @@
                         <div class="flex items-center gap-4">
                             <div
                                 class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
-                                <span class="material-symbols-outlined text-4xl font-light">account_circle</span>
+                                <span class="ms text-[42px]">account_circle</span>
                             </div>
                             <div>
                                 <h3 class="text-2xl font-black text-blue-900 leading-tight" id="modalName">Nguyễn Văn
@@ -177,7 +169,7 @@
                             </div>
                         </div>
                         <button onclick="closeModal()" class="p-2 text-slate-300 hover:text-red-400 transition-colors">
-                            <span class="material-symbols-outlined">close</span>
+                            <span class="ms text-[22px]">close</span>
                         </button>
                     </div>
 

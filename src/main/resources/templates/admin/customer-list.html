@@ -11,14 +11,14 @@
     <main class="ml-60 pt-14 min-h-screen">
         <div class="px-8 py-7 max-w-screen-2xl mx-auto">
             <div class="mb-12">
-                <h1 class="text-5xl font-black tracking-tight text-blue-900 mb-2 italic">Quản lý Khách hàng</h1>
-                <p class="text-slate-500 font-medium italic">Theo dõi thông tin và trạng thái hoạt động của khách hàng.
+                <h1 class="text-2xl font-extrabold text-ink tracking-tight">Quản lý Khách hàng</h1>
+                <p class="text-sm text-ink-muted mt-0.5">Theo dõi thông tin và trạng thái hoạt động của khách hàng.
                 </p>
             </div>
 
             <div th:if="${successMessage}"
                 class="mb-8 p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl flex items-center gap-3 font-bold animate-pulse">
-                <span class="material-symbols-outlined">check_circle</span>
+                <span class="ms ms-fill text-[20px]">check_circle</span>
                 <span th:text="${successMessage}"></span>
             </div>
 
@@ -30,7 +30,7 @@
                             kiếm</label>
                         <div class="relative">
                             <span
-                                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                                class="ms absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
                             <input type="text" name="search" th:value="${search}"
                                 placeholder="Tìm khách hàng theo tên, email hoặc SĐT..."
                                 class="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 transition-all font-medium text-sm" />
@@ -71,7 +71,7 @@
                                     <div class="flex items-center gap-4">
                                         <div
                                             class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-all">
-                                            <span class="material-symbols-outlined">person</span>
+                                            <span class="ms text-[20px]">badge</span>
                                         </div>
                                         <div>
                                             <span class="block font-black text-blue-900 text-sm"
@@ -101,8 +101,8 @@
                                         <button type="submit"
                                             th:class="${user.status.name() == 'ACTIVE' ? 'p-2 text-red-400 hover:bg-red-50 rounded-xl transition-all' : 'p-2 text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all'}"
                                             th:title="${user.status.name() == 'ACTIVE' ? 'Khóa khách hàng' : 'Mở khóa khách hàng'}">
-                                            <span class="material-symbols-outlined"
-                                                th:text="${user.status.name() == 'ACTIVE' ? 'person_off' : 'person_check'}">lock</span>
+                                            <span class="ms text-[20px]"
+                                                th:text="${user.status.name() == 'ACTIVE' ? 'lock_person' : 'lock_open_right'}">lock_person</span>
                                         </button>
                                     </form>
                                 </td>
@@ -130,7 +130,7 @@
                     <div class="flex justify-between items-start mb-8">
                         <div class="flex items-center gap-4">
                             <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
-                                <span class="material-symbols-outlined text-4xl font-light">account_circle</span>
+                                <span class="ms text-[42px]">account_circle</span>
                             </div>
                             <div>
                                 <h3 class="text-2xl font-black text-blue-900 leading-tight" id="modalName">Nguyễn Văn Khách</h3>
@@ -138,7 +138,7 @@
                             </div>
                         </div>
                         <button onclick="closeModal()" class="p-2 text-slate-300 hover:text-red-400 transition-colors">
-                            <span class="material-symbols-outlined">close</span>
+                            <span class="ms text-[22px]">close</span>
                         </button>
                     </div>
 
