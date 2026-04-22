@@ -235,6 +235,13 @@ public class TripServiceImpl implements TripService {
 
         trip.setActualDepartureTime(now);
         trip.setTripStatus(TripStatusEnum.DEPARTED);
+        
+        // Cập nhật trạng thái xe sang đang làm việc
+        if (trip.getCoach() != null) {
+            trip.getCoach().setStatus(sp26.group.busticket.modules.enumType.CoachStatusEnum.WORKING);
+            coachRepository.save(trip.getCoach());
+        }
+        
         tripRepository.save(trip);
     }
 
@@ -250,6 +257,13 @@ public class TripServiceImpl implements TripService {
 
         trip.setActualArrivalTime(LocalDateTime.now());
         trip.setTripStatus(TripStatusEnum.COMPLETED);
+        
+        // Giải phóng xe về trạng thái sẵn sàng
+        if (trip.getCoach() != null) {
+            trip.getCoach().setStatus(sp26.group.busticket.modules.enumType.CoachStatusEnum.AVAILABLE);
+            coachRepository.save(trip.getCoach());
+        }
+        
         tripRepository.save(trip);
     }
 
