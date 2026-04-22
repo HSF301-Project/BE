@@ -19,6 +19,10 @@ public class TicketConfirmationDTO {
     private String toCityShort;
     private String departureStation;
     private String arrivalStation;
+    private String pickupLocationName;
+    private String dropoffLocationName;
+    private String pickupTime;
+    private String dropoffTime;
     private String departureTime;
     private String arrivalTime;
     private String departureDateLabel;

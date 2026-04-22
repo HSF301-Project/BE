@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_WHITELIST).permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/staff/operations/**").hasAnyRole("STAFF", "DRIVER", "ASSISTANT")
                         .requestMatchers("/staff/**").hasRole("STAFF")
                         .anyRequest().authenticated()
                 )
@@ -53,6 +54,8 @@ public class SecurityConfig {
                                 response.sendRedirect("/admin/dashboard");
                             } else if (roles.contains("ROLE_STAFF")) {
                                 response.sendRedirect("/staff/booking/trips");
+                            } else if (roles.contains("ROLE_DRIVER") || roles.contains("ROLE_ASSISTANT")) {
+                                response.sendRedirect("/staff/operations/schedule");
                             } else {
                                 response.sendRedirect("/home");
                             }

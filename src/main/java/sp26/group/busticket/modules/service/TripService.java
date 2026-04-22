@@ -7,6 +7,7 @@ import sp26.group.busticket.modules.dto.trip.request.TripRequestDTO;
 import sp26.group.busticket.modules.dto.trip.request.TripSearchRequestDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripDriverOptionDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripSearchResultDTO;
+import sp26.group.busticket.modules.dto.trip.response.TripStopEtaDTO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,6 +18,7 @@ public interface TripService {
     // Client Side
     TripSearchResultDTO searchTrips(TripSearchRequestDTO request);
     BigDecimal getBasePriceByTripId(UUID tripId);
+    List<TripStopEtaDTO> getTripStopEtas(UUID tripId);
 
     // Admin Side
     TripPageResponse getAdminDashboardData(String query, String status, int page, int size);
@@ -31,4 +33,9 @@ public interface TripService {
     Optional<UUID> updateTrip(UUID id, TripRequestDTO request);
 
     void deleteTrip(UUID id);
+
+    // Operation Side
+    void startTrip(UUID tripId);
+
+    void finishTrip(UUID tripId);
 }

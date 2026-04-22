@@ -25,7 +25,7 @@ public class HomeController {
                 .date(LocalDate.now().toString())
                 .build();
         model.addAttribute("searchForm", searchForm);
-        model.addAttribute("locations", locationService.getAllLocations());
+        model.addAttribute("locations", locationService.getLocationsByType("TERMINAL"));
         // Featured routes can be added here
         return "Passenger/basic/homepage";
     }

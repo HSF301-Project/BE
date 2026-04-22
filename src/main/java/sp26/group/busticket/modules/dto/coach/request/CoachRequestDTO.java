@@ -25,4 +25,6 @@ public class CoachRequestDTO {
     @NotNull(message = "Tổng số ghế không được để trống")
     @Positive(message = "Tổng số ghế phải lớn hơn 0")
     Integer totalSeats;
+
+
 }

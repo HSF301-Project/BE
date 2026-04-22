@@ -1,5 +1,6 @@
 package sp26.group.busticket.modules.service.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import sp26.group.busticket.common.exception.AppException;
@@ -41,26 +42,39 @@ public class CoachServiceImpl implements CoachService {
     private final CoachMapper coachMapper;
 
     @Override
+    @Transactional
     public CoachResponseDTO createCoach(CoachRequestDTO request) {
         if (coachRepository.findByPlateNumber(request.getPlateNumber()).isPresent()) {
             throw new AppException(ErrorCode.PLATE_NUMBER_ALREADY_EXISTS);
         }
         Coach coach = coachMapper.toEntity(request);
-        return coachMapper.toResponse(coachRepository.save(coach));
+        coach.setStatus(sp26.group.busticket.modules.enumType.CoachStatusEnum.AVAILABLE);
+        Coach savedCoach = coachRepository.save(coach);
+        
+        generateSeatsForCoach(savedCoach);
+        
+        return enrichCoachResponse(savedCoach);
     }
 
     @Override
     public List<CoachResponseDTO> getAllCoaches() {
         return coachRepository.findAll().stream()
-                .map(coachMapper::toResponse)
+                .map(this::enrichCoachResponse)
                 .collect(Collectors.toList());
+    }
+
+    private CoachResponseDTO enrichCoachResponse(Coach coach) {
+        CoachResponseDTO dto = coachMapper.toResponse(coach);
+        dto.setStatus(coach.getStatus()); 
+        dto.setStatusLabel(translateCoachStatus(coach.getStatus()));
+        return dto;
     }
 
     @Override
     public CoachResponseDTO getCoachById(UUID id) {
         Coach coach = coachRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.COACH_NOT_FOUND));
-        return coachMapper.toResponse(coach);
+        return enrichCoachResponse(coach);
     }
 
     @Override
@@ -86,7 +100,7 @@ public class CoachServiceImpl implements CoachService {
         }
         
         // Kiểm tra xem xe có khách hàng đã đặt vé không
-        if (ticketRepository.existsByCoachIdDirect(id)) {
+        if (ticketRepository.existsBySeat_Coach_Id(id)) {
             throw new AppException(ErrorCode.INVALID_INPUT, 
                 "Không thể xóa xe này vì đã có hành khách đặt vé trên các chỗ ngồi của xe. Vui lòng kiểm tra lại!");
         }
@@ -150,6 +164,10 @@ public class CoachServiceImpl implements CoachService {
 
         Coach coach = trip.getCoach();
         List<Seat> allSeats = seatRepository.findByCoach_IdOrderBySeatNumberAsc(coach.getId());
+        if (allSeats.isEmpty() && coach.getTotalSeats() != null && coach.getTotalSeats() > 0) {
+            generateSeatsForCoach(coach);
+            allSeats = seatRepository.findByCoach_IdOrderBySeatNumberAsc(coach.getId());
+        }
         List<Ticket> tickets = ticketRepository.findByBooking_Trip_Id(tripId);
 
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
@@ -288,5 +306,44 @@ public class CoachServiceImpl implements CoachService {
             this.km = km;
             this.type = type;
         }
+    }
+    private void generateSeatsForCoach(Coach coach) {
+        int total = coach.getTotalSeats();
+        int seatsPerFloor = total;
+        int floors = 1;
+
+        String type = coach.getCoachType().toUpperCase();
+        // Heuristic: Sleeper buses or high seat count (usually 2 floors in VN)
+        if (type.contains("GIƯỜNG") || type.contains("SLEEPER") || type.contains("CABIN") || 
+            (total > 22 && total <= 46 && !type.contains("GHẾ"))) {
+            floors = 2;
+            seatsPerFloor = (int) Math.ceil((double) total / 2);
+        }
+
+        List<Seat> seats = new ArrayList<>();
+        for (int i = 1; i <= total; i++) {
+            int currentFloor = (i <= seatsPerFloor) ? 1 : 2;
+            int numberInFloor = (currentFloor == 1) ? i : i - seatsPerFloor;
+            String prefix = (currentFloor == 1) ? "A" : "B";
+            String seatNumber = prefix + String.format("%02d", numberInFloor);
+
+            seats.add(Seat.builder()
+                    .coach(coach)
+                    .seatNumber(seatNumber)
+                    .floor(currentFloor)
+                    .build());
+        }
+        seatRepository.saveAll(seats);
+    }
+
+    private String translateCoachStatus(sp26.group.busticket.modules.enumType.CoachStatusEnum status) {
+        if (status == null) return "N/A";
+        return switch (status) {
+            case AVAILABLE -> "Sẵn sàng";
+            case MAINTENANCE -> "Bảo trì";
+            case WORKING -> "Đang vận hành";
+            case INACTIVE -> "Ngừng hoạt động";
+            default -> "Không xác định";
+        };
     }
 }

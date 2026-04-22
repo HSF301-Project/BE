@@ -20,19 +20,19 @@
                     <h2 class="text-4xl font-black font-headline tracking-tight" th:text="${finance.todayRevenueFormatted}">$42,890.50</h2>
                     <div th:if="${finance.growthPercent != null}"
                          class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-semibold backdrop-blur-md">
-                        <span class="material-symbols-outlined text-sm">trending_up</span>
+                        <span class="ms text-sm">trending_up</span>
                         <span th:text="'+' + ${finance.growthPercent} + '% so với hôm qua'">+12.5% so với hôm qua</span>
                     </div>
                 </div>
                 <div class="absolute -right-10 -bottom-10 opacity-10 group-hover:scale-110 transition-transform duration-700">
-                    <span class="material-symbols-outlined text-[12rem]">payments</span>
+                    <span class="ms text-[12rem]">payments</span>
                 </div>
             </div>
 
             <!-- Success rate -->
             <div class="p-6 rounded-[2rem] bg-surface-container-lowest shadow-sm flex flex-col justify-between">
                 <div class="w-12 h-12 rounded-2xl bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center">
-                    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">check_circle</span>
+                    <span class="ms" style="font-variation-settings:'FILL' 1;">check_circle</span>
                 </div>
                 <div>
                     <p class="text-on-surface-variant text-sm font-medium mb-1">Tỉ lệ thành công</p>
@@ -44,7 +44,7 @@
             <!-- Failure rate -->
             <div class="p-6 rounded-[2rem] bg-surface-container-lowest shadow-sm flex flex-col justify-between">
                 <div class="w-12 h-12 rounded-2xl bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
-                    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">error</span>
+                    <span class="ms" style="font-variation-settings:'FILL' 1;">error</span>
                 </div>
                 <div>
                     <p class="text-on-surface-variant text-sm font-medium mb-1">Thanh toán thất bại</p>
@@ -64,11 +64,11 @@
                 </div>
                 <div class="flex gap-2">
                     <button class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface font-semibold text-sm hover:bg-surface-container-highest transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-lg">filter_list</span> Bộ lọc
+                        <span class="ms text-lg">filter_list</span> Bộ lọc
                     </button>
                     <a th:href="@{/admin/payments/export}"
                        class="px-4 py-2 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-container transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-lg">download</span> Xuất dữ liệu
+                        <span class="ms text-lg">download</span> Xuất dữ liệu
                     </a>
                 </div>
             </div>
@@ -149,7 +149,7 @@
                     <a th:href="@{/admin/payments(page=${pagination.currentPage - 1})}"
                        th:classappend="${pagination.currentPage <= 1} ? 'opacity-40 pointer-events-none' : ''"
                        class="w-9 h-9 flex items-center justify-center rounded-lg border border-surface-container-highest hover:bg-surface-container-low transition-colors">
-                        <span class="material-symbols-outlined text-sm">chevron_left</span>
+                        <span class="ms text-sm">chevron_left</span>
                     </a>
                     <!-- Page numbers -->
                     <th:block th:each="pageNum : ${pagination.pageNumbers}">
@@ -161,7 +161,7 @@
                     <a th:href="@{/admin/payments(page=${pagination.currentPage + 1})}"
                        th:classappend="${!pagination.hasNext} ? 'opacity-40 pointer-events-none' : ''"
                        class="w-9 h-9 flex items-center justify-center rounded-lg border border-surface-container-highest hover:bg-surface-container-low transition-colors">
-                        <span class="material-symbols-outlined text-sm">chevron_right</span>
+                        <span class="ms text-sm">chevron_right</span>
                     </a>
                 </div>
             </div>
@@ -207,7 +207,7 @@
                 <a th:href="@{/admin/reports/revenue-forecast}"
                    class="text-primary font-semibold text-sm flex items-center gap-1 hover:underline">
                     Xem chi tiết dự báo
-                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    <span class="ms text-sm">arrow_forward</span>
                 </a>
                 <!-- Simplified bar chart (visual only) -->
                 <div class="mt-6 flex items-end gap-2 h-20">

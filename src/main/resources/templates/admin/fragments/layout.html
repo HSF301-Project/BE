@@ -24,8 +24,30 @@
                     },
                     colors: {
                         brand:   { 50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a' },
-                        surface: { DEFAULT:'#f8fafc', card:'#ffffff', border:'#e2e8f0', hover:'#f1f5f9', container:'#f1f5f9' },
-                        ink:     { DEFAULT:'#0f172a', muted:'#64748b', faint:'#94a3b8' }
+                        primary: { DEFAULT: '#1d4ed8', container: '#dbeafe', fixed: '#eff6ff' },
+                        secondary: { DEFAULT: '#64748b', fixed: '#f1f5f9' },
+                        tertiary: { DEFAULT: '#059669', fixed: '#ecfdf5' },
+                        surface: { 
+                            DEFAULT:'#f8fafc', 
+                            card:'#ffffff', 
+                            border:'#e2e8f0', 
+                            hover:'#f1f5f9',
+                            container: {
+                                lowest: '#ffffff',
+                                low: '#f8fafc',
+                                DEFAULT: '#f1f5f9',
+                                high: '#e2e8f0',
+                                highest: '#cbd5e1'
+                            },
+                            bright: '#ffffff',
+                            dim: '#f1f5f9'
+                        },
+                        ink: { DEFAULT:'#0f172a', muted:'#64748b', faint:'#94a3b8' },
+                        'on-surface': { DEFAULT: '#0f172a', variant: '#64748b' },
+                        'on-primary-fixed': '#1d4ed8',
+                        'on-secondary-fixed': '#475569',
+                        'on-tertiary-fixed': '#065f46',
+                        'primary-fixed': '#60a5fa'
                     },
                     boxShadow: { card:'0 1px 3px 0 rgb(0 0 0 / .06), 0 1px 2px -1px rgb(0 0 0 / .04)' }
                 }

@@ -165,24 +165,18 @@
                         <span class="material-symbols-outlined text-primary">payments</span>
                         Phương thức thanh toán
                     </h2>
-                    <div class="grid grid-cols-2 gap-4">
-                        <label class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl cursor-pointer border-2 border-transparent hover:border-primary/30 transition-all has-[:checked]:border-primary has-[:checked]:bg-blue-50">
+                    <div class="grid grid-cols-1 gap-4">
+                        <label class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl cursor-pointer border-2 border-transparent hover:border-primary/30 transition-all has-[:checked]:border-primary has-[:checked]:bg-blue-50 w-full">
                             <input type="radio" th:field="*{paymentMethod}" value="CASH" class="hidden peer" checked/>
                             <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1">payments</span>
                             <div>
                                 <p class="font-bold text-slate-700">Tiền mặt</p>
-                                <p class="text-xs text-slate-400">Thu tiền trực tiếp</p>
-                            </div>
-                        </label>
-                        <label class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl cursor-pointer border-2 border-transparent hover:border-primary/30 transition-all has-[:checked]:border-primary has-[:checked]:bg-blue-50">
-                            <input type="radio" th:field="*{paymentMethod}" value="POS" class="hidden peer"/>
-                            <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1">credit_card</span>
-                            <div>
-                                <p class="font-bold text-slate-700">Quẹt thẻ (POS)</p>
-                                <p class="text-xs text-slate-400">Thẻ ATM / Tín dụng</p>
+                                <p class="text-xs text-slate-400">Thu tiền trực tiếp tại quầy</p>
                             </div>
                         </label>
                     </div>
+                    <p th:if="${#fields.hasErrors('paymentMethod')}" th:errors="*{paymentMethod}"
+                       class="mt-4 text-xs text-red-500 font-medium text-center"></p>
                 </section>
             </div>
 
@@ -191,17 +185,69 @@
 
                     <div class="bg-white rounded-[2rem] p-8 overflow-hidden relative border border-slate-100 shadow-sm">
                         <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                            <span class="material-symbols-outlined text-[100px]" style="font-variation-settings:'FILL' 1">receipt_long</span>
+                            <span class="material-symbols-outlined text-[120px]" style="font-variation-settings:'FILL' 1">directions_bus</span>
+                        </div>
+                        <h3 class="text-xl font-black text-primary mb-6">Chi tiết đặt vé</h3>
+
+                        <div class="space-y-4 mb-8">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Điểm đi</p>
+                                    <p class="font-bold text-slate-800" th:text="${trip.departureStation}">Bến xe</p>
+                                    <p class="text-sm text-slate-500" th:text="${trip.departureDateTimeLabel}">Thứ 6 • 08:30</p>
+                                </div>
+                                <span class="material-symbols-outlined text-primary mt-1">trip_origin</span>
+                            </div>
+                            <div class="border-l-2 border-dashed border-slate-200 ml-3 py-2"></div>
+                            <div th:each="stop : ${trip.stopEtas}" th:if="${stop.stopType == 'INTERMEDIATE'}" class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1" th:text="${stop.pointTypeLabel}"></p>
+                                    <p class="font-bold text-slate-800" th:text="${stop.stopName}"></p>
+                                    <p class="text-sm text-slate-500" th:text="${stop.etaTime}"></p>
+                                </div>
+                                <span class="material-symbols-outlined text-primary mt-1">location_on</span>
+                            </div>
+                            <div class="border-l-2 border-dashed border-slate-200 ml-3 py-2"></div>
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Điểm đến</p>
+                                    <p class="font-bold text-slate-800" th:text="${trip.arrivalStation}">Bến đến</p>
+                                    <p class="text-sm text-slate-500" th:text="${trip.arrivalDateTimeLabel}">Thứ 6 • 14:00</p>
+                                </div>
+                                <span class="material-symbols-outlined text-orange-500 mt-1">location_on</span>
+                            </div>
                         </div>
 
-                        <h3 class="text-xl font-black text-slate-800 mb-8">Tóm tắt đơn hàng</h3>
+                        <hr class="border-slate-100 mb-8"/>
+
+                        <div class="space-y-4 mb-8">
+                            <div class="flex flex-col gap-1.5">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Điểm đón</p>
+                                <select th:field="*{pickupLocationId}" class="w-full rounded-xl border-slate-200 bg-slate-50 text-sm font-semibold py-2.5 focus:ring-primary focus:border-primary">
+                                    <option th:each="stop : ${trip.stopEtas}"
+                                            th:if="${stop.pointType == 'PICKUP' or stop.pointType == 'BOTH'}"
+                                            th:value="${stop.stopId}"
+                                            th:text="${stop.stopName + ' (' + stop.etaTime + ')'}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Điểm trả</p>
+                                <select th:field="*{dropoffLocationId}" class="w-full rounded-xl border-slate-200 bg-slate-50 text-sm font-semibold py-2.5 focus:ring-primary focus:border-primary">
+                                    <option th:each="stop : ${trip.stopEtas}"
+                                            th:if="${stop.pointType == 'DROPOFF' or stop.pointType == 'BOTH'}"
+                                            th:value="${stop.stopId}"
+                                            th:text="${stop.stopName + ' (' + stop.etaTime + ')'}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
 
                         <div class="space-y-4 mb-8">
                             <div class="flex flex-col gap-1.5">
                                 <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Ghế đã chọn</span>
-                                <span id="summary-selected-seats" class="font-bold text-primary text-sm">Chưa chọn</span>
+                                <span id="summary-selected-seats" class="font-bold text-primary text-sm">Chưa chọn ghế</span>
                             </div>
-                            <div class="border-t border-dashed border-slate-200 my-3"></div>
                             <div class="flex justify-between items-center">
                                 <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Đơn giá / ghế</span>
                                 <span id="summary-unit-price" class="font-bold text-slate-700 text-sm" th:text="${unitPriceFormatted}">0 đ</span>
@@ -211,7 +257,7 @@
                         <div class="bg-primary/5 rounded-2xl p-6 mb-2">
                             <div class="flex items-center justify-between mb-2">
                                 <p class="text-xs font-black text-primary uppercase tracking-widest">Tổng thanh toán</p>
-                                <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1">payments</span>
+                                <span class="material-symbols-outlined text-orange-500" style="font-variation-settings:'FILL' 1">payments</span>
                             </div>
                             <div class="flex flex-col">
                                 <p id="summary-total-price" class="text-2xl font-black text-primary leading-none">0 đ</p>
@@ -235,5 +281,53 @@
 
 </main>
 <script th:src="@{/js/staff-booking-summary.js}"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const tripStopEtas = /*[[${trip.stopEtas}]]*/ [];
+    const pickupSelect = document.querySelector('select[name="pickupLocationId"]');
+    const dropoffSelect = document.querySelector('select[name="dropoffLocationId"]');
+
+    function updateDropoffOptions() {
+        const selectedPickupId = pickupSelect.value;
+        const selectedPickupStop = tripStopEtas.find(stop => stop.stopId === selectedPickupId);
+
+        if (!dropoffSelect) return;
+
+        const currentDropoffValue = dropoffSelect.value;
+        dropoffSelect.innerHTML = '';
+
+        if (selectedPickupStop) {
+            const pickupOffset = selectedPickupStop.offsetMinutes;
+
+            tripStopEtas.forEach(stop => {
+                if ((stop.pointType === 'DROPOFF' || stop.pointType === 'BOTH') && stop.offsetMinutes > pickupOffset) {
+                    const option = document.createElement('option');
+                    option.value = stop.stopId;
+                    option.textContent = stop.stopName + ' (' + stop.etaTime + ')';
+                    dropoffSelect.appendChild(option);
+                }
+            });
+        }
+
+        if (dropoffSelect.options.length > 0) {
+            let found = false;
+            for(let i=0; i<dropoffSelect.options.length; i++) {
+                if(dropoffSelect.options[i].value === currentDropoffValue) {
+                    dropoffSelect.value = currentDropoffValue;
+                    found = true;
+                    break;
+                }
+            }
+            if(!found) dropoffSelect.value = dropoffSelect.options[0].value;
+        }
+    }
+
+    if (pickupSelect && dropoffSelect) {
+        updateDropoffOptions();
+        pickupSelect.addEventListener('change', updateDropoffOptions);
+    }
+    /*]]>*/
+</script>
 </body>
 </html>
+

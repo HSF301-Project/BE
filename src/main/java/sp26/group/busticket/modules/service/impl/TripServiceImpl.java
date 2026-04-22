@@ -155,7 +155,7 @@ public class TripServiceImpl implements TripService {
                         .fullName(a.getFullName())
                         .phone(a.getPhone())
                         .licenseNumber(a.getDriverLicenseNumber())
-                        .readinessLabel("Hoạt động — sẵn sàng nhận chuyến")
+                        .readinessLabel("Sẵn sàng")
                         .build())
                 .collect(Collectors.toList());
     }
@@ -217,10 +217,69 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
+    @Transactional
+    public void startTrip(UUID tripId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+
+        if (trip.getTripStatus() != TripStatusEnum.SCHEDULED) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Chỉ có thể bắt đầu chuyến đi đang ở trạng thái SCHEDULED.");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (now.isBefore(trip.getDepartureTime())) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+            throw new AppException(ErrorCode.INVALID_INPUT, 
+                "Không thể bắt đầu chuyến xe sớm hơn giờ dự kiến. Vui lòng đợi đến " + trip.getDepartureTime().format(formatter) + ".");
+        }
+
+        trip.setActualDepartureTime(now);
+        trip.setTripStatus(TripStatusEnum.DEPARTED);
+        
+        // Cập nhật trạng thái xe sang đang làm việc
+        if (trip.getCoach() != null) {
+            trip.getCoach().setStatus(sp26.group.busticket.modules.enumType.CoachStatusEnum.WORKING);
+            coachRepository.save(trip.getCoach());
+        }
+        
+        tripRepository.save(trip);
+    }
+
+    @Override
+    @Transactional
+    public void finishTrip(UUID tripId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+
+        if (trip.getTripStatus() != TripStatusEnum.DEPARTED) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Chỉ có thể kết thúc chuyến đi đang ở trạng thái DEPARTED.");
+        }
+
+        trip.setActualArrivalTime(LocalDateTime.now());
+        trip.setTripStatus(TripStatusEnum.COMPLETED);
+        
+        // Giải phóng xe về trạng thái sẵn sàng
+        if (trip.getCoach() != null) {
+            trip.getCoach().setStatus(sp26.group.busticket.modules.enumType.CoachStatusEnum.AVAILABLE);
+            coachRepository.save(trip.getCoach());
+        }
+        
+        tripRepository.save(trip);
+    }
+
+    @Override
     public BigDecimal getBasePriceByTripId(UUID tripId) {
         return tripRepository.findById(tripId)
                 .map(Trip::getPriceBase)
                 .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+    }
+
+    @Override
+    public List<TripStopEtaDTO> getTripStopEtas(UUID tripId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+        DateTimeFormatter timeOnly = DateTimeFormatter.ofPattern("HH:mm");
+        return buildRouteTimeline(trip, timeOnly);
     }
 
     // =====================================================================
@@ -438,9 +497,11 @@ public class TripServiceImpl implements TripService {
 
         return TripResponseDTO.builder()
                 .id(trip.getId())
-                .tripCode("TRP-" + trip.getId())
+                .tripCode("TRP-" + trip.getId().toString().substring(0, 8).toUpperCase())
                 .fromStation(trip.getRoute().getDepartureLocation().getName())
                 .toStation(trip.getRoute().getArrivalLocation().getName())
+                .fromCity(trip.getRoute().getDepartureLocation().getCity())
+                .toCity(trip.getRoute().getArrivalLocation().getCity())
                 .busType(trip.getCoach().getCoachType())
                 .busTypeLabel("Hạng " + trip.getCoach().getCoachType())
                 .departureTime(trip.getDepartureTime().format(timeFmt))
@@ -456,6 +517,8 @@ public class TripServiceImpl implements TripService {
                 .assistantPhone(trip.getAssistant() != null ? trip.getAssistant().getPhone() : "N/A")
                 .coachPlate(trip.getCoach() != null ? trip.getCoach().getPlateNumber() : "N/A")
                 .departureDateTime(trip.getDepartureTime().format(dateTimeFmt))
+                .arrivalDateTime(trip.getArrivalTime().format(dateTimeFmt))
+                .arrivalTime(trip.getArrivalTime().format(timeFmt))
                 .routeTimeline(timeline)
                 .nextStopLabel(nextStop)
                 .minutesUntilDeparture(minutesUntilDeparture)
@@ -464,9 +527,13 @@ public class TripServiceImpl implements TripService {
     }
 
     private List<TripStopEtaDTO> buildRouteTimeline(Trip trip, DateTimeFormatter timeOnly) {
-        // Build from proper RouteStop entities (FK → Location)
+        // Sử dụng giờ xuất bến thực tế nếu đã chạy, ngược lại dùng giờ dự kiến
+        LocalDateTime baseTime = (trip.getActualDepartureTime() != null) 
+                ? trip.getActualDepartureTime() 
+                : trip.getDepartureTime();
+
         List<StopWithKm> stops = new ArrayList<>();
-        stops.add(new StopWithKm(trip.getRoute().getDepartureLocation().getName(), 0f, "START", null));
+        stops.add(new StopWithKm(trip.getRoute().getDepartureLocation().getName(), 0f, "START", null, trip.getRoute().getDepartureLocation().getId()));
 
         // Iterate structured RouteStop list (sorted by stopOrder)
         if (trip.getRoute().getStops() != null) {
@@ -476,13 +543,14 @@ public class TripServiceImpl implements TripService {
                         rs.getLocation().getName(),
                         rs.getDistanceFromStart(),
                         "INTERMEDIATE",
-                        new StopMeta(stopType, rs.getOffsetMinutes())));
+                        new StopMeta(stopType, rs.getOffsetMinutes()),
+                        rs.getLocation().getId()));
             }
         }
 
         Float totalKm = trip.getRoute().getDistance();
         if (totalKm == null || totalKm <= 0) totalKm = 1f;
-        stops.add(new StopWithKm(trip.getRoute().getArrivalLocation().getName(), totalKm, "END", null));
+        stops.add(new StopWithKm(trip.getRoute().getArrivalLocation().getName(), totalKm, "END", null, trip.getRoute().getArrivalLocation().getId()));
 
         long totalMinutes = java.time.Duration.between(trip.getDepartureTime(), trip.getArrivalTime()).toMinutes();
         if (totalMinutes <= 0 && trip.getRoute().getDuration() != null) totalMinutes = trip.getRoute().getDuration();
@@ -507,7 +575,7 @@ public class TripServiceImpl implements TripService {
                 offsetMinutes = Math.round((double) i * totalMinutes / segmentsFallback);
             }
 
-            LocalDateTime eta = trip.getDepartureTime().plusMinutes(offsetMinutes);
+            LocalDateTime eta = baseTime.plusMinutes(offsetMinutes);
             String stopType = s.type;
             String pointType = (s.meta != null && s.meta.pointType != null && !s.meta.pointType.isBlank())
                     ? s.meta.pointType
@@ -518,6 +586,7 @@ public class TripServiceImpl implements TripService {
                 default -> "Đón & trả";
             };
             result.add(TripStopEtaDTO.builder()
+                    .stopId(s.locationId)
                     .stopName(s.name)
                     .etaTime(eta.format(timeOnly))
                     .stopType(stopType)
@@ -556,12 +625,14 @@ public class TripServiceImpl implements TripService {
         final Float km;
         final String type;
         final StopMeta meta;
+        final UUID locationId;
 
-        private StopWithKm(String name, Float km, String type, StopMeta meta) {
+        private StopWithKm(String name, Float km, String type, StopMeta meta, UUID locationId) {
             this.name = name;
             this.km = km;
             this.type = type;
             this.meta = meta;
+            this.locationId = locationId;
         }
     }
 

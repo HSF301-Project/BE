@@ -63,6 +63,16 @@
                 <p class="text-on-surface-variant">Quản lý và theo dõi lịch sử hành trình của bạn.</p>
             </div>
 
+            <!-- Messages -->
+            <div th:if="${successMessage}" class="p-4 bg-secondary/10 text-secondary rounded-2xl flex items-center gap-3 border border-secondary/20">
+                <span class="material-symbols-outlined">check_circle</span>
+                <p class="font-bold text-sm" th:text="${successMessage}"></p>
+            </div>
+            <div th:if="${errorMessage}" class="p-4 bg-error/10 text-error rounded-2xl flex items-center gap-3 border border-error/20">
+                <span class="material-symbols-outlined">error</span>
+                <p class="font-bold text-sm" th:text="${errorMessage}"></p>
+            </div>
+
             <!-- Tab navigation -->
             <nav class="flex items-center gap-2 p-1.5 bg-surface-container-low rounded-2xl w-fit">
                 <a th:href="@{/booking/my-trips(tab='upcoming')}"
@@ -161,9 +171,9 @@
                                         <p class="text-2xl font-black text-primary" style="font-family:'Plus Jakarta Sans',sans-serif"
                                            th:text="${trip.fromCity}">HCM</p>
                                         <p class="text-xs text-on-surface-variant font-medium mt-0.5 truncate"
-                                           th:text="${trip.departureStation}">Bến xe Miền Đông</p>
+                                           th:text="${trip.pickupLocationName}">Bến xe Miền Đông</p>
                                         <p class="text-sm font-bold text-on-surface mt-1"
-                                           th:text="${trip.departureTime}">08:30</p>
+                                           th:text="${trip.pickupTime}">08:30</p>
                                     </div>
 
                                     <div class="flex-1 flex flex-col items-center">
@@ -178,9 +188,9 @@
                                         <p class="text-2xl font-black text-primary" style="font-family:'Plus Jakarta Sans',sans-serif"
                                            th:text="${trip.toCity}">DLT</p>
                                         <p class="text-xs text-on-surface-variant font-medium mt-0.5 truncate"
-                                           th:text="${trip.arrivalStation}">Bến xe Đà Lạt</p>
+                                           th:text="${trip.dropoffLocationName}">Bến xe Đà Lạt</p>
                                         <p class="text-sm font-bold text-on-surface mt-1"
-                                           th:text="${trip.arrivalTime}">14:00</p>
+                                           th:text="${trip.dropoffTime}">14:00</p>
                                     </div>
                                 </div>
                             </div>
@@ -198,6 +208,21 @@
                                     <span class="material-symbols-outlined text-[18px]">sync_alt</span>
                                     Đổi chuyến
                                 </button>
+                                <button th:if="${trip.status.name() == 'CONFIRMED'}"
+                                        type="button"
+                                        th:data-id="${trip.id}"
+                                        th:data-from="${trip.fromCity}"
+                                        th:data-pickup-station="${trip.pickupLocationName}"
+                                        th:data-to="${trip.toCity}"
+                                        th:data-dropoff-station="${trip.dropoffLocationName}"
+                                        th:data-time="${trip.departureTime}"
+                                        th:data-cancellable="${trip.isCancellable}"
+                                        onclick="showCancelModal(this.getAttribute('data-id'), this.getAttribute('data-cancellable') === 'true', this.getAttribute('data-from'), this.getAttribute('data-to'), this.getAttribute('data-time'), this.getAttribute('data-pickup-station'), this.getAttribute('data-dropoff-station'))"
+                                        th:classappend="${!trip.isCancellable} ? 'opacity-50' : ''"
+                                        class="flex items-center justify-center gap-2 px-5 py-2.5 bg-error/10 text-error rounded-xl text-sm font-bold hover:bg-error/20 transition-all active:scale-95">
+                                    <span class="material-symbols-outlined text-[18px]">cancel</span>
+                                    Hủy chuyến
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -207,8 +232,133 @@
     </div>
 </main>
 
+<!-- ── Modern Cancellation Modal ───────────────────────── -->
+<div id="cancel-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-300" onclick="hideCancelModal()"></div>
+    
+    <!-- Modal content -->
+    <div class="relative w-full max-w-md bg-surface-container-lowest rounded-[2.5rem] p-8 shadow-[0_32px_80px_rgba(26,27,33,0.25)] border border-white/10 transform transition-all scale-95 opacity-0 duration-300 ease-out" id="cancel-modal-content">
+        <!-- Close button -->
+        <button onclick="hideCancelModal()" class="absolute top-6 right-6 w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+
+        <div class="text-center">
+            <div class="w-20 h-20 rounded-full bg-error/10 text-error mx-auto flex items-center justify-center mb-6">
+                <span class="material-symbols-outlined text-4xl" style="font-variation-settings:'FILL' 1">warning</span>
+            </div>
+            
+            <h3 class="text-2xl font-black text-on-surface mb-3" id="cancel-modal-title" style="font-family:'Plus Jakarta Sans',sans-serif">Xác nhận hủy chuyến</h3>
+            
+            <!-- Trip Details in Modal -->
+            <div id="cancel-trip-details" class="mb-6 p-4 bg-surface-container-high rounded-2xl border border-outline-variant/10 text-left">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Hành trình</span>
+                    <span id="modal-trip-time" class="text-xs font-black text-primary bg-primary/10 px-2 py-0.5 rounded">08:00</span>
+                </div>
+                <div class="flex items-start justify-between gap-2">
+                    <div class="flex-1">
+                        <p id="modal-trip-from" class="font-bold text-on-surface leading-tight">TP. Hồ Chí Minh</p>
+                        <p id="modal-pickup-station" class="text-[11px] text-on-surface-variant mt-1">Bến xe Miền Đông</p>
+                    </div>
+                    <span class="material-symbols-outlined text-sm text-outline mt-1">east</span>
+                    <div class="flex-1 text-right">
+                        <p id="modal-trip-to" class="font-bold text-on-surface leading-tight">Đà Lạt</p>
+                        <p id="modal-dropoff-station" class="text-[11px] text-on-surface-variant mt-1">Bến xe Đà Lạt</p>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-on-surface-variant leading-relaxed mb-8 px-4" id="cancel-modal-message">
+                Bạn có chắc chắn muốn hủy chuyến đi này không? <br/>
+                <span class="font-bold text-error/80 text-sm italic mt-2 block">Hành động này không thể hoàn tác.</span>
+            </p>
+            
+            <div class="flex flex-col gap-3">
+                <form id="cancel-form" method="post">
+                    <!-- CSRF Token -->
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    
+                    <button type="submit" id="btn-confirm-cancel"
+                            class="w-full py-4 bg-error text-white rounded-2xl font-bold hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-error/20 flex items-center justify-center gap-2 group">
+                        <span>Xác nhận hủy vé</span>
+                        <span class="material-symbols-outlined text-[18px] group-hover:rotate-12 transition-transform">check</span>
+                    </button>
+                </form>
+                <button type="button" onclick="hideCancelModal()"
+                        class="w-full py-4 bg-surface-container-high text-on-surface rounded-2xl font-bold hover:bg-surface-container-highest transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                    <span>Quay lại</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 <th:block th:replace="~{fragments/mobile-nav :: mobile-nav(activeTab='trips')}"></th:block>
+
+<script>
+    function showCancelModal(bookingId, isCancellable, from, to, time, pickupStation, dropoffStation) {
+        const modal = document.getElementById('cancel-modal');
+        const content = document.getElementById('cancel-modal-content');
+        const form = document.getElementById('cancel-form');
+        const title = document.getElementById('cancel-modal-title');
+        const message = document.getElementById('cancel-modal-message');
+        const btnConfirm = document.getElementById('btn-confirm-cancel');
+        const detailsBox = document.getElementById('cancel-trip-details');
+        
+        // Update trip details in modal
+        document.getElementById('modal-trip-from').innerText = from;
+        document.getElementById('modal-pickup-station').innerText = pickupStation;
+        document.getElementById('modal-trip-to').innerText = to;
+        document.getElementById('modal-dropoff-station').innerText = dropoffStation;
+        document.getElementById('modal-trip-time').innerText = time;
+        
+        // Update form action
+        form.action = `/booking/${bookingId}/cancel`;
+        
+        if (!isCancellable) {
+            title.innerText = "Không thể hủy chuyến";
+            message.innerHTML = "Chuyến đi này không thể hủy do đã quá hạn thời gian cho phép (trước 2 giờ khởi hành). <br/><span class='text-sm italic mt-2 block'>Vui lòng liên hệ hotline để được hỗ trợ.</span>";
+            btnConfirm.classList.add('hidden');
+            detailsBox.classList.add('opacity-50');
+        } else {
+            title.innerText = "Xác nhận hủy chuyến";
+            message.innerHTML = "Bạn có chắc chắn muốn hủy chuyến đi này không? <br/><span class='font-bold text-error/80 text-sm italic mt-2 block'>Hành động này không thể hoàn tác.</span>";
+            btnConfirm.classList.remove('hidden');
+            detailsBox.classList.remove('opacity-50');
+        }
+        
+        // Show modal with animation
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function hideCancelModal() {
+        const modal = document.getElementById('cancel-modal');
+        const content = document.getElementById('cancel-modal-content');
+        
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') hideCancelModal();
+    });
+</script>
 
 </body>
 </html>

@@ -5,4 +5,5 @@ import java.util.List;
 
 public interface LocationService {
     List<Location> getAllLocations();
+    List<Location> getLocationsByType(String type);
 }
