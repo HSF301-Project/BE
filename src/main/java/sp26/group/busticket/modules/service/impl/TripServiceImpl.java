@@ -155,7 +155,7 @@ public class TripServiceImpl implements TripService {
                         .fullName(a.getFullName())
                         .phone(a.getPhone())
                         .licenseNumber(a.getDriverLicenseNumber())
-                        .readinessLabel("Hoạt động — sẵn sàng nhận chuyến")
+                        .readinessLabel("Sẵn sàng")
                         .build())
                 .collect(Collectors.toList());
     }

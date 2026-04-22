@@ -20,6 +20,8 @@ public class CoachResponseDTO {
     String plateNumber;
     String coachType;
     Integer totalSeats;
+    String status;      // Enum name
+    String statusLabel; // Vietnamese label
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 }
