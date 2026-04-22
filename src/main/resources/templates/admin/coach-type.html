@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{Admin/fragments/layout :: admin-head('Quản lý Phân loại xe')}"></head>
+
+<body class="bg-surface min-h-screen text-ink antialiased">
+    <aside th:replace="~{Admin/fragments/layout :: admin-sidebar('coaches')}"></aside>
+    <header th:replace="~{Admin/fragments/layout :: admin-topnav('Quản lý Phân loại xe')}"></header>
+
+    <main class="ml-60 pt-14 min-h-screen">
+        <div class="px-8 py-7 max-w-screen-xl mx-auto">
+            
+            <!-- Alerts -->
+            <div th:if="${successMessage}" class="mb-5 px-4 py-3 rounded-lg bg-emerald-50 text-emerald-800 text-sm font-medium border border-emerald-200 flex items-center gap-2">
+                <span class="ms text-[18px]">check_circle</span> <span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" class="mb-5 px-4 py-3 rounded-lg bg-red-50 text-red-800 text-sm font-medium border border-red-200 flex items-center gap-2">
+                <span class="ms text-[18px]">error</span> <span th:text="${errorMessage}"></span>
+            </div>
+
+            <!-- Page Header -->
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <a th:href="@{/admin/coaches}" class="inline-flex items-center gap-2 text-xs font-black text-ink-muted hover:text-brand-600 transition-colors mb-2 uppercase tracking-widest">
+                        <span class="ms text-sm">arrow_back</span> Quay lại Đội xe
+                    </a>
+                    <h1 class="text-2xl font-extrabold text-ink tracking-tight">Danh sách Phân loại xe</h1>
+                    <p class="text-sm text-ink-muted mt-0.5">Quản lý các danh mục cấu hình, hạng xe hiển thị cho người dùng.</p>
+                </div>
+                <button onclick="document.getElementById('addTypeModal').classList.remove('hidden')"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-700 text-white text-sm font-semibold hover:bg-brand-800 active:scale-[.98] transition-all shadow-sm">
+                    <span class="ms text-[18px]">add</span> Thêm phân loại
+                </button>
+            </div>
+
+            <div class="bg-surface-card rounded-xl border border-surface-border shadow-card overflow-hidden">
+                <table class="w-full border-collapse text-sm text-left">
+                    <thead class="bg-surface">
+                        <tr>
+                            <th class="th w-16 text-center">STT</th>
+                            <th class="th">Tên phân loại (Name)</th>
+                            <th class="th">Mô tả (Description)</th>
+                            <th class="th text-right">Ngày cập nhật</th>
+                            <th class="th text-right w-24">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-surface-border">
+                        <tr th:each="type, iterStat : ${coachTypes}" class="hover:bg-surface-hover transition-colors">
+                            <td class="td text-center text-ink-muted font-bold" th:text="${iterStat.count}">1</td>
+                            <td class="td font-bold text-ink" th:text="${type.name}">Limousine</td>
+                            <td class="td text-ink-muted" th:text="${type.description}">Mô tả ngắn gọn...</td>
+                            <td class="td text-right text-xs text-ink-faint" th:text="${#temporals.format(type.updatedAt, 'dd/MM/yyyy HH:mm')}">10/10/2026</td>
+                            <td class="td text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <button type="button" th:data-id="${type.id}" th:data-name="${type.name}" th:data-desc="${type.description}" onclick="openEditModal(this)" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors focus:outline-none">
+                                        <span class="ms text-sm">edit</span>
+                                    </button>
+                                    <form th:action="@{/admin/coaches/delete-type/{id}(id=${type.id})}" method="post" class="inline m-0 p-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phân loại này?');">
+                                        <button type="submit" class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 transition-colors focus:outline-none">
+                                            <span class="ms text-sm">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(coachTypes)}">
+                            <td colspan="5" class="px-6 py-12 text-center text-ink-faint italic font-medium">
+                                Chưa có phân loại xe nào được thêm bởi người dùng.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Add Type Modal -->
+    <div id="addTypeModal" class="hidden fixed inset-0 bg-ink/50 backdrop-blur-[2px] z-50 flex items-center justify-center">
+        <div class="bg-surface-card rounded-2xl border border-surface-border p-6 w-full max-w-sm shadow-xl">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-lg font-bold text-ink flex items-center gap-2">
+                    <span class="w-1.5 h-5 bg-brand-600 rounded-full block"></span> Thêm Phân loại
+                </h3>
+                <button onclick="document.getElementById('addTypeModal').classList.add('hidden')" class="btn-icon focus:outline-none">
+                    <span class="ms text-[20px]">close</span>
+                </button>
+            </div>
+            <form th:action="@{/admin/coaches/add-type}" method="post">
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">Tên Phân loại (VD: Xe VIP)</label>
+                    <input type="text" name="name" required placeholder="Gõ tên loại xe..." class="w-full px-4 py-2.5 rounded-xl border border-surface-border focus:border-brand-600 focus:ring-1 focus:ring-brand-600 outline-none text-sm font-semibold text-ink transition-all" />
+                </div>
+                <div class="mb-5">
+                    <label class="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">Mô tả chi tiết</label>
+                    <textarea name="description" rows="2" placeholder="Ghi chú thêm..." class="w-full px-4 py-2.5 rounded-xl border border-surface-border focus:border-brand-600 focus:ring-1 focus:ring-brand-600 outline-none text-sm font-medium text-ink transition-all"></textarea>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="document.getElementById('addTypeModal').classList.add('hidden')" class="px-4 py-2 rounded-lg text-sm font-bold text-ink-muted hover:bg-surface-border transition-all focus:outline-none">Hủy bỏ</button>
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-brand-600 text-white text-sm font-bold hover:bg-brand-700 transition-all focus:outline-none focus:ring-2 focus:ring-brand-300">Lưu phân loại</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Type Modal -->
+    <div id="editTypeModal" class="hidden fixed inset-0 bg-ink/50 backdrop-blur-[2px] z-50 flex items-center justify-center">
+        <div class="bg-surface-card rounded-2xl border border-surface-border p-6 w-full max-w-sm shadow-xl">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-lg font-bold text-ink flex items-center gap-2">
+                    <span class="w-1.5 h-5 bg-brand-600 rounded-full block"></span> Chỉnh sửa Phân loại
+                </h3>
+                <button onclick="document.getElementById('editTypeModal').classList.add('hidden')" class="btn-icon focus:outline-none">
+                    <span class="ms text-[20px]">close</span>
+                </button>
+            </div>
+            <form id="editForm" method="post">
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">Tên Phân loại</label>
+                    <input type="text" id="editName" name="name" required class="w-full px-4 py-2.5 rounded-xl border border-surface-border focus:border-brand-600 focus:ring-1 focus:ring-brand-600 outline-none text-sm font-semibold text-ink transition-all" />
+                </div>
+                <div class="mb-5">
+                    <label class="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">Mô tả chi tiết</label>
+                    <textarea id="editDesc" name="description" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-surface-border focus:border-brand-600 focus:ring-1 focus:ring-brand-600 outline-none text-sm font-medium text-ink transition-all"></textarea>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="document.getElementById('editTypeModal').classList.add('hidden')" class="px-4 py-2 rounded-lg text-sm font-bold text-ink-muted hover:bg-surface-border transition-all focus:outline-none">Đóng</button>
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-brand-600 text-white text-sm font-bold hover:bg-brand-700 transition-all focus:outline-none focus:ring-2 focus:ring-brand-300">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(btn) {
+            const id = btn.getAttribute('data-id');
+            const name = btn.getAttribute('data-name');
+            const desc = btn.getAttribute('data-desc');
+            
+            document.getElementById('editForm').action = '/admin/coaches/update-type/' + id;
+            document.getElementById('editName').value = name || '';
+            document.getElementById('editDesc').value = (desc && desc !== 'null') ? desc : '';
+            
+            document.getElementById('editTypeModal').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

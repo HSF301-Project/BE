@@ -77,4 +77,12 @@ public class Trip extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private TripStatusEnum tripStatus = TripStatusEnum.SCHEDULED;
+
+    /** Thời điểm xuất bến thực tế. */
+    @Column(name = "actual_departure_time")
+    private LocalDateTime actualDepartureTime;
+
+    /** Thời điểm đến đích thực tế. */
+    @Column(name = "actual_arrival_time")
+    private LocalDateTime actualArrivalTime;
 }

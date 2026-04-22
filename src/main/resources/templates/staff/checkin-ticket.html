@@ -1,162 +1,337 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <th:block th:replace="~{fragments/head-common :: head-common(title='Kiểm vé | Staff')}"></th:block>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Kiểm vé - Staff Portal</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"/>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#003178",
+                        secondary: "#fe5825",
+                        background: "#faf8ff",
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .seat-booked { background-color: #003178; color: white; }
+        .seat-checked { background-color: #10b981; color: white; }
+        .seat-empty { background-color: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen" style="font-family:'Public Sans',sans-serif">
+<body class="bg-background min-h-screen font-['Inter']">
 
-<th:block th:replace="~{fragments/staff-sidebar :: staff-sidebar(activeTab='checkin')}"></th:block>
-
-<main class="ml-64 min-h-screen p-8">
-
-    <!-- Header -->
-    <header class="flex justify-between items-center mb-10">
-        <div>
-            <h1 class="text-3xl font-black tracking-tight text-slate-900">Kiểm vé &amp; Đón khách</h1>
-            <p class="text-slate-500 mt-1 font-medium">
-                Xác nhận hành khách cho chuyến:
-                <span class="font-bold text-primary" th:text="${currentTripName}">Sài Gòn → Đà Lạt</span>
-            </p>
-        </div>
-        <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-slate-100 shadow-sm">
-            <span class="material-symbols-outlined text-slate-400">person</span>
-            <span class="text-sm font-bold text-slate-700" sec:authentication="name">Nhân viên</span>
-        </div>
-    </header>
-
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-        <!-- ── Left: Search form ───────────────────────────── -->
-        <div class="lg:col-span-5 space-y-6">
-            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                <div class="px-6 py-5 border-b border-slate-50">
-                    <h2 class="font-black text-slate-700 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-primary">qr_code_scanner</span>
-                        Tra cứu vé
-                    </h2>
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-4">
+                <a th:href="@{/staff/operations/schedule}" class="p-2 hover:bg-slate-100 rounded-full transition-all">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </a>
+                <div>
+                    <h1 class="text-2xl font-black text-slate-800" th:text="${currentTripName}">Hành trình</h1>
+                    <p class="text-sm text-slate-500 font-medium">Kiểm vé &amp; Xác nhận hành khách</p>
                 </div>
-                <div class="p-6">
-                    <form th:action="@{/staff/booking/checkin}" method="post">
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">
-                            Nhập mã vé thủ công
-                        </label>
-                        <div class="flex gap-2">
-                            <div class="relative flex-1">
-                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">confirmation_number</span>
-                                <input type="text" name="ticketCode"
-                                       placeholder="Ví dụ: PTA-7729"
-                                       class="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"/>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="text-right">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tiến độ check-in</p>
+                    <p class="text-xl font-black text-primary"><span id="checkedCount" th:text="${checkedInCount}">0</span>/<span th:text="${totalPassengers}">0</span></p>
+                </div>
+                <div class="w-12 h-12 rounded-full border-4 border-slate-100 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary">qr_code_scanner</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div th:if="${isTripFinished}" class="mb-6 p-4 bg-amber-50 text-amber-700 rounded-2xl flex items-center gap-3 border border-amber-100">
+            <span class="material-symbols-outlined">lock</span>
+            <p class="font-semibold">Chuyến đi này đã kết thúc. Bạn chỉ có thể xem thông tin, không thể thực hiện check-in.</p>
+        </div>
+        <div th:if="${successMessage}" class="mb-6 p-4 bg-emerald-50 text-emerald-700 rounded-2xl flex items-center gap-3 border border-emerald-100">
+            <span class="material-symbols-outlined">check_circle</span>
+            <p class="font-semibold" th:text="${successMessage}"></p>
+        </div>
+        <div th:if="${errorMessage}" class="mb-6 p-4 bg-red-50 text-red-700 rounded-2xl flex items-center gap-3 border border-red-100">
+            <span class="material-symbols-outlined">error</span>
+            <p class="font-semibold" th:text="${errorMessage}"></p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Seat Map -->
+            <div class="lg:col-span-8">
+                <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm">
+                    <div class="flex items-center justify-between mb-8">
+                        <h2 class="text-xl font-black text-slate-800">Sơ đồ ghế ngồi</h2>
+                        <div class="flex gap-4">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded-full bg-slate-100"></div>
+                                <span class="text-xs font-bold text-slate-400">Trống</span>
                             </div>
-                            <button type="submit"
-                                    class="px-5 py-3 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-all active:scale-95 shadow-sm">
-                                Kiểm tra
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded-full bg-primary"></div>
+                                <span class="text-xs font-bold text-slate-400">Đã đặt</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                                <span class="text-xs font-bold text-slate-400">Đã lên xe</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <!-- Lower Deck -->
+                        <div>
+                            <p class="text-center font-black text-slate-400 uppercase tracking-widest mb-6 text-xs">Tầng dưới</p>
+                            <div class="bg-slate-50 rounded-3xl p-6 grid grid-cols-3 gap-4">
+                                <th:block th:each="seat : ${lowerDeck}">
+                                    <button th:data-ticket-code="${seat.get('ticketCode')}"
+                                            th:data-passenger-name="${seat.get('passengerName')}"
+                                            th:data-seat-number="${seat.get('number')}"
+                                            th:data-is-checked="${seat.get('status') == 'CHECKED_IN'}"
+                                            th:onclick="${isTripFinished} ? '' : 'openCheckInModal(this)'"
+                                            th:disabled="${seat.get('status') == 'EMPTY' || isTripFinished}"
+                                            th:classappend="${seat.get('status') == 'EMPTY' ? 'seat-empty' : (seat.get('status') == 'CHECKED_IN' ? 'seat-checked' : 'seat-booked')}"
+                                            class="aspect-square rounded-2xl flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-sm group relative">
+                                        <span class="text-lg font-black" th:text="${seat.get('number')}"></span>
+                                        <span th:if="${seat.get('status') != 'EMPTY'}" class="text-[8px] font-bold opacity-70 uppercase" th:text="${seat.get('passengerName')}"></span>
+                                    </button>
+                                </th:block>
+                            </div>
+                        </div>
+
+                        <!-- Upper Deck -->
+                        <div>
+                            <p class="text-center font-black text-slate-400 uppercase tracking-widest mb-6 text-xs">Tầng trên</p>
+                            <div class="bg-slate-50 rounded-3xl p-6 grid grid-cols-3 gap-4">
+                                <th:block th:each="seat : ${upperDeck}">
+                                    <button th:data-ticket-code="${seat.get('ticketCode')}"
+                                            th:data-passenger-name="${seat.get('passengerName')}"
+                                            th:data-seat-number="${seat.get('number')}"
+                                            th:data-is-checked="${seat.get('status') == 'CHECKED_IN'}"
+                                            th:onclick="${isTripFinished} ? '' : 'openCheckInModal(this)'"
+                                            th:disabled="${seat.get('status') == 'EMPTY' || isTripFinished}"
+                                            th:classappend="${seat.get('status') == 'EMPTY' ? 'seat-empty' : (seat.get('status') == 'CHECKED_IN' ? 'seat-checked' : 'seat-booked')}"
+                                            class="aspect-square rounded-2xl flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-sm group relative">
+                                        <span class="text-lg font-black" th:text="${seat.get('number')}"></span>
+                                        <span th:if="${seat.get('status') != 'EMPTY'}" class="text-[8px] font-bold opacity-70 uppercase" th:text="${seat.get('passengerName')}"></span>
+                                    </button>
+                                </th:block>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manual Search & Info -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm">
+                    <h3 class="font-black text-slate-800 mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">search</span>
+                        Tra cứu nhanh
+                    </h3>
+                    <form th:action="@{/staff/operations/trips/{id}/checkin(id=${tripId})}" method="post" class="space-y-4">
+                        <div class="relative">
+                            <input type="text" name="ticketCode" required placeholder="Nhập mã vé..."
+                                   th:disabled="${isTripFinished}"
+                                   class="w-full pl-4 pr-12 py-3 bg-slate-50 border-slate-100 rounded-xl text-sm font-bold focus:ring-primary focus:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"/>
+                            <button type="submit" 
+                                    th:disabled="${isTripFinished}"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span class="material-symbols-outlined text-sm">arrow_forward</span>
                             </button>
                         </div>
                     </form>
                 </div>
-            </div>
 
-            <!-- Quick stats -->
-            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-4">Thống kê chuyến</p>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="text-center p-4 bg-slate-50 rounded-2xl">
-                        <p class="text-3xl font-black text-primary" th:text="${totalPassengers ?: '—'}">—</p>
-                        <p class="text-xs text-slate-400 font-bold uppercase mt-1">Tổng số ghế</p>
-                    </div>
-                    <div class="text-center p-4 bg-emerald-50 rounded-2xl">
-                        <p class="text-3xl font-black text-emerald-600" th:text="${checkedInCount ?: '—'}">—</p>
-                        <p class="text-xs text-slate-400 font-bold uppercase mt-1">Đã lên xe</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ── Right: Ticket result + history ─────────────── -->
-        <div class="lg:col-span-7 space-y-6">
-
-            <!-- Ticket result -->
-            <div th:if="${ticketResult != null}"
-                 class="bg-white rounded-3xl border-2 border-primary/10 shadow-xl p-8 relative overflow-hidden">
-
-                <div class="inline-block px-3 py-1 bg-blue-50 text-primary text-[10px] font-black rounded-full uppercase tracking-wider mb-6">
-                    Thông tin vé đã tra cứu
-                </div>
-
-                <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <h2 class="text-3xl font-black text-slate-900 mb-1"
-                            th:text="${ticketResult.customerName}">NGUYỄN MINH HOÀNG</h2>
-                        <p class="text-sm text-slate-500">
-                            Mã vé:
-                            <span class="font-mono font-bold text-primary" th:text="${ticketResult.code}">PT-7729110</span>
-                        </p>
-                    </div>
-                    <div class="bg-primary text-white w-20 h-20 rounded-2xl flex flex-col items-center justify-center flex-shrink-0">
-                        <span class="text-[10px] font-bold opacity-70 uppercase">Ghế</span>
-                        <span class="text-3xl font-black" th:text="${ticketResult.seatNumber}">L06</span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6 py-5 border-y border-slate-100 mb-6">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Trạng thái</p>
-                        <p class="font-bold text-emerald-600 flex items-center gap-1.5">
-                            <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">check_circle</span>
-                            Hợp lệ
-                        </p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Giờ khởi hành</p>
-                        <p class="font-bold text-slate-800" th:text="${ticketResult.departureTime}">08:30</p>
-                    </div>
-                </div>
-
-                <div class="flex gap-3">
-                    <button class="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-100 active:scale-95">
-                        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">how_to_reg</span>
-                        Xác nhận lên xe
-                    </button>
-                    <button type="button"
-                            class="px-6 py-4 bg-slate-100 text-slate-500 rounded-2xl font-bold hover:bg-slate-200 transition-all active:scale-95">
-                        Hủy
-                    </button>
-                </div>
-            </div>
-
-            <!-- Check-in history -->
-            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                <div class="px-6 py-5 border-b border-slate-50 flex justify-between items-center">
-                    <h3 class="font-black text-slate-700">Lịch sử check-in gần đây</h3>
-                    <span class="text-xs font-bold text-primary bg-blue-50 px-3 py-1 rounded-full"
-                          th:text="${#lists.size(historyList)} + ' khách'">0 khách</span>
-                </div>
-
-                <div th:if="${#lists.isEmpty(historyList)}" class="py-12 text-center text-slate-400">
-                    <span class="material-symbols-outlined block text-4xl mb-2">history</span>
-                    <p class="text-sm font-medium">Chưa có lịch sử check-in</p>
-                </div>
-
-                <div class="divide-y divide-slate-50" th:if="${!#lists.isEmpty(historyList)}">
-                    <div th:each="history : ${historyList}"
-                         class="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-black text-slate-600 text-xs flex-shrink-0"
-                                 th:text="${history.seat}">L01</div>
-                            <div>
-                                <p class="font-bold text-sm text-slate-800" th:text="${history.name}">Trần Thị Lan Anh</p>
-                                <p class="text-[10px] text-slate-400 font-medium"
-                                   th:text="${history.time} + ' • ' + ${history.code}">08:12 • PT-7729105</p>
-                            </div>
-                        </div>
-                        <span class="material-symbols-outlined text-emerald-500" style="font-variation-settings:'FILL' 1">verified</span>
-                    </div>
+                <div class="bg-primary text-white rounded-[2rem] p-8 shadow-lg relative overflow-hidden">
+                    <span class="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl opacity-10 rotate-12">info</span>
+                    <h3 class="text-lg font-black mb-4">Hướng dẫn</h3>
+                    <ul class="space-y-4 text-sm opacity-90">
+                        <li class="flex gap-3">
+                            <span class="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0">1</span>
+                            Nhấn vào ghế màu xanh dương để xác nhận khách lên xe.
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0">2</span>
+                            Ghế chuyển sang màu xanh lá nghĩa là đã check-in thành công.
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0">3</span>
+                            Có thể nhấn lại vào ghế xanh lá để hủy check-in nếu nhầm lẫn.
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 
-</main>
+    <!-- Check-in Modal -->
+    <div id="checkInModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div class="bg-primary p-8 text-white relative">
+                <button onclick="closeModal()" class="absolute top-6 right-6 text-white/60 hover:text-white transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+                <div class="flex items-center gap-4 mb-2">
+                    <div class="bg-white/20 p-3 rounded-2xl">
+                        <span class="material-symbols-outlined">event_seat</span>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest opacity-60">Vị trí ghế</p>
+                        <h3 id="modalSeatNumber" class="text-3xl font-black">A01</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-8">
+                <div class="space-y-6 mb-8">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Hành khách</p>
+                        <p id="modalPassengerName" class="text-lg font-bold text-slate-800">NGUYỄN VĂN A</p>
+                    </div>
+                    <div id="checkedStatusBox" class="hidden py-3 px-4 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">check_circle</span>
+                        <span class="text-sm font-bold">Hành khách đã lên xe</span>
+                    </div>
+                </div>
+
+                <div id="checkInFormGroup">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Xác nhận mã vé</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">confirmation_number</span>
+                        <input type="text" id="modalTicketCodeInput" 
+                               class="w-full pl-12 pr-4 py-4 bg-slate-50 border-slate-100 rounded-2xl text-lg font-black tracking-widest focus:ring-primary focus:border-primary transition-all"
+                               placeholder="Nhập mã vé...">
+                    </div>
+                    <p id="modalErrorMessage" class="text-red-500 text-xs font-bold mt-2 hidden">Mã vé không chính xác!</p>
+                </div>
+
+                <div class="flex gap-3 mt-8">
+                    <button onclick="closeModal()" class="flex-1 py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-all">Bỏ qua</button>
+                    <button id="modalConfirmBtn" onclick="confirmCheckIn()" class="flex-[2] py-4 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95">
+                        Xác nhận lên xe
+                    </button>
+                    <button id="modalCancelBtn" onclick="confirmCheckIn()" class="flex-[2] py-4 bg-red-500 text-white font-bold rounded-2xl shadow-lg shadow-red-200 hover:bg-red-600 transition-all active:scale-95 hidden">
+                        Hủy check-in
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        let currentTicketCode = '';
+        let currentButton = null;
+
+        function openCheckInModal(button) {
+            currentButton = button;
+            currentTicketCode = button.getAttribute('data-ticket-code');
+            const passengerName = button.getAttribute('data-passenger-name');
+            const seatNumber = button.getAttribute('data-seat-number');
+            const isChecked = button.getAttribute('data-is-checked') === 'true';
+
+            document.getElementById('modalSeatNumber').innerText = seatNumber;
+            document.getElementById('modalPassengerName').innerText = passengerName;
+            document.getElementById('modalTicketCodeInput').value = '';
+            document.getElementById('modalErrorMessage').classList.add('hidden');
+            
+            const formGroup = document.getElementById('checkInFormGroup');
+            const statusBox = document.getElementById('checkedStatusBox');
+            const confirmBtn = document.getElementById('modalConfirmBtn');
+            const cancelBtn = document.getElementById('modalCancelBtn');
+
+            if (isChecked) {
+                formGroup.classList.add('hidden');
+                statusBox.classList.remove('hidden');
+                confirmBtn.classList.add('hidden');
+                cancelBtn.classList.remove('hidden');
+            } else {
+                formGroup.classList.remove('hidden');
+                statusBox.classList.add('hidden');
+                confirmBtn.classList.remove('hidden');
+                cancelBtn.classList.add('hidden');
+            }
+
+            document.getElementById('checkInModal').classList.remove('hidden');
+            document.getElementById('modalTicketCodeInput').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('checkInModal').classList.add('hidden');
+        }
+
+        function confirmCheckIn() {
+            const inputCode = document.getElementById('modalTicketCodeInput').value.trim();
+            const isChecked = currentButton.getAttribute('data-is-checked') === 'true';
+
+            if (!isChecked && inputCode !== currentTicketCode) {
+                document.getElementById('modalErrorMessage').classList.remove('hidden');
+                return;
+            }
+
+            toggleCheckIn(currentTicketCode, currentButton);
+            closeModal();
+        }
+
+        function toggleCheckIn(ticketCode, button) {
+            if (!ticketCode || ticketCode === 'null') return;
+            
+            const tripId = /*[[${tripId}]]*/ '0';
+            const url = '/staff/operations/trips/' + tripId + '/checkin/toggle?ticketCode=' + ticketCode;
+            
+            const csrfToken = /*[[${_csrf.token}]]*/ '';
+            const csrfHeader = /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN';
+            
+            button.classList.add('animate-pulse');
+            
+            fetch(url, { 
+                method: 'POST',
+                headers: {
+                    [csrfHeader]: csrfToken
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    button.classList.remove('animate-pulse');
+                    if (data.success) {
+                        const checkedCountEl = document.getElementById('checkedCount');
+                        let count = parseInt(checkedCountEl.innerText);
+                        
+                        if (data.newStatus === 'CHECKED_IN') {
+                            button.classList.remove('seat-booked');
+                            button.classList.add('seat-checked');
+                            button.setAttribute('data-is-checked', 'true');
+                            count++;
+                        } else {
+                            button.classList.remove('seat-checked');
+                            button.classList.add('seat-booked');
+                            button.setAttribute('data-is-checked', 'false');
+                            count--;
+                        }
+                        checkedCountEl.innerText = count;
+                    } else {
+                        alert('Lỗi: ' + data.message);
+                    }
+                })
+                .catch(err => {
+                    button.classList.remove('animate-pulse');
+                    console.error(err);
+                    alert('Đã có lỗi xảy ra!');
+                });
+        }
+        /*]]>*/
+    </script>
 </body>
 </html>

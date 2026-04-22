@@ -10,66 +10,232 @@
 
     <main class="ml-60 pt-14 min-h-screen">
         <div class="px-8 py-7 max-w-screen-2xl mx-auto">
-            <div class="flex justify-between items-end mb-12">
-                <div>
-                    <h1 class="text-5xl font-black tracking-tight text-blue-900 mb-2">Quản lý Đội xe</h1>
-                    <p class="text-slate-500 font-medium">Toàn bộ phương tiện vận tải siêu sang của hệ thống.</p>
-                </div>
-                <a th:href="@{/admin/coaches/create}"
-                    class="btn-primary-gradient px-8 py-4 text-white rounded-2xl font-black flex items-center gap-2 hover:scale-[0.98] transition-transform">
-                    <span class="material-symbols-outlined">add</span> THÊM XE MỚI
-                </a>
+
+            <!-- Alerts -->
+            <div th:if="${successMessage}" class="mb-5 px-4 py-3 rounded-lg bg-emerald-50 text-emerald-800 text-sm font-medium border border-emerald-200 flex items-center gap-2">
+                <span class="ms text-[18px]">check_circle</span> <span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" class="mb-5 px-4 py-3 rounded-lg bg-red-50 text-red-800 text-sm font-medium border border-red-200 flex items-center gap-2">
+                <span class="ms text-[18px]">error</span> <span th:text="${errorMessage}"></span>
             </div>
 
-            <div th:if="${successMessage}"
-                class="mb-8 p-6 bg-emerald-50 text-emerald-700 rounded-3xl font-black border border-emerald-100 shadow-sm"
-                th:text="${successMessage}"></div>
+            <!-- Page Header -->
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h1 class="text-2xl font-extrabold text-ink tracking-tight">Quản lý Đội xe</h1>
+                    <p class="text-sm text-ink-muted mt-0.5">Quản lý toàn bộ phương tiện vận tải trong hệ thống.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a th:href="@{/admin/coaches/types}"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-surface-card border border-surface-border text-ink text-sm font-semibold hover:bg-surface-hover active:scale-[.98] transition-all shadow-sm">
+                        <span class="ms text-[18px]">category</span> Loại xe
+                    </a>
+                    <a th:href="@{/admin/coaches/create}"
+                       class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-700 text-white text-sm font-semibold hover:bg-brand-800 active:scale-[.98] transition-all shadow-sm">
+                        <span class="ms text-[18px]">add</span> Thêm xe mới
+                    </a>
+                </div>
+            </div>
 
-            <section class="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-100">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr
-                            class="bg-slate-50 text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] border-b border-slate-100">
-                            <th class="px-8 py-6">Biển số</th>
-                            <th class="px-8 py-6">Dòng xe</th>
-                            <th class="px-8 py-6">Cấu hình ghế</th>
-                            <th class="px-8 py-6 text-right">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50">
-                        <tr th:each="coach : ${coaches}" class="table-row-hover transition-all cursor-pointer group"
-                            th:onclick="|window.location.href='@{/admin/coaches/detail/{id}(id=${coach.id})}'|">
-                            <td class="px-8 py-7">
-                                <span
-                                    class="font-mono font-black text-blue-900 bg-blue-50 px-3 py-1 rounded-lg group-hover:bg-blue-700 group-hover:text-white transition-colors"
-                                    th:text="${coach.plateNumber}">29A-12345</span>
-                            </td>
-                            <td class="px-8 py-7">
-                                <span class="status-badge bg-slate-100 text-slate-600 uppercase tracking-tighter"
-                                    th:text="${coach.coachType}">Limousine</span>
-                            </td>
-                            <td class="px-8 py-7 font-black text-slate-600" th:text="${coach.totalSeats + ' Chỗ ngồi'}">
-                                34 Chỗ</td>
-                            <td class="px-8 py-7 text-right flex justify-end gap-3" onclick="event.stopPropagation()">
-                                <a th:href="@{/admin/coaches/edit/{id}(id=${coach.id})}"
-                                    class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-blue-100 hover:text-blue-700 transition-all">
-                                    <span class="material-symbols-outlined text-[20px]">edit</span>
-                                </a>
-                                <form th:action="@{/admin/coaches/delete/{id}(id=${coach.id})}" method="post"
-                                    onsubmit="return confirm('Xóa xe này khỏi hệ thống?')">
-                                    <button type="submit"
-                                        class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-red-100 hover:text-red-600 transition-all">
-                                        <span class="material-symbols-outlined text-[20px]">delete</span>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="stat-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="ms text-[22px] text-brand-600">rv_hookup</span>
+                    </div>
+                    <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide">Tổng số xe</p>
+                    <p class="text-2xl font-extrabold text-ink mt-1" th:text="${coaches != null ? #lists.size(coaches) : 0}">0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="ms text-[22px] text-emerald-500">check_circle</span>
+                    </div>
+                    <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide">Sẵn sàng</p>
+                    <p class="text-2xl font-extrabold text-ink mt-1"
+                       th:text="${coaches != null ? #lists.size(coaches.?[status != null and status.name() == 'AVAILABLE']) : 0}">0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="ms text-[22px] text-orange-500">directions_bus</span>
+                    </div>
+                    <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide">Đang hoạt động</p>
+                    <p class="text-2xl font-extrabold text-ink mt-1"
+                       th:text="${coaches != null ? #lists.size(coaches.?[status != null and status.name() == 'WORKING']) : 0}">0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="ms text-[22px] text-red-500">build</span>
+                    </div>
+                    <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide">Bảo trì</p>
+                    <p class="text-2xl font-extrabold text-ink mt-1"
+                       th:text="${coaches != null ? #lists.size(coaches.?[status != null and status.name() == 'MAINTENANCE']) : 0}">0</p>
+                </div>
+            </div>
+
+            <!-- Coach Table Card -->
+            <div class="bg-surface-card rounded-xl border border-surface-border shadow-card overflow-hidden">
+
+                <!-- Table Toolbar -->
+                <div class="border-b border-surface-border px-5 pt-4 pb-0">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-base font-bold text-ink flex items-center gap-2">
+                            <span class="w-1 h-5 bg-brand-600 rounded-full block"></span>
+                            Danh sách phương tiện
+                        </h2>
+                        <div class="flex items-center gap-1">
+                            <button class="btn-icon" title="Làm mới" onclick="location.reload()">
+                                <span class="ms text-[20px]">refresh</span>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Quick Filter Tabs -->
+                    <div class="flex items-center gap-5" id="statusTabs">
+                        <a href="javascript:void(0)" class="tab-filter active" data-filter="ALL">Tất cả</a>
+                        <a href="javascript:void(0)" class="tab-filter" data-filter="AVAILABLE">Sẵn sàng</a>
+                        <a href="javascript:void(0)" class="tab-filter" data-filter="WORKING">Đang chạy</a>
+                        <a href="javascript:void(0)" class="tab-filter" data-filter="MAINTENANCE">Bảo trì</a>
+                        <a href="javascript:void(0)" class="tab-filter" data-filter="INACTIVE">Không hoạt động</a>
+                    </div>
+                </div>
+
+                <!-- Scrollable Table -->
+                <div class="overflow-auto" style="max-height: 560px;">
+                    <table class="w-full border-collapse text-sm" id="coachTable">
+                        <thead class="sticky top-0 z-10">
+                            <tr>
+                                <th class="th">Biển số</th>
+                                <th class="th">Loại xe</th>
+                                <th class="th">Sức chứa</th>
+                                <th class="th">Trạng thái</th>
+                                <th class="th text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="coach : ${coaches}"
+                                class="group cursor-pointer coach-row"
+                                th:data-status="${coach.status}"
+                                th:onclick="|window.location.href='@{/admin/coaches/detail/{id}(id=${coach.id})}'|">
+
+                                <!-- Biển số -->
+                                <td class="td">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0">
+                                            <span class="ms text-[16px] text-brand-600">directions_bus</span>
+                                        </div>
+                                        <span class="font-mono text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded group-hover:bg-brand-700 group-hover:text-white transition-colors"
+                                              th:text="${coach.plateNumber}">29A-12345</span>
+                                    </div>
+                                </td>
+
+                                <!-- Loại xe -->
+                                <td class="td">
+                                    <span class="badge bg-surface text-ink-muted border border-surface-border"
+                                          th:text="${coach.coachType}">Limousine</span>
+                                </td>
+
+                                <!-- Sức chứa -->
+                                <td class="td">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="ms text-[16px] text-ink-faint">airline_seat_recline_normal</span>
+                                        <span class="font-semibold text-ink" th:text="${coach.totalSeats + ' chỗ'}">34 chỗ</span>
+                                    </div>
+                                </td>
+
+                                <!-- Trạng thái -->
+                                <td class="td">
+                                    <span th:if="${coach.status != null and coach.status.name() == 'AVAILABLE'}"
+                                          class="pill-status bg-emerald-50 text-emerald-700">
+                                        <span class="dot bg-emerald-500"></span>
+                                        Sẵn sàng
+                                    </span>
+                                    <span th:if="${coach.status != null and coach.status.name() == 'WORKING'}"
+                                          class="pill-status bg-orange-50 text-orange-700">
+                                        <span class="dot bg-orange-500"></span>
+                                        Đang chạy
+                                    </span>
+                                    <span th:if="${coach.status != null and coach.status.name() == 'MAINTENANCE'}"
+                                          class="pill-status bg-red-50 text-red-700">
+                                        <span class="dot bg-red-500"></span>
+                                        Bảo trì
+                                    </span>
+                                    <span th:if="${coach.status != null and coach.status.name() == 'INACTIVE'}"
+                                          class="pill-status bg-slate-100 text-slate-700">
+                                        <span class="dot bg-slate-500"></span>
+                                        Ngừng hoạt động
+                                    </span>
+                                    <span th:if="${coach.status == null}"
+                                          class="pill-status bg-slate-50 text-slate-500">
+                                        <span class="dot bg-slate-400"></span>
+                                        Không rõ
+                                    </span>
+                                </td>
+
+                                <!-- Thao tác -->
+                                <td class="td text-right" onclick="event.stopPropagation()">
+                                    <div class="flex items-center justify-end gap-0.5">
+                                        <a th:href="@{/admin/coaches/detail/{id}(id=${coach.id})}"
+                                           class="btn-icon opacity-100 text-ink-muted hover:bg-surface-hover" title="Chi tiết">
+                                            <span class="ms text-[18px]">visibility</span>
+                                        </a>
+                                        <a th:href="@{/admin/coaches/edit/{id}(id=${coach.id})}"
+                                           class="btn-icon opacity-100 text-brand-600 hover:bg-brand-50" title="Chỉnh sửa">
+                                            <span class="ms text-[18px]">edit</span>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Empty state -->
+                            <tr th:if="${coaches == null or #lists.isEmpty(coaches)}" id="emptyState">
+                                <td colspan="5" class="py-16 text-center">
+                                    <span class="ms text-[48px] text-ink-faint block mb-3">rv_hookup</span>
+                                    <p class="font-semibold text-ink-muted">Chưa có phương tiện nào</p>
+                                    <p class="text-xs text-ink-faint mt-1">Bắt đầu thêm xe mới vào hệ thống.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Footer info -->
+                <div class="px-5 py-3 border-t border-surface-border flex items-center justify-between bg-surface-card">
+                    <p class="text-xs text-ink-muted">
+                        Tổng cộng <span class="font-semibold text-ink" th:text="${coaches != null ? #lists.size(coaches) : 0}">0</span> phương tiện
+                    </p>
+                </div>
+            </div>
+
         </div>
     </main>
 
+<script>
+    // Client-side tab filtering
+    document.querySelectorAll('#statusTabs .tab-filter').forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Update active tab
+            document.querySelectorAll('#statusTabs .tab-filter').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            const filter = tab.dataset.filter;
+            const rows = document.querySelectorAll('.coach-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                if (filter === 'ALL' || row.dataset.status === filter) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Show/hide empty state based on filter
+            const emptyRow = document.getElementById('emptyState');
+            if (emptyRow) {
+                emptyRow.style.display = visibleCount === 0 ? '' : 'none';
+            }
+        });
+    });
 </body>
 
 </html>

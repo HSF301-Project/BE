@@ -33,4 +33,9 @@ public interface TripService {
     Optional<UUID> updateTrip(UUID id, TripRequestDTO request);
 
     void deleteTrip(UUID id);
+
+    // Operation Side
+    void startTrip(UUID tripId);
+
+    void finishTrip(UUID tripId);
 }

@@ -217,6 +217,43 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
+    @Transactional
+    public void startTrip(UUID tripId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+
+        if (trip.getTripStatus() != TripStatusEnum.SCHEDULED) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Chỉ có thể bắt đầu chuyến đi đang ở trạng thái SCHEDULED.");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (now.isBefore(trip.getDepartureTime())) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+            throw new AppException(ErrorCode.INVALID_INPUT, 
+                "Không thể bắt đầu chuyến xe sớm hơn giờ dự kiến. Vui lòng đợi đến " + trip.getDepartureTime().format(formatter) + ".");
+        }
+
+        trip.setActualDepartureTime(now);
+        trip.setTripStatus(TripStatusEnum.DEPARTED);
+        tripRepository.save(trip);
+    }
+
+    @Override
+    @Transactional
+    public void finishTrip(UUID tripId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+
+        if (trip.getTripStatus() != TripStatusEnum.DEPARTED) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Chỉ có thể kết thúc chuyến đi đang ở trạng thái DEPARTED.");
+        }
+
+        trip.setActualArrivalTime(LocalDateTime.now());
+        trip.setTripStatus(TripStatusEnum.COMPLETED);
+        tripRepository.save(trip);
+    }
+
+    @Override
     public BigDecimal getBasePriceByTripId(UUID tripId) {
         return tripRepository.findById(tripId)
                 .map(Trip::getPriceBase)
@@ -472,7 +509,11 @@ public class TripServiceImpl implements TripService {
     }
 
     private List<TripStopEtaDTO> buildRouteTimeline(Trip trip, DateTimeFormatter timeOnly) {
-        // Build from proper RouteStop entities (FK → Location)
+        // Sử dụng giờ xuất bến thực tế nếu đã chạy, ngược lại dùng giờ dự kiến
+        LocalDateTime baseTime = (trip.getActualDepartureTime() != null) 
+                ? trip.getActualDepartureTime() 
+                : trip.getDepartureTime();
+
         List<StopWithKm> stops = new ArrayList<>();
         stops.add(new StopWithKm(trip.getRoute().getDepartureLocation().getName(), 0f, "START", null, trip.getRoute().getDepartureLocation().getId()));
 
@@ -516,7 +557,7 @@ public class TripServiceImpl implements TripService {
                 offsetMinutes = Math.round((double) i * totalMinutes / segmentsFallback);
             }
 
-            LocalDateTime eta = trip.getDepartureTime().plusMinutes(offsetMinutes);
+            LocalDateTime eta = baseTime.plusMinutes(offsetMinutes);
             String stopType = s.type;
             String pointType = (s.meta != null && s.meta.pointType != null && !s.meta.pointType.isBlank())
                     ? s.meta.pointType
