@@ -99,7 +99,7 @@ public class TripOperationController {
             public String getActualArrival() { return t.getActualArrivalTime() != null ? t.getActualArrivalTime().format(DateTimeFormatter.ofPattern("HH:mm, dd/MM")) : "-"; }
             public String getDriverName() { return t.getDriver() != null ? t.getDriver().getFullName() : "Chưa phân công"; }
             public String getAssistantName() { return t.getAssistant() != null ? t.getAssistant().getFullName() : "Chưa phân công"; }
-            public String getCoachType() { return t.getCoach().getCoachType(); }
+            public String getCoachType() { return t.getCoach().getCoachType().getName(); }
         }).collect(Collectors.toList()));
 
         return "staff/schedule";

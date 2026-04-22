@@ -40,6 +40,7 @@ public class CoachServiceImpl implements CoachService {
     private final TicketRepository ticketRepository;
     private final SeatRepository seatRepository;
     private final CoachMapper coachMapper;
+    private final sp26.group.busticket.modules.repository.CoachTypeRepository coachTypeRepository;
 
     @Override
     @Transactional
@@ -48,6 +49,8 @@ public class CoachServiceImpl implements CoachService {
             throw new AppException(ErrorCode.PLATE_NUMBER_ALREADY_EXISTS);
         }
         Coach coach = coachMapper.toEntity(request);
+        coach.setCoachType(coachTypeRepository.findById(request.getCoachTypeId())
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy loại xe yêu cầu")));
         coach.setStatus(sp26.group.busticket.modules.enumType.CoachStatusEnum.AVAILABLE);
         Coach savedCoach = coachRepository.save(coach);
         
@@ -90,6 +93,8 @@ public class CoachServiceImpl implements CoachService {
                 });
 
         coachMapper.updateEntity(coach, request);
+        coach.setCoachType(coachTypeRepository.findById(request.getCoachTypeId())
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy loại xe yêu cầu")));
         return coachMapper.toResponse(coachRepository.save(coach));
     }
 
@@ -149,7 +154,7 @@ public class CoachServiceImpl implements CoachService {
         return CoachDetailResponseDTO.builder()
                 .id(coach.getId())
                 .plateNumber(coach.getPlateNumber())
-                .coachType(coach.getCoachType())
+                .coachType(coach.getCoachType().getName())
                 .totalSeats(coach.getTotalSeats())
                 .currentDriverName(driverName)
                 .currentDriverPhone(driverPhone)
@@ -206,7 +211,7 @@ public class CoachServiceImpl implements CoachService {
                 .arrivalTime(trip.getArrivalTime().format(formatter))
                 .departureDate(trip.getDepartureTime().format(dateOnly))
                 .coachPlate(coach.getPlateNumber())
-                .coachType(coach.getCoachType())
+                .coachType(coach.getCoachType().getName())
                 .driverName(trip.getDriver() != null ? trip.getDriver().getFullName() : "N/A")
                 .driverPhone(trip.getDriver() != null ? trip.getDriver().getPhone() : "N/A")
                 .assistantName(trip.getAssistant() != null ? trip.getAssistant().getFullName() : "Chưa phân công")
@@ -312,7 +317,7 @@ public class CoachServiceImpl implements CoachService {
         int seatsPerFloor = total;
         int floors = 1;
 
-        String type = coach.getCoachType().toUpperCase();
+        String type = coach.getCoachType().getName().toUpperCase();
         // Heuristic: Sleeper buses or high seat count (usually 2 floors in VN)
         if (type.contains("GIƯỜNG") || type.contains("SLEEPER") || type.contains("CABIN") || 
             (total > 22 && total <= 46 && !type.contains("GHẾ"))) {

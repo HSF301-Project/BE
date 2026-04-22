@@ -29,6 +29,7 @@ public class DataInitializer implements CommandLineRunner {
     private final BookingRepository bookingRepository;
     private final TicketRepository ticketRepository;
     private final PaymentRepository paymentRepository;
+    private final CoachTypeRepository coachTypeRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -89,10 +90,15 @@ public class DataInitializer implements CommandLineRunner {
         initRouteStop(hnSg, initLocation("Trạm dừng chân Quy Nhơn", "Bình Định", "INTERMEDIATE"), 5, StopTypeEnum.BOTH, 1140, 1180f);
         initRouteStop(hnSg, initLocation("Trạm dừng chân Phan Thiết", "Bình Thuận", "INTERMEDIATE"), 6, StopTypeEnum.BOTH, 1560, 1600f);
 
+        // 3.5. Initialize Coach Types
+        CoachType typeLimousine = initCoachType("Limousine", "Xe khách cao cấp 22 phòng");
+        CoachType typeSleeper = initCoachType("Xe Giường Nằm", "Xe giường nằm tiêu chuẩn 40 chỗ");
+        CoachType typeSeater = initCoachType("Xe Ghế Ngồi", "Xe ghế ngồi 30 chỗ");
+
         // 4. Initialize Coaches & Seats
-        Coach limousine = initCoach("51B-12345", "Limousine", 22);
-        Coach sleeper = initCoach("51B-67890", "Xe Giường Nằm", 40);
-        Coach seater = initCoach("51C-11223", "Xe Ghế Ngồi", 30);
+        Coach limousine = initCoach("51B-12345", typeLimousine, 22);
+        Coach sleeper = initCoach("51B-67890", typeSleeper, 40);
+        Coach seater = initCoach("51C-11223", typeSeater, 30);
 
         // 5. Initialize Trips
         Account d1 = accountRepository.findByEmail("driver@gmail.com").get();
@@ -310,7 +316,17 @@ public class DataInitializer implements CommandLineRunner {
                         .build()));
     }
 
-    private Coach initCoach(String plate, String type, Integer seats) {
+    private CoachType initCoachType(String name, String desc) {
+        return coachTypeRepository.findByName(name)
+                .orElseGet(() -> {
+                    CoachType type = new CoachType();
+                    type.setName(name);
+                    type.setDescription(desc);
+                    return coachTypeRepository.save(type);
+                });
+    }
+
+    private Coach initCoach(String plate, CoachType type, Integer seats) {
         return coachRepository.findByPlateNumber(plate)
                 .orElseGet(() -> {
                     Coach coach = coachRepository.save(Coach.builder()

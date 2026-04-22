@@ -16,7 +16,7 @@ public interface TripMapper {
     TripBookingResponseDTO toTripBookingResponseDTO(Trip trip);
 
     @Mapping(target = "name", expression = "java(\"Chuyến xe \" + trip.getCoach().getPlateNumber())")
-    @Mapping(target = "busTypeLabel", source = "coach.coachType")
+    @Mapping(target = "busTypeLabel", source = "coach.coachType.name")
     @Mapping(target = "departureStation", source = "route.departureLocation.name")
     @Mapping(target = "arrivalStation", source = "route.arrivalLocation.name")
     @Mapping(target = "seatsLeft", source = "coach.totalSeats")
