@@ -65,7 +65,7 @@ public class CoachServiceImpl implements CoachService {
 
     private CoachResponseDTO enrichCoachResponse(Coach coach) {
         CoachResponseDTO dto = coachMapper.toResponse(coach);
-        dto.setStatus(coach.getStatus().name());
+        dto.setStatus(coach.getStatus()); 
         dto.setStatusLabel(translateCoachStatus(coach.getStatus()));
         return dto;
     }
@@ -342,6 +342,8 @@ public class CoachServiceImpl implements CoachService {
             case AVAILABLE -> "Sẵn sàng";
             case MAINTENANCE -> "Bảo trì";
             case WORKING -> "Đang vận hành";
+            case INACTIVE -> "Ngừng hoạt động";
+            default -> "Không xác định";
         };
     }
 }

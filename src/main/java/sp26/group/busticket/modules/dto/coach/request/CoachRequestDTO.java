@@ -26,6 +26,5 @@ public class CoachRequestDTO {
     @Positive(message = "Tổng số ghế phải lớn hơn 0")
     Integer totalSeats;
 
-    @NotNull(message = "Trạng thái xe không được để trống")
-    sp26.group.busticket.modules.enumType.CoachStatusEnum status;
+
 }

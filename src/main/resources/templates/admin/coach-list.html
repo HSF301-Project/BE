@@ -46,30 +46,7 @@
                     <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide">Tổng số xe</p>
                     <p class="text-2xl font-extrabold text-ink mt-1" th:text="${coaches != null ? #lists.size(coaches) : 0}">0</p>
                 </div>
-                <div class="stat-card">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="ms text-[22px] text-emerald-500">check_circle</span>
-                    </div>
-                    <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide">Sẵn sàng</p>
-                    <p class="text-2xl font-extrabold text-ink mt-1"
-                       th:text="${coaches != null ? #lists.size(coaches.?[status != null and status.name() == 'AVAILABLE']) : 0}">0</p>
-                </div>
-                <div class="stat-card">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="ms text-[22px] text-orange-500">directions_bus</span>
-                    </div>
-                    <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide">Đang hoạt động</p>
-                    <p class="text-2xl font-extrabold text-ink mt-1"
-                       th:text="${coaches != null ? #lists.size(coaches.?[status != null and status.name() == 'WORKING']) : 0}">0</p>
-                </div>
-                <div class="stat-card">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="ms text-[22px] text-red-500">build</span>
-                    </div>
-                    <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide">Bảo trì</p>
-                    <p class="text-2xl font-extrabold text-ink mt-1"
-                       th:text="${coaches != null ? #lists.size(coaches.?[status != null and status.name() == 'MAINTENANCE']) : 0}">0</p>
-                </div>
+
             </div>
 
             <!-- Coach Table Card -->
@@ -88,14 +65,7 @@
                             </button>
                         </div>
                     </div>
-                    <!-- Quick Filter Tabs -->
-                    <div class="flex items-center gap-5" id="statusTabs">
-                        <a href="javascript:void(0)" class="tab-filter active" data-filter="ALL">Tất cả</a>
-                        <a href="javascript:void(0)" class="tab-filter" data-filter="AVAILABLE">Sẵn sàng</a>
-                        <a href="javascript:void(0)" class="tab-filter" data-filter="WORKING">Đang chạy</a>
-                        <a href="javascript:void(0)" class="tab-filter" data-filter="MAINTENANCE">Bảo trì</a>
-                        <a href="javascript:void(0)" class="tab-filter" data-filter="INACTIVE">Không hoạt động</a>
-                    </div>
+
                 </div>
 
                 <!-- Scrollable Table -->
@@ -106,7 +76,6 @@
                                 <th class="th">Biển số</th>
                                 <th class="th">Loại xe</th>
                                 <th class="th">Sức chứa</th>
-                                <th class="th">Trạng thái</th>
                                 <th class="th text-right">Thao tác</th>
                             </tr>
                         </thead>
@@ -141,34 +110,7 @@
                                     </div>
                                 </td>
 
-                                <!-- Trạng thái -->
-                                <td class="td">
-                                    <span th:if="${coach.status != null and coach.status.name() == 'AVAILABLE'}"
-                                          class="pill-status bg-emerald-50 text-emerald-700">
-                                        <span class="dot bg-emerald-500"></span>
-                                        Sẵn sàng
-                                    </span>
-                                    <span th:if="${coach.status != null and coach.status.name() == 'WORKING'}"
-                                          class="pill-status bg-orange-50 text-orange-700">
-                                        <span class="dot bg-orange-500"></span>
-                                        Đang chạy
-                                    </span>
-                                    <span th:if="${coach.status != null and coach.status.name() == 'MAINTENANCE'}"
-                                          class="pill-status bg-red-50 text-red-700">
-                                        <span class="dot bg-red-500"></span>
-                                        Bảo trì
-                                    </span>
-                                    <span th:if="${coach.status != null and coach.status.name() == 'INACTIVE'}"
-                                          class="pill-status bg-slate-100 text-slate-700">
-                                        <span class="dot bg-slate-500"></span>
-                                        Ngừng hoạt động
-                                    </span>
-                                    <span th:if="${coach.status == null}"
-                                          class="pill-status bg-slate-50 text-slate-500">
-                                        <span class="dot bg-slate-400"></span>
-                                        Không rõ
-                                    </span>
-                                </td>
+
 
                                 <!-- Thao tác -->
                                 <td class="td text-right" onclick="event.stopPropagation()">
@@ -207,35 +149,6 @@
 
         </div>
     </main>
-
-<script>
-    // Client-side tab filtering
-    document.querySelectorAll('#statusTabs .tab-filter').forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Update active tab
-            document.querySelectorAll('#statusTabs .tab-filter').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-
-            const filter = tab.dataset.filter;
-            const rows = document.querySelectorAll('.coach-row');
-            let visibleCount = 0;
-
-            rows.forEach(row => {
-                if (filter === 'ALL' || row.dataset.status === filter) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            // Show/hide empty state based on filter
-            const emptyRow = document.getElementById('emptyState');
-            if (emptyRow) {
-                emptyRow.style.display = visibleCount === 0 ? '' : 'none';
-            }
-        });
-    });
 </body>
 
 </html>
