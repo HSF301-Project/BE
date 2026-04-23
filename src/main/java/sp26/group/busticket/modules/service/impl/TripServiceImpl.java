@@ -90,7 +90,7 @@ public class TripServiceImpl implements TripService {
 
         List<sp26.group.busticket.modules.dto.trip.response.TripResponseDTO> tripDTOs = trips.stream()
                 .filter(t -> request.getBusType() == null || request.getBusType().isEmpty() ||
-                        t.getCoach().getCoachType().equalsIgnoreCase(request.getBusType()))
+                        t.getCoach().getCoachType().getName().equalsIgnoreCase(request.getBusType()))
                 .filter(t -> request.getMaxPrice() == null ||
                         t.getPriceBase().compareTo(BigDecimal.valueOf(request.getMaxPrice())) <= 0)
                 .map(this::mapToClientResponseDTO)
@@ -615,8 +615,8 @@ public class TripServiceImpl implements TripService {
                 .toStation(trip.getRoute().getArrivalLocation().getName())
                 .fromCity(trip.getRoute().getDepartureLocation().getCity())
                 .toCity(trip.getRoute().getArrivalLocation().getCity())
-                .busType(trip.getCoach().getCoachType())
-                .busTypeLabel("Hạng " + trip.getCoach().getCoachType())
+                .busType(trip.getCoach().getCoachType().getName())
+                .busTypeLabel("Hạng " + trip.getCoach().getCoachType().getName())
                 .departureTime(trip.getDepartureTime().format(timeFmt))
                 .departureAmPm(trip.getDepartureTime().getHour() < 12 ? "SA" : "CH")
                 .bookedSeats(booked)

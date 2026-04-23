@@ -28,6 +28,14 @@ public abstract class BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -39,4 +47,8 @@ public abstract class BaseEntity {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 }

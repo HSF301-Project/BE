@@ -21,6 +21,7 @@ public class CoachResponseDTO {
     UUID id;
     String plateNumber;
     String coachType;
+    UUID coachTypeId;
     Integer totalSeats;
     CoachStatusEnum status;
     String statusLabel;

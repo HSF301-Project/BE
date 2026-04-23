@@ -5,4 +5,5 @@ import sp26.group.busticket.modules.entity.CoachType;
 import java.util.UUID;
 
 public interface CoachTypeRepository extends JpaRepository<CoachType, UUID> {
+    java.util.Optional<CoachType> findByName(String name);
 }

@@ -27,6 +27,7 @@ public class CoachController {
 
     private final CoachService coachService;
     private final CoachTypeRepository coachTypeRepository;
+    private final sp26.group.busticket.modules.repository.CoachRepository coachRepository;
 
     @GetMapping
     public String listCoaches(Model model) {
@@ -59,6 +60,7 @@ public class CoachController {
                             RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("title", request.getPlateNumber() != null ? "Cập nhật thông tin xe" : "Thêm xe mới");
+            model.addAttribute("coachTypes", coachTypeRepository.findAll());
             return "Admin/coach-form";
         }
 
@@ -68,6 +70,7 @@ public class CoachController {
             return "redirect:/admin/coaches";
         } catch (AppException e) {
             model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("coachTypes", coachTypeRepository.findAll());
             return "Admin/coach-form";
         }
     }
@@ -82,6 +85,7 @@ public class CoachController {
             model.addAttribute("title", "Cập nhật thông tin xe");
             model.addAttribute("isEdit", true);
             model.addAttribute("coachId", id);
+            model.addAttribute("coachTypes", coachTypeRepository.findAll());
             return "Admin/coach-form";
         }
 
@@ -93,6 +97,7 @@ public class CoachController {
             model.addAttribute("errorMessage", e.getMessage());
             model.addAttribute("isEdit", true);
             model.addAttribute("coachId", id);
+            model.addAttribute("coachTypes", coachTypeRepository.findAll());
             return "Admin/coach-form";
         }
     }
@@ -153,10 +158,17 @@ public class CoachController {
     @PostMapping("/delete-type/{id}")
     public String deleteCoachType(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
         try {
+            long coachCount = coachRepository.countByCoachType_Id(id);
+            if (coachCount > 0) {
+                redirectAttributes.addFlashAttribute("errorMessage", 
+                    "Không thể xóa vì đang có " + coachCount + " xe thuộc phân loại này!");
+                return "redirect:/admin/coaches/types";
+            }
+            
             coachTypeRepository.deleteById(id);
             redirectAttributes.addFlashAttribute("successMessage", "Xóa phân loại xe thành công!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa phân loại xe này!");
+            redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi khi xóa phân loại xe!");
         }
         return "redirect:/admin/coaches/types";
     }
