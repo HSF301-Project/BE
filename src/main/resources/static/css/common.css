@@ -41,7 +41,41 @@ h1, h2, h3,
 .ticket-cutout-left  { clip-path: circle(12px at 0 50%); }
 .ticket-cutout-right { clip-path: circle(12px at 100% 50%); }
 
-/* Editorial gradient (used in my-trips page) */
+/* Editorial gradient (used in my-trips page and ticket buttons) */
 .bg-editorial-gradient {
     background: linear-gradient(135deg, #003178 0%, #0d47a1 100%);
 }
+
+/* Shared nav backdrop */
+.nav-backdrop {
+    background: rgba(255, 255, 255, 0.80);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+}
+
+/* Ticket gradient (used in view_ticket) */
+.ticket-gradient {
+    background: linear-gradient(135deg, #1A1C1E 0%, #2C3E50 100%);
+}
+
+/* Ticket dashed separator with circular cutouts */
+.dashed-line {
+    border-top: 2px dashed rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+.dashed-line::before,
+.dashed-line::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #F8F9FA;
+}
+.dashed-line::before { left: -30px; }
+.dashed-line::after  { right: -30px; }
+
+/* Ticket dash helper (confirm_payment) */
+.ticket-dash { border-left: none; border-right: none; }
+

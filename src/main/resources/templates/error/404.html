@@ -1,14 +1,40 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Not Found</title>
+    <th:block th:replace="~{fragments/head-common :: head-common(title='Không tìm thấy trang | Premium Transit')}"></th:block>
 </head>
-<body>
-<h1>404 - Page Not Found</h1>
-<p>The page you requested does not exist.</p>
-<p><a th:href="@{/home}">Back to home</a></p>
+<body class="bg-background text-on-surface min-h-screen flex flex-col" style="font-family:'Inter',sans-serif">
+
+<th:block th:replace="~{fragments/navbar :: navbar}"></th:block>
+
+<main class="flex-1 flex items-center justify-center px-4 py-20">
+    <div class="text-center max-w-lg">
+        <div class="w-28 h-28 rounded-full bg-secondary/10 text-secondary mx-auto flex items-center justify-center mb-8">
+            <span class="material-symbols-outlined text-6xl">explore_off</span>
+        </div>
+
+        <h1 class="text-8xl font-black text-primary mb-2" style="font-family:'Plus Jakarta Sans',sans-serif">404</h1>
+        <h2 class="text-2xl font-bold text-on-surface mb-4" style="font-family:'Plus Jakarta Sans',sans-serif">Trang không tồn tại</h2>
+        <p class="text-on-surface-variant mb-10 leading-relaxed">
+            Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển. Vui lòng kiểm tra lại đường dẫn.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a th:href="@{/home}"
+               class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-primary-container text-white rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all active:scale-95">
+                <span class="material-symbols-outlined">home</span>
+                Về trang chủ
+            </a>
+            <a th:href="@{/search}"
+               class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-surface-container-low text-primary border border-outline-variant rounded-2xl font-bold hover:bg-surface-container-high transition-all active:scale-95">
+                <span class="material-symbols-outlined">search</span>
+                Tìm chuyến xe
+            </a>
+        </div>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/footer :: footer}"></th:block>
+
 </body>
 </html>
-

@@ -82,8 +82,12 @@
             const primarySeat = selectedSeats[0];
             const primaryBorderColor = primarySeat.deck === 'lower' ? 'border-primary' : 'border-secondary';
             const primaryBadgeColor = primarySeat.deck === 'lower' ? 'text-primary' : 'text-secondary';
+            const hasUpperDeck = document.querySelector('.seat-btn[data-deck="upper"]') !== null;
             const selectedSeatLabels = selectedSeats
-                .map(seat => `${seat.seatId} (${seat.deck === 'lower' ? 'Tầng dưới' : 'Tầng trên'})`)
+                .map(seat => {
+                    const deckName = seat.deck === 'lower' ? (hasUpperDeck ? 'Tầng dưới' : 'Ghế ngồi') : 'Tầng trên';
+                    return `${seat.seatId} (${deckName})`;
+                })
                 .join(', ');
 
             const wrapper = document.createElement('div');

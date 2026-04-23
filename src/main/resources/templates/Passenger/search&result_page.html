@@ -1,128 +1,27 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title th:text="'Premium Transit | ' + ${searchResult.fromCity} + ' → ' + ${searchResult.toCity}">
-        Premium Transit | Tìm chuyến xe
-    </title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"/>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"/>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "surface-container": "#ededf5",
-                        "on-tertiary-container": "#7ecf79",
-                        "surface-variant": "#e2e2ea",
-                        "surface-container-high": "#e8e7f0",
-                        "primary-fixed-dim": "#b0c6ff",
-                        "on-background": "#1a1b21",
-                        "outline-variant": "#c3c6d4",
-                        "on-surface": "#1a1b21",
-                        "secondary-container": "#fe5825",
-                        "surface-container-low": "#f3f3fb",
-                        "on-tertiary-fixed-variant": "#005312",
-                        "tertiary-fixed": "#a3f69c",
-                        "on-primary-fixed": "#001945",
-                        "on-primary-container": "#a1bbff",
-                        "secondary": "#b02e00",
-                        "on-primary": "#ffffff",
-                        "primary-container": "#0d47a1",
-                        "on-surface-variant": "#434652",
-                        "on-secondary": "#ffffff",
-                        "inverse-surface": "#2e3036",
-                        "primary-fixed": "#d9e2ff",
-                        "outline": "#737783",
-                        "surface-container-lowest": "#ffffff",
-                        "surface-bright": "#faf8ff",
-                        "background": "#faf8ff",
-                        "surface-tint": "#2b5bb5",
-                        "surface": "#faf8ff",
-                        "primary": "#003178",
-                        "surface-container-highest": "#e2e2ea",
-                    },
-                    fontFamily: {
-                        headline: ["Plus Jakarta Sans"],
-                        body: ["Inter"],
-                        label: ["Inter"]
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        h1, h2, h3, .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            display: inline-block; line-height: 1;
-        }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
+    <th:block th:replace="~{fragments/head-common :: head-common(title=${searchResult != null ? 'Premium Transit | ' + searchResult.fromCity + ' → ' + searchResult.toCity : 'Premium Transit | Tìm chuyến xe'})}"></th:block>
 </head>
 <body class="bg-background text-on-surface">
 
-<!-- ===== TOP NAV ===== -->
-<header class="bg-white/80 backdrop-blur-xl sticky top-0 z-50 shadow-[0_12px_32px_rgba(26,27,33,0.06)]">
-    <div class="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
-        <div class="flex items-center gap-8">
-            <a th:href="@{/}" class="text-2xl font-black italic text-blue-900">Premium Transit</a>
-            <nav class="hidden md:flex gap-6 items-center">
-                <a th:href="@{/my-trips}"
-                   class="font-semibold tracking-tight text-blue-900 border-b-2 border-blue-900 pb-1"
-                   style="font-family: 'Plus Jakarta Sans', sans-serif;">My Trips</a>
-                <a th:href="@{/promotions}"
-                   class="font-semibold tracking-tight text-slate-500 hover:text-blue-800 transition-colors"
-                   style="font-family: 'Plus Jakarta Sans', sans-serif;">Promotions</a>
-                <a th:href="@{/help}"
-                   class="font-semibold tracking-tight text-slate-500 hover:text-blue-800 transition-colors"
-                   style="font-family: 'Plus Jakarta Sans', sans-serif;">Help</a>
-            </nav>
-        </div>
-        <div class="flex items-center gap-4">
-            <!-- Quick search bar -->
-            <form th:action="@{/search}" method="get"
-                  class="hidden lg:flex items-center bg-surface-container-low rounded-full px-4 py-2 border border-outline/10">
-                <span class="material-symbols-outlined text-outline text-sm">search</span>
-                <input type="text" name="q"
-                       th:value="${searchResult.fromCity + ' → ' + searchResult.toCity}"
-                       placeholder="Search routes..."
-                       class="bg-transparent border-none focus:ring-0 text-sm w-48 outline-none"/>
-            </form>
-            <button class="p-2 hover:bg-slate-50 rounded-lg transition-all text-blue-900">
-                <span class="material-symbols-outlined">notifications</span>
-            </button>
-            <button class="p-2 hover:bg-slate-50 rounded-lg transition-all text-blue-900">
-                <span class="material-symbols-outlined">account_circle</span>
-            </button>
-        </div>
-    </div>
-</header>
+<nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
 <main class="max-w-7xl mx-auto px-4 md:px-8 py-8">
 
     <!-- ===== SEARCH HEADER ===== -->
     <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-            <!-- Dynamic route title -->
-            <h1 class="text-4xl font-extrabold tracking-tight text-primary mb-2"
-                style="font-family: 'Plus Jakarta Sans', sans-serif;">
+            <h1 class="text-4xl font-extrabold tracking-tight text-primary mb-2 editorial-heading">
                 <span th:text="${searchResult.fromCity}">Hà Nội</span>
                 <span class="text-secondary"> → </span>
                 <span th:text="${searchResult.toCity}">Đà Nẵng</span>
             </h1>
-            <!-- Dynamic subtitle: date + passengers -->
             <p class="text-on-surface-variant font-medium">
                 <span th:text="${searchResult.dateLabel}">Thứ Sáu, 24 Tháng 5, 2024</span>
                 • <span th:text="${searchResult.passengerLabel}">2 Người lớn</span>
             </p>
         </div>
-        <!-- Change date button -->
         <div class="flex gap-2">
             <a th:href="@{/(from=${searchResult.fromCity}, to=${searchResult.toCity})}"
                class="flex items-center gap-2 px-6 py-3 bg-surface-container-high rounded-xl font-semibold text-primary transition-all hover:bg-surface-container-highest active:scale-95">
@@ -139,14 +38,12 @@
         <aside class="lg:col-span-3 space-y-8 sticky top-24">
             <div class="bg-surface-container-low rounded-3xl p-6 space-y-8">
 
-                <!-- Header -->
                 <div class="flex items-center justify-between">
-                    <h3 class="font-bold text-xl" style="font-family: 'Plus Jakarta Sans', sans-serif;">Bộ lọc</h3>
+                    <h3 class="font-bold text-xl editorial-heading">Bộ lọc</h3>
                     <a th:href="@{/search(from=${searchResult.fromCity}, to=${searchResult.toCity}, date=${searchResult.date})}"
                        class="text-surface-tint text-sm font-semibold hover:underline">Xóa lọc</a>
                 </div>
 
-                <!-- Filter form wrapping all inputs -->
                 <form th:action="@{/search}" method="get" id="filterForm">
                     <input type="hidden" name="from" th:value="${searchResult.fromCity}"/>
                     <input type="hidden" name="to" th:value="${searchResult.toCity}"/>
@@ -251,8 +148,7 @@
                      alt="Promo banner"/>
                 <div class="absolute inset-0 bg-gradient-to-t from-primary/90 to-transparent flex flex-col justify-end p-6">
                     <p class="text-white/80 text-sm font-medium mb-1">Thành viên mới?</p>
-                    <h4 class="text-white text-2xl font-bold mb-4 leading-tight"
-                        style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                    <h4 class="text-white text-2xl font-bold mb-4 leading-tight editorial-heading">
                         Giảm ngay 15% cho chuyến đi đầu tiên
                     </h4>
                     <a th:href="@{/promotions/new-member}"
@@ -296,19 +192,9 @@
             <!-- ===== TRIP CARDS LIST ===== -->
             <div class="space-y-6">
 
-                <!--
-                    DYNAMIC: th:each loop qua danh sách trips
-                    Mỗi trip object cần: id, imageUrl, badge, badgeStyle, rating,
-                    name, busTypeLabel, amenities, priceFormatted,
-                    departureTime, departureStation, duration, arrivalTime, arrivalStation,
-                    seatsLeft, isFeatured (boolean for "Bán chạy nhất" badge)
-                -->
                 <div th:each="trip, iterStat : ${searchResult.trips}"
                      th:classappend="${iterStat.index == 1} ? 'ring-2 ring-primary/20' : ''"
                      class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-[0_12px_32px_rgba(26,27,33,0.06)] hover:bg-surface-bright transition-all group border border-transparent hover:border-primary/10">
-
-                    <!-- Group banner (insert promo card between index 1 and 2) -->
-                    <!-- Promo card ở vị trí cố định sau card thứ 2 — xem phía dưới vòng lặp -->
 
                     <div class="flex flex-col md:flex-row gap-8">
                         <!-- Bus Image -->
@@ -317,14 +203,12 @@
                                 <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                      th:src="${trip.imageUrl}"
                                      th:alt="${trip.name}"/>
-                                <!-- Featured badge -->
                                 <div th:if="${trip.featured}"
                                      class="absolute top-2 left-2 bg-secondary/90 backdrop-blur px-3 py-1 rounded-full flex items-center gap-1">
                                     <span class="material-symbols-outlined text-white text-[10px]"
                                           style="font-variation-settings: 'FILL' 1;">bolt</span>
                                     <span class="text-xs font-bold text-white uppercase tracking-tighter">Bán chạy nhất</span>
                                 </div>
-                                <!-- Rating badge -->
                                 <div th:unless="${trip.featured}"
                                      class="absolute top-2 left-2 bg-white/90 backdrop-blur px-3 py-1 rounded-full flex items-center gap-1">
                                     <span class="material-symbols-outlined text-orange-500 text-sm"
@@ -339,16 +223,14 @@
                             <div class="flex justify-between items-start">
                                 <div>
                                     <div class="flex items-center gap-2 mb-2">
-                                        <h3 class="text-xl font-bold text-primary"
-                                            th:text="${trip.name}"
-                                            style="font-family: 'Plus Jakarta Sans', sans-serif;">Hải Vân Limousine</h3>
+                                        <h3 class="text-xl font-bold text-primary editorial-heading"
+                                            th:text="${trip.name}">Hải Vân Limousine</h3>
                                         <span class="px-2 py-0.5 text-[10px] font-black uppercase rounded tracking-tighter"
                                               th:text="${trip.busTypeLabel}"
                                               th:style="${trip.featured ? 'background:#ffedd5;color:#c2410c;' : 'background:#e8e7f0;color:#434652;'}">
                                             Limousine 22
                                         </span>
                                     </div>
-                                    <!-- Amenities -->
                                     <p class="text-sm text-on-surface-variant" th:text="${trip.amenities}">
                                         WiFi • Sạc • Nước uống
                                     </p>
@@ -363,7 +245,7 @@
                             <!-- Timeline -->
                             <div class="mt-8 flex items-center gap-6">
                                 <div class="text-center">
-                                    <div class="text-2xl font-bold font-headline"
+                                    <div class="text-2xl font-bold editorial-heading"
                                          th:text="${trip.departureTime}">19:30</div>
                                     <p class="text-xs font-semibold text-on-surface-variant"
                                        th:text="${trip.departureStation}">BĐ Mỹ Đình</p>
@@ -378,7 +260,7 @@
                                     <span class="material-symbols-outlined text-primary text-xl absolute -bottom-6">directions_bus</span>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-2xl font-bold font-headline"
+                                    <div class="text-2xl font-bold editorial-heading"
                                          th:text="${trip.arrivalTime}">10:15</div>
                                     <p class="text-xs font-semibold text-on-surface-variant"
                                        th:text="${trip.arrivalStation}">VP Đà Nẵng</p>
@@ -407,14 +289,13 @@
                     </div>
                 </div>
 
-                <!-- ===== STATIC FALLBACK (xóa khi dùng dynamic) ===== -->
-                <!-- Card 1 -->
+                <!-- Static fallback card -->
                 <div th:if="${searchResult == null}"
                      class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-[0_12px_32px_rgba(26,27,33,0.06)] hover:bg-surface-bright transition-all group border border-transparent hover:border-primary/10">
                     <div class="flex flex-col md:flex-row gap-8">
                         <div class="md:w-1/4 relative">
                             <div class="rounded-2xl overflow-hidden h-full min-h-[160px] relative">
-                                <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                <img class="w-full h-full object-cover"
                                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuBH9nBMdSMX35sDvHTXjEniO1fR4BNO8exYBCQpe2cWDz4JBNTaJyQrF6vhdQf61AH82KTE_fYsL1vFYCyvyrRIaDKSXq92WbZ9vsz-OHeSPydx-xdEAMlRO5gQX8eFFONJO6TvxOu6Wjv8SfVCFJE1wJxy3vUOAdvVQuqlDnG1grgFdhpBR_sb2OpmZkhnAVrgY6mRx9NhPLRTMoXdZfJ4ddHwVT1Pxt2cNZTrHm5sULjyBLqX08EojW1sKMtB4DWJEBXRobafzA"
                                      alt="Limousine"/>
                                 <div class="absolute top-2 left-2 bg-white/90 backdrop-blur px-3 py-1 rounded-full flex items-center gap-1">
@@ -428,14 +309,10 @@
                             <div class="flex justify-between items-start">
                                 <div>
                                     <div class="flex items-center gap-2 mb-2">
-                                        <h3 class="text-xl font-bold text-primary">Hải Vân Limousine</h3>
-                                        <span class="px-2 py-0.5 bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-black uppercase rounded tracking-tighter">Limousine 22</span>
+                                        <h3 class="text-xl font-bold text-primary editorial-heading">Hải Vân Limousine</h3>
+                                        <span class="px-2 py-0.5 bg-surface-container-high text-on-surface-variant text-[10px] font-black uppercase rounded tracking-tighter">Limousine 22</span>
                                     </div>
-                                    <p class="text-sm text-on-surface-variant">
-                                        <span class="material-symbols-outlined text-sm">wifi</span> WiFi •
-                                        <span class="material-symbols-outlined text-sm">electrical_services</span> Sạc •
-                                        <span class="material-symbols-outlined text-sm">local_drink</span> Nước uống
-                                    </p>
+                                    <p class="text-sm text-on-surface-variant">WiFi • Sạc • Nước uống</p>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-2xl font-black text-secondary">450.000đ</div>
@@ -444,19 +321,16 @@
                             </div>
                             <div class="mt-8 flex items-center gap-6">
                                 <div class="text-center">
-                                    <div class="text-2xl font-bold font-headline">19:30</div>
+                                    <div class="text-2xl font-bold editorial-heading">19:30</div>
                                     <p class="text-xs font-semibold text-on-surface-variant">BĐ Mỹ Đình</p>
                                 </div>
                                 <div class="flex-1 flex flex-col items-center relative">
                                     <span class="text-[11px] font-bold text-primary bg-primary-fixed px-3 py-1 rounded-full mb-1">14h 45m</span>
-                                    <div class="w-full h-[2px] bg-outline-variant relative">
-                                        <div class="absolute -top-1 left-0 w-2 h-2 rounded-full bg-primary"></div>
-                                        <div class="absolute -top-1 right-0 w-2 h-2 rounded-full bg-outline"></div>
-                                    </div>
+                                    <div class="w-full h-[2px] bg-outline-variant"></div>
                                     <span class="material-symbols-outlined text-primary text-xl absolute -bottom-6">directions_bus</span>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-2xl font-bold font-headline">10:15</div>
+                                    <div class="text-2xl font-bold editorial-heading">10:15</div>
                                     <p class="text-xs font-semibold text-on-surface-variant">VP Đà Nẵng</p>
                                 </div>
                             </div>
@@ -464,14 +338,13 @@
                         <div class="md:w-1/5 flex flex-col justify-end gap-3 border-t md:border-t-0 md:border-l border-outline-variant/30 pt-4 md:pt-0 md:pl-6">
                             <div class="text-center md:text-right">
                                 <p class="text-xs font-medium text-on-surface-variant mb-1">Còn trống <span class="text-secondary font-bold">8 ghế</span></p>
-                                <a href="#" class="block w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-center">Chọn chuyến</a>
-                                <a href="#" class="mt-2 block text-xs font-bold text-surface-tint hover:underline uppercase tracking-wider text-center">Chi tiết chuyến</a>
+                                <a href="#" class="block w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all text-center">Chọn chuyến</a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ===== GROUP PROMO CARD (giữa danh sách) ===== -->
+                <!-- Group Promo Card -->
                 <div class="bg-primary overflow-hidden rounded-[2rem] relative group cursor-pointer">
                     <div class="absolute inset-0 opacity-20 pointer-events-none">
                         <div class="absolute top-0 right-0 w-64 h-64 bg-white/30 rounded-full blur-3xl -mr-20 -mt-20"></div>
@@ -479,8 +352,7 @@
                     </div>
                     <div class="relative z-10 px-10 py-12 flex flex-col md:flex-row items-center justify-between gap-8">
                         <div class="text-center md:text-left">
-                            <h3 class="text-white text-3xl font-black italic tracking-tighter mb-2"
-                                style="font-family: 'Plus Jakarta Sans', sans-serif;">DU LỊCH THEO ĐOÀN?</h3>
+                            <h3 class="text-white text-3xl font-black italic tracking-tighter mb-2 editorial-heading">DU LỊCH THEO ĐOÀN?</h3>
                             <p class="text-white/80 font-medium max-w-sm">
                                 Liên hệ ngay để nhận giá ưu đãi đặc biệt cho đoàn trên 10 người. Dịch vụ đưa đón tận nhà.
                             </p>
@@ -502,7 +374,6 @@
 
             <!-- ===== LOAD MORE / PAGINATION ===== -->
             <div class="py-12 flex flex-col items-center gap-6">
-                <!-- Nếu dùng phân trang -->
                 <a th:if="${searchResult.hasMore}"
                    th:href="@{/search(from=${searchResult.fromCity},to=${searchResult.toCity},date=${searchResult.date},page=${searchResult.currentPage + 1})}"
                    class="px-10 py-4 bg-surface-container-high hover:bg-surface-container-highest text-primary font-bold rounded-2xl transition-all active:scale-95">
@@ -521,84 +392,9 @@
     </div><!-- end grid -->
 </main>
 
-<!-- ===== FOOTER ===== -->
-<footer class="w-full mt-20 bg-slate-100">
-    <div class="w-full px-8 py-12 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-        <!-- Brand -->
-        <div>
-            <a th:href="@{/}" class="text-xl font-bold text-blue-900 mb-4 block"
-               style="font-family: 'Plus Jakarta Sans', sans-serif;">Premium Transit</a>
-            <p class="text-sm leading-relaxed text-slate-600 mb-6">
-                Trải nghiệm vận tải cao cấp hàng đầu Việt Nam. Chúng tôi cam kết mang lại sự an toàn,
-                tiện nghi và đúng giờ cho mọi hành khách.
-            </p>
-            <div class="flex gap-4">
-                <button class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center hover:opacity-80">
-                    <span class="material-symbols-outlined text-sm">social_leaderboard</span>
-                </button>
-                <button class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center hover:opacity-80">
-                    <span class="material-symbols-outlined text-sm">share</span>
-                </button>
-            </div>
-        </div>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
-        <!-- Links -->
-        <div>
-            <h4 class="font-bold text-primary mb-6 uppercase tracking-widest text-xs">Liên kết hữu ích</h4>
-            <div class="grid grid-cols-1 gap-4">
-                <a th:href="@{/privacy}" class="text-sm text-slate-600 hover:text-blue-700 underline transition-all">Privacy Policy</a>
-                <a th:href="@{/terms}" class="text-sm text-slate-600 hover:text-blue-700 underline transition-all">Terms of Service</a>
-                <a th:href="@{/contact}" class="text-sm text-slate-600 hover:text-blue-700 underline transition-all">Contact Us</a>
-                <a th:href="@{/fleet}" class="text-sm text-slate-600 hover:text-blue-700 underline transition-all">Fleet Details</a>
-            </div>
-        </div>
-
-        <!-- App Download -->
-        <div>
-            <h4 class="font-bold text-primary mb-6 uppercase tracking-widest text-xs">Tải ứng dụng</h4>
-            <p class="text-sm text-slate-600 mb-4">Nhận ưu đãi 50k cho lần đặt đầu tiên qua app.</p>
-            <div class="flex flex-col gap-3">
-                <a href="#" class="bg-black text-white px-6 py-3 rounded-xl flex items-center gap-3 hover:opacity-90 transition-opacity">
-                    <span class="material-symbols-outlined">android</span>
-                    <div class="text-left">
-                        <p class="text-[10px] opacity-70 leading-none">Get it on</p>
-                        <p class="font-bold">Google Play</p>
-                    </div>
-                </a>
-                <a href="#" class="bg-black text-white px-6 py-3 rounded-xl flex items-center gap-3 hover:opacity-90 transition-opacity">
-                    <span class="material-symbols-outlined">ios</span>
-                    <div class="text-left">
-                        <p class="text-[10px] opacity-70 leading-none">Download on</p>
-                        <p class="font-bold">App Store</p>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="w-full border-t border-slate-200 py-6 text-center">
-        <p class="text-sm text-slate-400">© 2024 The Premium Transit Authority. All rights reserved.</p>
-    </div>
-</footer>
-
-<!-- ===== BOTTOM NAV (Mobile) ===== -->
-<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 backdrop-blur-xl z-50 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] rounded-t-3xl">
-    <a th:href="@{/}" class="flex flex-col items-center bg-orange-50 text-orange-700 rounded-2xl px-5 py-2">
-        <span class="material-symbols-outlined">search</span>
-        <span class="text-[11px] font-medium">Search</span>
-    </a>
-    <a th:href="@{/my-trips}" class="flex flex-col items-center text-slate-400 px-5 py-2 hover:text-blue-900">
-        <span class="material-symbols-outlined">directions_bus</span>
-        <span class="text-[11px] font-medium">My Trips</span>
-    </a>
-    <a th:href="@{/notifications}" class="flex flex-col items-center text-slate-400 px-5 py-2 hover:text-blue-900">
-        <span class="material-symbols-outlined">notifications</span>
-        <span class="text-[11px] font-medium">Notifications</span>
-    </a>
-    <a th:href="@{/profile}" class="flex flex-col items-center text-slate-400 px-5 py-2 hover:text-blue-900">
-        <span class="material-symbols-outlined">person</span>
-        <span class="text-[11px] font-medium">Profile</span>
-    </a>
-</nav>
+<nav th:replace="~{fragments/mobile-nav :: mobile-nav(activeTab='search')}"></nav>
 
 </body>
 </html>

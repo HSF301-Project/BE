@@ -1,20 +1,78 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <meta charset="UTF-8">
-    <title>Trang chủ</title>
+    <th:block th:replace="~{fragments/head-common :: head-common(title='Premium Transit | Trang chủ')}"></th:block>
 </head>
-<body>
-    <h1>Chào mừng đến với Bus Ticket App</h1>
-    <div sec:authorize="isAuthenticated()">
-        <p>Xin chào, <span sec:authentication="name">User</span>!</p>
-        <p>Vai trò của bạn: <span sec:authentication="authorities">Roles</span></p>
-        <form th:action="@{/logout}" method="post">
-            <button type="submit">Đăng xuất</button>
-        </form>
+<body class="bg-background text-on-surface min-h-screen" style="font-family:'Inter',sans-serif">
+
+<th:block th:replace="~{fragments/navbar :: navbar}"></th:block>
+
+<main class="max-w-7xl mx-auto px-4 md:px-8 py-20 min-h-[70vh] flex items-center justify-center">
+    <div class="text-center max-w-2xl">
+
+        <!-- Authenticated state -->
+        <div sec:authorize="isAuthenticated()">
+            <div class="w-24 h-24 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center mb-8">
+                <span class="material-symbols-outlined text-5xl" style="font-variation-settings:'FILL' 1">waving_hand</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-primary mb-4" style="font-family:'Plus Jakarta Sans',sans-serif">
+                Xin chào, <span sec:authentication="name">User</span>!
+            </h1>
+            <p class="text-on-surface-variant text-lg mb-2">
+                Vai trò: <span class="font-bold text-secondary" sec:authentication="authorities">Roles</span>
+            </p>
+            <p class="text-on-surface-variant mb-10">Chào mừng trở lại với Premium Transit — hành trình đẳng cấp của bạn.</p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a th:href="@{/search}"
+                   class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-primary-container text-white rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all active:scale-95">
+                    <span class="material-symbols-outlined">search</span>
+                    Tìm chuyến xe
+                </a>
+                <a th:href="@{/booking/my-trips}"
+                   class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-surface-container-low text-primary border border-outline-variant rounded-2xl font-bold hover:bg-surface-container-high transition-all active:scale-95">
+                    <span class="material-symbols-outlined">directions_bus</span>
+                    Chuyến đi của tôi
+                </a>
+            </div>
+
+            <form th:action="@{/logout}" method="post" class="mt-8">
+                <button type="submit"
+                        class="inline-flex items-center gap-2 text-sm font-semibold text-error hover:underline transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">logout</span>
+                    Đăng xuất
+                </button>
+            </form>
+        </div>
+
+        <!-- Anonymous state -->
+        <div sec:authorize="!isAuthenticated()">
+            <div class="w-24 h-24 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center mb-8">
+                <span class="material-symbols-outlined text-5xl" style="font-variation-settings:'FILL' 1">directions_bus</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-primary mb-4" style="font-family:'Plus Jakarta Sans',sans-serif">
+                Premium Transit
+            </h1>
+            <p class="text-on-surface-variant text-lg mb-10">Nâng tầm trải nghiệm di chuyển với dịch vụ xe khách cao cấp hàng đầu Việt Nam.</p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a th:href="@{/login}"
+                   class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-primary-container text-white rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all active:scale-95">
+                    <span class="material-symbols-outlined">login</span>
+                    Đăng nhập
+                </a>
+                <a th:href="@{/register}"
+                   class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-surface-container-low text-primary border border-outline-variant rounded-2xl font-bold hover:bg-surface-container-high transition-all active:scale-95">
+                    <span class="material-symbols-outlined">person_add</span>
+                    Đăng ký tài khoản
+                </a>
+            </div>
+        </div>
     </div>
-    <div sec:authorize="!isAuthenticated()">
-        <p>Vui lòng <a th:href="@{/login}">đăng nhập</a> để tiếp tục.</p>
-    </div>
+</main>
+
+<th:block th:replace="~{fragments/footer :: footer}"></th:block>
+
 </body>
 </html>

@@ -1,98 +1,11 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Premium Transit Authority | Home</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"/>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"/>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script>
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          colors: {
-            "surface-container": "#ededf5",
-            "on-tertiary-container": "#7ecf79",
-            "surface-variant": "#e2e2ea",
-            "surface-container-high": "#e8e7f0",
-            "on-background": "#1a1b21",
-            "on-surface": "#1a1b21",
-            "secondary-container": "#fe5825",
-            "surface-container-low": "#f3f3fb",
-            "surface-dim": "#d9d9e1",
-            "on-primary": "#ffffff",
-            "primary-container": "#0d47a1",
-            "surface": "#faf8ff",
-            "primary": "#003178",
-            "surface-container-highest": "#e2e2ea",
-            "on-surface-variant": "#434652",
-            "on-secondary": "#ffffff",
-            "surface-container-lowest": "#ffffff",
-            "outline": "#737783",
-            "background": "#faf8ff",
-            "surface-tint": "#2b5bb5"
-          },
-          borderRadius: {
-            DEFAULT: "0.25rem",
-            lg: "0.5rem",
-            xl: "0.75rem",
-            full: "9999px"
-          },
-          fontFamily: {
-            headline: ["Plus Jakarta Sans"],
-            body: ["Inter"],
-            label: ["Inter"]
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    .material-symbols-outlined {
-      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      display: inline-block;
-      line-height: 1;
-      text-transform: none;
-      letter-spacing: normal;
-      word-wrap: normal;
-      white-space: nowrap;
-      direction: ltr;
-    }
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #faf8ff;
-      color: #1a1b21;
-    }
-    .editorial-heading {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-  </style>
+    <th:block th:replace="~{fragments/head-common :: head-common(title='Premium Transit Authority | Home')}"></th:block>
 </head>
 <body class="bg-background text-on-surface">
 
-<!-- ===== TOP NAV ===== -->
-<nav class="bg-white/80 backdrop-blur-xl sticky top-0 z-50 shadow-[0_12px_32px_rgba(26,27,33,0.06)]">
-  <div class="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
-    <div class="flex items-center gap-8">
-      <a th:href="@{/}" class="text-2xl font-black italic text-blue-900 editorial-heading">Premium Transit</a>
-      <div class="hidden md:flex gap-6">
-        <a th:href="@{/my-trips}" class="font-semibold tracking-tight text-slate-500 hover:text-blue-800 transition-colors editorial-heading">My Trips</a>
-        <a th:href="@{/promotions}" class="font-semibold tracking-tight text-slate-500 hover:text-blue-800 transition-colors editorial-heading">Promotions</a>
-        <a th:href="@{/help}" class="font-semibold tracking-tight text-slate-500 hover:text-blue-800 transition-colors editorial-heading">Help</a>
-      </div>
-    </div>
-    <div class="flex items-center gap-4">
-      <button class="p-2 hover:bg-slate-50 rounded-lg transition-all text-blue-900">
-        <span class="material-symbols-outlined">notifications</span>
-      </button>
-      <button class="p-2 hover:bg-slate-50 rounded-lg transition-all text-blue-900">
-        <span class="material-symbols-outlined">account_circle</span>
-      </button>
-    </div>
-  </div>
-</nav>
+<nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
 <main>
 
@@ -165,7 +78,6 @@
 
   <!-- ===== POPULAR ROUTES SECTION ===== -->
   <section class="max-w-7xl mx-auto px-8 py-20">
-    <!-- Section Header -->
     <div class="flex justify-between items-end mb-10">
       <div>
         <p class="text-secondary-container font-bold uppercase tracking-widest text-sm mb-2">Hành Trình Gợi Ý</p>
@@ -180,10 +92,7 @@
     <!-- Route Cards Grid -->
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4 auto-rows-[220px]">
 
-      <!-- Large Card (spans 2 rows) - rendered from th:each or static -->
-      <!-- Nếu dùng dynamic data: th:each="route : ${featuredRoutes}" -->
-
-      <!-- Featured Card (large) -->
+      <!-- Featured Card (large, dynamic) -->
       <div th:if="${featuredRoute != null}"
            class="col-span-2 row-span-2 relative group overflow-hidden rounded-3xl bg-surface-container-low">
         <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -204,7 +113,7 @@
         </div>
       </div>
 
-      <!-- Static fallback (xoá khi dùng dynamic) -->
+      <!-- Static fallback large card -->
       <div th:unless="${featuredRoute != null}"
            class="col-span-2 row-span-2 relative group overflow-hidden rounded-3xl bg-surface-container-low">
         <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -225,28 +134,7 @@
         </div>
       </div>
 
-      <!-- Small Cards - dynamic (uncomment khi có data) -->
-      <!--
-      <div th:each="route : ${smallRoutes}"
-           class="relative group overflow-hidden rounded-3xl bg-surface-container-low">
-          <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-               th:src="${route.imageUrl}" th:alt="${route.name}"/>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-          <div class="absolute bottom-0 left-0 p-6 w-full">
-              <p class="text-white/70 text-xs font-medium mb-1" th:text="${route.route}"></p>
-              <h3 class="text-white text-xl font-black editorial-heading mb-4" th:text="${route.name}"></h3>
-              <div class="flex justify-between items-center">
-                  <div class="flex items-center gap-1 text-on-tertiary-container">
-                      <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
-                      <span class="text-white font-bold" th:text="${route.rating}"></span>
-                  </div>
-                  <span class="text-secondary-container font-black font-body" th:text="${route.priceFormatted}"></span>
-              </div>
-          </div>
-      </div>
-      -->
-
-      <!-- Small Card 1 - Static -->
+      <!-- Small Card 1 -->
       <div class="relative group overflow-hidden rounded-3xl bg-surface-container-low">
         <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
              src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1gTOXGqhV4VDVfZEk6oWNx0klQDGQcnYb9-FqF8FxNbpijNPO_cPYJW7tX0EoZrLFCNkqzIE_yY_i-IcKk3eDW-dlFwmHefGMGx5gDIEJuNzqT2OJIgvPBW_-z0cMFZJz6AqXi3Y_4m3dP0zqKdxbgCxQq-RwqiWqPZ_NfZkMw7pnqeF4r3LhIBMvvGTRgDt1bHOFfNZjd_YW3r1M02wniHhMcRJFJxibVNi93v1h3N3E3zKELOA"
@@ -341,7 +229,6 @@
         </p>
         <form th:action="@{/newsletter/subscribe}" method="post"
               class="flex flex-col sm:flex-row gap-4">
-          <!-- CSRF token nếu Spring Security được bật -->
           <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
           <input type="email"
                  name="email"
@@ -352,7 +239,6 @@
             Tham gia ngay
           </button>
         </form>
-        <!-- Success / Error message -->
         <div class="mt-4 text-green-700 font-semibold"
              th:if="${newsletterSuccess}"
              th:text="${newsletterSuccess}"></div>
@@ -365,79 +251,9 @@
 
 </main>
 
-<!-- ===== FOOTER ===== -->
-<footer class="w-full border-t border-surface-variant bg-slate-100">
-  <div class="max-w-7xl mx-auto px-8 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
-    <!-- Brand -->
-    <div class="space-y-4">
-      <a th:href="@{/}" class="text-xl font-bold text-blue-900 block editorial-heading">Premium Transit</a>
-      <p class="text-sm leading-relaxed text-slate-600 max-w-xs">
-        Mang đến trải nghiệm di chuyển xe khách đẳng cấp, an toàn và chuyên nghiệp nhất
-        cho mỗi hành trình của bạn.
-      </p>
-      <div class="flex gap-4 pt-4">
-        <span class="material-symbols-outlined text-primary cursor-pointer hover:scale-110 transition-transform">public</span>
-        <span class="material-symbols-outlined text-primary cursor-pointer hover:scale-110 transition-transform">share</span>
-        <span class="material-symbols-outlined text-primary cursor-pointer hover:scale-110 transition-transform">thumb_up</span>
-      </div>
-    </div>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
-    <!-- Links -->
-    <div>
-      <h4 class="font-bold text-blue-900 mb-6 uppercase tracking-wider text-xs">Khám phá</h4>
-      <ul class="space-y-3">
-        <li><a th:href="@{/privacy}" class="text-slate-600 hover:text-blue-700 underline transition-all text-sm">Privacy Policy</a></li>
-        <li><a th:href="@{/terms}" class="text-slate-600 hover:text-blue-700 underline transition-all text-sm">Terms of Service</a></li>
-        <li><a th:href="@{/contact}" class="text-slate-600 hover:text-blue-700 underline transition-all text-sm">Contact Us</a></li>
-        <li><a th:href="@{/fleet}" class="text-slate-600 hover:text-blue-700 underline transition-all text-sm">Fleet Details</a></li>
-      </ul>
-    </div>
-
-    <!-- Contact -->
-    <div>
-      <h4 class="font-bold text-blue-900 mb-6 uppercase tracking-wider text-xs">Liên hệ</h4>
-      <div class="space-y-3 text-sm text-slate-600">
-        <p class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-base text-primary">call</span>
-          1900 8888
-        </p>
-        <p class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-base text-primary">mail</span>
-          contact@premiumtransit.com
-        </p>
-        <p class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-base text-primary">location_on</span>
-          Bến Xe Miền Đông, TP. Hồ Chí Minh
-        </p>
-      </div>
-    </div>
-
-    <!-- Copyright -->
-    <div class="md:col-span-3 pt-8 border-t border-slate-200 text-center text-slate-500 text-xs">
-      © 2024 The Premium Transit Authority. All rights reserved.
-    </div>
-  </div>
-</footer>
-
-<!-- ===== BOTTOM NAV (Mobile only) ===== -->
-<div class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 backdrop-blur-xl z-50 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] rounded-t-3xl">
-  <a th:href="@{/}" class="flex flex-col items-center bg-orange-50 text-orange-700 rounded-2xl px-5 py-2">
-    <span class="material-symbols-outlined">search</span>
-    <span class="text-[11px] font-medium">Search</span>
-  </a>
-  <a th:href="@{/my-trips}" class="flex flex-col items-center text-slate-400 px-5 py-2">
-    <span class="material-symbols-outlined">directions_bus</span>
-    <span class="text-[11px] font-medium">My Trips</span>
-  </a>
-  <a th:href="@{/notifications}" class="flex flex-col items-center text-slate-400 px-5 py-2">
-    <span class="material-symbols-outlined">notifications</span>
-    <span class="text-[11px] font-medium">Notifications</span>
-  </a>
-  <a th:href="@{/profile}" class="flex flex-col items-center text-slate-400 px-5 py-2">
-    <span class="material-symbols-outlined">person</span>
-    <span class="text-[11px] font-medium">Profile</span>
-  </a>
-</div>
+<nav th:replace="~{fragments/mobile-nav :: mobile-nav(activeTab='search')}"></nav>
 
 </body>
 </html>
