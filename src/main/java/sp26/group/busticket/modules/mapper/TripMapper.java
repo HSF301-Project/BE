@@ -5,6 +5,7 @@ import org.mapstruct.Mapping;
 import sp26.group.busticket.modules.dto.trip.response.AdminTripDetailResponseDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripBookingResponseDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripResponseDTO;
+import sp26.group.busticket.modules.entity.CoachType;
 import sp26.group.busticket.modules.entity.Trip;
 
 @Mapper(componentModel = "spring")
@@ -17,7 +18,7 @@ public interface TripMapper {
     TripBookingResponseDTO toTripBookingResponseDTO(Trip trip);
 
     @Mapping(target = "name", expression = "java(\"Chuyến xe \" + trip.getCoach().getPlateNumber())")
-    @Mapping(target = "busTypeLabel", source = "coach.coachType.name")
+    @Mapping(target = "busTypeLabel", source = "coach.coachType")
     @Mapping(target = "departureStation", source = "route.departureLocation.name")
     @Mapping(target = "arrivalStation", source = "route.arrivalLocation.name")
     @Mapping(target = "seatsLeft", source = "coach.totalSeats")
@@ -53,4 +54,8 @@ public interface TripMapper {
     @Mapping(target = "stopEtas", ignore = true)
     @Mapping(target = "seats", ignore = true)
     AdminTripDetailResponseDTO toAdminTripDetailResponseDTO(Trip trip);
+
+    default String mapCoachType(CoachType coachType) {
+        return coachType != null ? coachType.getName() : null;
+    }
 }
