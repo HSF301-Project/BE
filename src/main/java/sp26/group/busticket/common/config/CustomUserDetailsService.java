@@ -10,9 +10,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import sp26.group.busticket.modules.entity.Account;
-import sp26.group.busticket.modules.enumType.StatusEnum;
-import sp26.group.busticket.modules.repository.AccountRepository;
+import sp26.group.busticket.entity.Account;
+import sp26.group.busticket.enumType.StatusEnum;
+import sp26.group.busticket.repository.AccountRepository;
 
 @Service
 @RequiredArgsConstructor

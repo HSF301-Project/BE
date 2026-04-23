@@ -6,7 +6,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import sp26.group.busticket.modules.service.AccountService;
+import sp26.group.busticket.service.AccountService;
 
 @ControllerAdvice(basePackages = "sp26.group.busticket.modules.controller")
 @RequiredArgsConstructor
