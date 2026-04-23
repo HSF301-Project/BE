@@ -235,7 +235,7 @@ public class TripServiceImpl implements TripService {
                 .contactPhoneNumber(req.getContactPhoneNumber())
                 .tripStatus(req.getStatus())
                 .build();
-        tripRepository.save(trip);
+        trip = tripRepository.save(trip);
 
         // Handle Roundtrip
         if (req.isRoundTrip() && req.getReturnRouteId() != null && req.getReturnDepartureTime() != null) {
@@ -243,7 +243,7 @@ public class TripServiceImpl implements TripService {
                     .routeId(req.getReturnRouteId())
                     .coachId(req.getCoachId())
                     .driverId(req.getReturnDriverId())
-                .secondDriverId(req.getReturnSecondDriverId())
+                    .secondDriverId(req.getReturnSecondDriverId())
                     .assistantId(req.getAssistantId()) // Dùng chung phụ xe cho cả 2 lượt
                     .departureTime(req.getReturnDepartureTime())
                     .arrivalTime(req.getReturnArrivalTime())
@@ -274,7 +274,7 @@ public class TripServiceImpl implements TripService {
             tripRepository.save(returnTrip);
         }
 
-        return Optional.empty();
+        return Optional.of(trip.getId());
     }
 
     @Override
@@ -376,7 +376,7 @@ public class TripServiceImpl implements TripService {
         trip.setTripStatus(req.getStatus());
 
         tripRepository.save(trip);
-        return Optional.empty();
+        return Optional.of(trip.getId());
     }
 
     @Override

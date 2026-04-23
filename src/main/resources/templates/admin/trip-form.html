@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <th:block th:replace="~{Admin/fragments/layout :: admin-head(${editMode} ? 'Sửa chuyến đi' : 'Tạo chuyến đi')}"></th:block>
+    <th:block th:replace="~{admin/fragments/layout :: admin-head(${editMode} ? 'Sửa chuyến đi' : 'Tạo chuyến đi')}"></th:block>
     <!-- Tom Select -->
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
@@ -14,8 +14,8 @@
 </head>
 <body class="bg-surface min-h-screen text-ink antialiased">
 
-<aside th:replace="~{Admin/fragments/layout :: admin-sidebar('trips')}"></aside>
-<header th:replace="~{Admin/fragments/layout :: admin-topnav(${editMode} ? 'Cập nhật chuyến đi' : 'Tạo chuyến đi')}"></header>
+<aside th:replace="~{admin/fragments/layout :: admin-sidebar('trips')}"></aside>
+<header th:replace="~{admin/fragments/layout :: admin-topnav(${editMode} ? 'Cập nhật chuyến đi' : 'Tạo chuyến đi')}"></header>
 
 <main class="ml-60 pt-14 min-h-screen">
     <div class="px-8 py-7 max-w-screen-xl mx-auto">

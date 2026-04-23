@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{Admin/fragments/layout :: admin-head(${routeRequest.id != null} ? 'Cập nhật tuyến đường' : 'Tạo tuyến đường')}"></head>
+<head th:replace="~{admin/fragments/layout :: admin-head(${routeRequest.id != null} ? 'Cập nhật tuyến đường' : 'Tạo tuyến đường')}"></head>
 <body class="bg-surface min-h-screen text-ink antialiased">
 
-<aside th:replace="~{Admin/fragments/layout :: admin-sidebar('infrastructure')}"></aside>
-<header th:replace="~{Admin/fragments/layout :: admin-topnav(${routeRequest.id != null} ? 'Cập nhật tuyến đường' : 'Thêm tuyến đường')}"></header>
+<aside th:replace="~{admin/fragments/layout :: admin-sidebar('infrastructure')}"></aside>
+<header th:replace="~{admin/fragments/layout :: admin-topnav(${routeRequest.id != null} ? 'Cập nhật tuyến đường' : 'Thêm tuyến đường')}"></header>
 
 <main class="ml-60 pt-14 min-h-screen">
     <div class="px-8 py-7 max-w-screen-xl mx-auto">
@@ -16,7 +16,7 @@
             <a th:href="@{/admin/infrastructure(tab='routes')}" class="text-sm font-semibold text-ink-muted hover:text-ink">← Quay lại Hạ tầng</a>
         </div>
 
-        <form id="routeForm" th:action="@{/admin/infrastructure/routes/save}" th:object="${routeRequest}" method="post" class="space-y-8" onsubmit="return beforeSubmit()">
+        <form id="routeForm" th:action="@{/admin/infrastructure/routes/save}" th:object="${routeRequest}" method="post" class="space-y-8" onsubmit="return beforeSubmit()" novalidate>
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
             <input type="hidden" th:field="*{id}" />
             

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-    <head th:replace="~{Admin/fragments/layout :: admin-head('Sơ đồ hành khách')}"></head>
+    <head th:replace="~{admin/fragments/layout :: admin-head('Chi tiết chuyến đi')}"></head>
     <style>
         .seat-grid {
             display: grid;
@@ -10,8 +10,8 @@
 </head>
 <body class="bg-surface min-h-screen text-ink antialiased">
 
-<aside th:replace="~{Admin/fragments/layout :: admin-sidebar('trips')}"></aside>
-<header th:replace="~{Admin/fragments/layout :: admin-topnav('Chi tiết chuyến đi')}"></header>
+<aside th:replace="~{admin/fragments/layout :: admin-sidebar('trips')}"></aside>
+<header th:replace="~{admin/fragments/layout :: admin-topnav('Chi tiết chuyến đi')}"></header>
 
 <main class="ml-60 pt-14 min-h-screen">
     <div class="px-8 py-7 max-w-screen-2xl mx-auto" th:object="${trip}">

@@ -590,7 +590,7 @@ public class BookingServiceImpl implements BookingService {
                 .id(b.getId())
                 .bookingCode(b.getBookingCode())
                 .status(status)
-                .busTypeLabel(trip.getCoach().getCoachType())
+                .busTypeLabel(trip.getCoach().getCoachType().getName())
                 .daysUntilDeparture(java.time.Duration.between(now, trip.getDepartureTime()).toDays())
                 .fromCity(trip.getRoute().getDepartureLocation().getCity())
                 .departureStation(b.getPickupLocation().getName())
@@ -607,35 +607,6 @@ public class BookingServiceImpl implements BookingService {
                 .bookingDate(bookingDate)
                 .isCancellable(status == BookingStatusEnum.CONFIRMED && trip.getDepartureTime().minusHours(2).isAfter(now))
                 .build();
-                    return MyTripResponseDTO.builder()
-                            .id(b.getId())
-                            .bookingCode(b.getBookingCode())
-                            .status(status)
-                            .busTypeLabel(trip.getCoach().getCoachType().getName())
-                            .daysUntilDeparture(java.time.Duration.between(now, trip.getDepartureTime()).toDays())
-                            .fromCity(trip.getRoute().getDepartureLocation().getCity())
-                            .departureStation(b.getPickupLocation().getName())
-                            .departureTime(trip.getDepartureTime().format(timeFormatter))
-                            .toCity(trip.getRoute().getArrivalLocation().getCity())
-                            .arrivalStation(b.getDropoffLocation().getName())
-                            .arrivalTime(trip.getArrivalTime().format(timeFormatter))
-                            .pickupLocationName(b.getPickupLocation().getName())
-                            .dropoffLocationName(b.getDropoffLocation().getName())
-                            .pickupTime(actualPickupTime.format(timeFormatter))
-                            .dropoffTime(actualDropoffTime.format(timeFormatter))
-                            .bookingDate(bookingDate)
-                            .isCancellable(status == BookingStatusEnum.CONFIRMED && trip.getDepartureTime().minusHours(2).isAfter(now))
-                            .build();
-                })
-                .filter(dto -> {
-                    if (tab == null || tab.equalsIgnoreCase("all")) return true;
-                    if (tab.equalsIgnoreCase("upcoming")) {
-                        return dto.getStatus() == BookingStatusEnum.CONFIRMED ||
-                               dto.getStatus() == BookingStatusEnum.PENDING;
-                    }
-                    return dto.getStatus().name().equalsIgnoreCase(tab);
-                })
-                .collect(Collectors.toList());
     }
 
     @Override
@@ -793,9 +764,8 @@ public class BookingServiceImpl implements BookingService {
                 .arrivalDateLabel(trip.getArrivalTime().format(dateFormatter))
                 .coachPlate(trip.getCoach().getPlateNumber())
                 .licensePlate(trip.getCoach().getPlateNumber())
-                .coachType(trip.getCoach().getCoachType())
-                .serviceType(trip.getCoach().getCoachType())
                 .coachType(trip.getCoach().getCoachType().getName())
+                .serviceType(trip.getCoach().getCoachType().getName())
                 .basePrice(trip.getPriceBase().doubleValue())
                 .seatCount(tickets.size())
                 .totalAmount(booking.getTotalAmount().doubleValue())

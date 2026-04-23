@@ -219,7 +219,7 @@
                 </div>
 
                 <form th:action="@{/booking/confirm}" method="post" id="passengerForm">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <input type="hidden" name="tripId" th:value="${trip.id}"/>
                     <!-- Selected seats are submitted as hidden inputs via JS -->
                     <div id="selectedSeatsContainer"></div>
