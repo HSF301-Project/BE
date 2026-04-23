@@ -40,10 +40,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminInfrastructureController {
 
-    private final AccountRepository accountRepository;
-    private final LocationRepository locationRepository;
-    private final RouteRepository routeRepository;
-    private final RouteStopRepository routeStopRepository;
+    private final sp26.group.busticket.modules.service.LocationService locationService;
     private final sp26.group.busticket.modules.service.RouteService routeService;
 
     @GetMapping
@@ -54,9 +51,8 @@ public class AdminInfrastructureController {
         model.addAttribute("activeType", type);
 
         // Thống kê thực tế từ DB
-        long totalLocations = locationRepository.count();
-        long totalCities = locationRepository.findAll().stream()
-                .map(Location::getCity).distinct().count();
+        long totalLocations = locationService.countLocations();
+        long totalCities = locationService.countDistinctCities();
 
         Map<String, Object> infraMap = new HashMap<>();
         infraMap.put("priorityRoutes", List.of());
@@ -72,11 +68,14 @@ public class AdminInfrastructureController {
         model.addAttribute("infra", infraMap);
 
         // Danh sách địa điểm và tuyến đường cho tab
-        List<Location> stations = (type == null || type.equals("ALL")) 
-                ? listLocations() 
-                : locationRepository.findByLocationType(type).stream()
+        List<Location> stations;
+        if (type == null || type.equals("ALL")) {
+            stations = listLocations();
+        } else {
+            stations = locationService.getLocationsByType(type).stream()
                     .sorted(Comparator.comparing(Location::getCity).thenComparing(Location::getName))
                     .toList();
+        }
         
         model.addAttribute("stations", stations);
         model.addAttribute("routes", routeService.getAllRoutes());
@@ -95,8 +94,10 @@ public class AdminInfrastructureController {
 
     @GetMapping("/stations/{id}/edit")
     public String editStation(@PathVariable java.util.UUID id, Model model) {
-        Location location = locationRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy địa điểm."));
+        Location location = locationService.getLocationById(id);
+        if (location == null) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy địa điểm.");
+        }
         model.addAttribute("location", location);
         model.addAttribute("activePage", "infrastructure");
         return "Admin/station-form";
@@ -113,11 +114,12 @@ public class AdminInfrastructureController {
         }
 
         // Kiểm tra trùng địa chỉ
-        locationRepository.findByAddress(location.getAddress()).ifPresent(existing -> {
+        Location existing = locationService.findByAddress(location.getAddress());
+        if (existing != null) {
             if (location.getId() == null || !existing.getId().equals(location.getId())) {
                 bindingResult.rejectValue("address", "duplicate", "Địa chỉ này đã tồn tại trong hệ thống.");
             }
-        });
+        }
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("activePage", "infrastructure");
@@ -125,16 +127,18 @@ public class AdminInfrastructureController {
         }
 
         if (location.getId() != null) {
-            Location existing = locationRepository.findById(location.getId())
-                    .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy địa điểm."));
-            existing.setName(location.getName());
-            existing.setCity(location.getCity());
-            existing.setAddress(location.getAddress());
-            existing.setLocationType(location.getLocationType());
-            existing.setNotes(location.getNotes());
-            locationRepository.save(existing);
+            Location current = locationService.getLocationById(location.getId());
+            if (current == null) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy địa điểm.");
+            }
+            current.setName(location.getName());
+            current.setCity(location.getCity());
+            current.setAddress(location.getAddress());
+            current.setLocationType(location.getLocationType());
+            current.setNotes(location.getNotes());
+            locationService.saveLocation(current);
         } else {
-            locationRepository.save(location);
+            locationService.saveLocation(location);
         }
         redirectAttributes.addFlashAttribute("message", "Địa điểm '" + location.getName() + "' đã được lưu thành công!");
         return "redirect:/admin/infrastructure?tab=stations";
@@ -236,13 +240,13 @@ public class AdminInfrastructureController {
 
 
     private List<Location> listLocations() {
-        return locationRepository.findAll().stream()
+        return locationService.getAllLocations().stream()
                 .sorted(Comparator.comparing(Location::getCity).thenComparing(Location::getName))
                 .toList();
     }
 
     private List<Location> listTerminals() {
-        return locationRepository.findByLocationType("TERMINAL").stream()
+        return locationService.getLocationsByType("TERMINAL").stream()
                 .sorted(Comparator.comparing(Location::getCity).thenComparing(Location::getName))
                 .toList();
     }

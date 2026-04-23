@@ -49,12 +49,11 @@ public class AdminController {
         }
     }
 
-    private final AccountRepository accountRepository;
-    private final RouteRepository routeRepository;
     private final CoachService coachService;
     private final TripService tripService;
     private final AccountService accountService;
     private final FinanceService financeService;
+    private final sp26.group.busticket.modules.service.RouteService routeService;
 
     @GetMapping("/users")
     public String listUsers(@org.springframework.web.bind.annotation.RequestParam(required = false) String search,
@@ -81,18 +80,10 @@ public class AdminController {
 
     @PostMapping("/users/status/{id}")
     public String changeUserStatus(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
-        accountService.changeStatus(id);
+        String role = accountService.changeStatus(id);
         
-        // Fetch the account to determine where to redirect
-        var account = accountRepository.findById(id).orElse(null);
-        String redirectUrl = "/admin/users";
-        if (account != null && "USER".equals(account.getRole())) {
-            redirectUrl = "/admin/customers";
-        }
-        String message = "Cập nhật Trạng thái nhân viên thành công!";
-        if (account != null && "USER".equals(account.getRole())) {
-            message = "Cập nhật Trạng thái khách hàng thành công!";
-        }
+        String redirectUrl = "USER".equals(role) ? "/admin/customers" : "/admin/users";
+        String message = "USER".equals(role) ? "Cập nhật Trạng thái khách hàng thành công!" : "Cập nhật Trạng thái nhân viên thành công!";
         
         redirectAttributes.addFlashAttribute("successMessage", message);
         return "redirect:" + redirectUrl;
@@ -189,10 +180,10 @@ public class AdminController {
 
 
     private void enrichTripFormModel(Model model) {
-        model.addAttribute("routes", routeRepository.findAll());
+        model.addAttribute("routes", routeService.getAllRoutes());
         model.addAttribute("coaches", coachService.getAllCoaches());
         model.addAttribute("drivers", tripService.listAssignableDrivers());
-        model.addAttribute("assistants", accountRepository.findByRoleAndStatusOrderByFullNameAsc("ASSISTANT", StatusEnum.ACTIVE));
+        model.addAttribute("assistants", accountService.getAccountsByRoleAndStatus("ASSISTANT", StatusEnum.ACTIVE));
         model.addAttribute("tripStatuses", TripStatusEnum.values());
     }
 
@@ -205,10 +196,11 @@ public class AdminController {
         res.put("hasReturn", returnRouteId.isPresent());
         if (returnRouteId.isPresent()) {
             res.put("returnRouteId", returnRouteId.get());
-            routeRepository.findById(returnRouteId.get()).ifPresent(route -> {
+            var route = routeService.getRouteById(returnRouteId.get());
+            if (route != null) {
                 res.put("duration", route.getDuration());
                 res.put("distance", route.getDistance());
-            });
+            }
         }
         return res;
     }

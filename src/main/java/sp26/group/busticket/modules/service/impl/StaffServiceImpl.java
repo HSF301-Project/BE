@@ -64,6 +64,17 @@ public class StaffServiceImpl implements StaffService {
     }
 
     @Override
+    @Transactional
+    public void toggleStatus(UUID staffId) {
+        Account staff = accountRepository.findById(staffId)
+                .filter(this::isManageableRole)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        staff.setStatus(staff.getStatus() == StatusEnum.ACTIVE ? StatusEnum.BLOCKED : StatusEnum.ACTIVE);
+        accountRepository.save(staff);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<StaffResponseDTO> getAllStaff() {
         return accountRepository.findAll().stream()

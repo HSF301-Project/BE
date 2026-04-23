@@ -54,27 +54,9 @@ public class AdminStaffController {
     @PostMapping("/status/{staffId}")
     public String toggleStaffStatus(@PathVariable UUID staffId,
                                     RedirectAttributes redirectAttributes) {
-        StaffResponseDTO staff = staffService.getStaffById(staffId).orElse(null);
-        if (staff == null) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Khong tim thay staff");
-            return "redirect:/admin/staff";
-        }
-
-        StatusEnum nextStatus = staff.getStatus() == StatusEnum.ACTIVE ? StatusEnum.BLOCKED : StatusEnum.ACTIVE;
-        StaffUpdateRequestDTO request = StaffUpdateRequestDTO.builder()
-                .email(staff.getEmail())
-                .fullName(staff.getFullName())
-                .phone(staff.getPhone())
-                .status(nextStatus)
-                .build();
-
         try {
-            boolean updated = staffService.updateStaff(staffId, request).isPresent();
-            if (!updated) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Khong tim thay staff");
-                return "redirect:/admin/staff";
-            }
-            redirectAttributes.addFlashAttribute("successMessage", "Cap nhat trang thai staff thanh cong");
+            staffService.toggleStatus(staffId);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái nhân viên thành công");
         } catch (AppException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getErrorCode().getDefaultMessage());
         }

@@ -314,6 +314,32 @@ public class CoachServiceImpl implements CoachService {
             this.type = type;
         }
     }
+
+    @Override
+    public List<sp26.group.busticket.modules.entity.CoachType> getAllCoachTypes() {
+        return coachTypeRepository.findAll();
+    }
+
+    @Override
+    public sp26.group.busticket.modules.entity.CoachType saveCoachType(sp26.group.busticket.modules.entity.CoachType coachType) {
+        return coachTypeRepository.save(coachType);
+    }
+
+    @Override
+    public void deleteCoachType(UUID id) {
+        coachTypeRepository.deleteById(id);
+    }
+
+    @Override
+    public long countCoachesByType(UUID typeId) {
+        return coachRepository.countByCoachType_Id(typeId);
+    }
+
+    @Override
+    public sp26.group.busticket.modules.entity.CoachType getCoachTypeById(UUID id) {
+        return coachTypeRepository.findById(id).orElse(null);
+    }
+
     private void generateSeatsForCoach(Coach coach) {
         int total = coach.getTotalSeats();
         int seatsPerFloor = total;

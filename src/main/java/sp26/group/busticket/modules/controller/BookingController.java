@@ -39,46 +39,37 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @lombok.extern.slf4j.Slf4j
 public class BookingController {
 
-    private final TripRepository tripRepository;
     private final SeatService seatService;
-    private final TripMapper tripMapper;
     private final BookingService bookingService;
-    private final AccountRepository accountRepository;
     private final TripService tripService;
+    private final sp26.group.busticket.modules.service.AccountService accountService;
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     @GetMapping("/{tripId}")
     public String showChooseSeat(@PathVariable UUID tripId, Model model) {
-        Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
-
+        var trip = tripService.getTripEntityById(tripId);
+        
         List<SeatDisplayDTO> lowerDeckSeats = seatService.getSeatsByTripAndFloor(tripId, 1);
         List<SeatDisplayDTO> upperDeckSeats = seatService.getSeatsByTripAndFloor(tripId, 2);
 
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("EEEE, dd/MM • HH:mm");
         
-        TripBookingResponseDTO tripDTO = tripMapper.toTripBookingResponseDTO(trip);
-        tripDTO.setDepartureDateTimeLabel(trip.getDepartureTime().format(dateTimeFormatter));
-        tripDTO.setArrivalDateTimeLabel(trip.getArrivalTime().format(dateTimeFormatter));
-        tripDTO.setStopEtas(tripService.getTripStopEtas(tripId));
-        tripDTO.setExpired(trip.getDepartureTime().minusHours(1).isBefore(java.time.LocalDateTime.now()));
+        var tripDTO = tripService.getTripBookingData(tripId);
         
         model.addAttribute("trip", tripDTO);
         model.addAttribute("unitPrice", trip.getPriceBase());
         model.addAttribute("lowerDeckSeats", lowerDeckSeats);
         model.addAttribute("upperDeckSeats", upperDeckSeats);
         
-        // Chỉ thêm mới nếu chưa có từ Flash Attribute (lúc hủy thanh toán)
         if (!model.containsAttribute("bookingForm")) {
             model.addAttribute("bookingForm", new BookingFormDTO());
         }
 
-        // Thêm thông tin user vào model để FE tự động điền
         try {
-            Account currentAccount = getCurrentAccount();
+            String email = getCurrentUserEmail();
+            var currentAccount = accountService.getAccountByEmail(email);
             model.addAttribute("currentUser", currentAccount);
         } catch (AppException e) {
-            // User chưa login, bỏ qua
         }
 
         return "Passenger/basic/choose_seat";
@@ -89,20 +80,19 @@ public class BookingController {
                                  @RequestParam UUID tripId,
                                  Model model) {
         try {
-            Account currentAccount = getCurrentAccount();
-            UUID bookingId = bookingService.createBooking(tripId, form, currentAccount);
+            String email = getCurrentUserEmail();
+            var currentAccount = accountService.getAccountByEmail(email);
+            // We need the entity for bookingService.createBooking
+            // But wait, the service should handle finding the entity.
+            // I'll update bookingService.createBooking to take email.
+            UUID bookingId = bookingService.createBookingByEmail(tripId, form, email);
             return "redirect:/booking/payment?bookingId=" + bookingId;
         } catch (AppException e) {
-            // Nếu có lỗi (ví dụ trùng ghế), quay lại trang chọn ghế và hiển thị thông báo
-            Trip trip = tripRepository.findById(tripId).orElseThrow();
+            var trip = tripService.getTripEntityById(tripId);
             List<SeatDisplayDTO> lowerDeckSeats = seatService.getSeatsByTripAndFloor(tripId, 1);
             List<SeatDisplayDTO> upperDeckSeats = seatService.getSeatsByTripAndFloor(tripId, 2);
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("EEEE, dd/MM • HH:mm");
-            TripBookingResponseDTO tripDTO = tripMapper.toTripBookingResponseDTO(trip);
-            tripDTO.setDepartureDateTimeLabel(trip.getDepartureTime().format(dateTimeFormatter));
-            tripDTO.setArrivalDateTimeLabel(trip.getArrivalTime().format(dateTimeFormatter));
-            tripDTO.setStopEtas(tripService.getTripStopEtas(tripId));
-            tripDTO.setExpired(trip.getDepartureTime().minusHours(1).isBefore(java.time.LocalDateTime.now()));
+            
+            var tripDTO = tripService.getTripBookingData(tripId);
 
             model.addAttribute("trip", tripDTO);
             model.addAttribute("unitPrice", trip.getPriceBase());
@@ -116,8 +106,9 @@ public class BookingController {
 
     @GetMapping("/payment")
     public String showPayment(@RequestParam UUID bookingId, Model model) {
-        Account currentAccount = getCurrentAccount();
-        model.addAttribute("payment", bookingService.getPaymentInfo(bookingId, currentAccount.getId()));
+        String email = getCurrentUserEmail();
+        var account = accountService.getAccountByEmail(email);
+        model.addAttribute("payment", bookingService.getPaymentInfo(bookingId, account.getId()));
         return "Passenger/basic/payment";
     }
 
@@ -126,8 +117,9 @@ public class BookingController {
                                 @RequestParam String paymentMethod, 
                                 RedirectAttributes redirectAttributes) {
         try {
-            Account currentAccount = getCurrentAccount();
-            bookingService.processPayment(bookingId, paymentMethod, currentAccount.getId());
+            String email = getCurrentUserEmail();
+            var account = accountService.getAccountByEmail(email);
+            bookingService.processPayment(bookingId, paymentMethod, account.getId());
             return "redirect:/booking/success?bookingId=" + bookingId;
         } catch (AppException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -137,57 +129,31 @@ public class BookingController {
 
     @GetMapping("/success")
     public String showSuccess(@RequestParam UUID bookingId, Model model) {
-        Account currentAccount = getCurrentAccount();
-        model.addAttribute("ticket", bookingService.getBookingSuccessInfo(bookingId, currentAccount.getId()));
+        String email = getCurrentUserEmail();
+        var account = accountService.getAccountByEmail(email);
+        model.addAttribute("ticket", bookingService.getBookingSuccessInfo(bookingId, account.getId()));
         return "Passenger/basic/comfirm_payment";
     }
 
     @GetMapping("/my-trips")
     public String showMyTrips(@RequestParam(required = false, defaultValue = "upcoming") String tab, Model model) {
-        Account currentAccount = getCurrentAccount();
-        model.addAttribute("user", bookingService.getUserProfile(currentAccount));
-        model.addAttribute("trips", bookingService.getMyTrips(currentAccount.getId(), tab));
+        String email = getCurrentUserEmail();
+        var account = accountService.getAccountByEmail(email);
+        // UserProfileDTO might need account entity or just email
+        // I'll update bookingService.getUserProfile to take email or just use the DTO
+        model.addAttribute("user", bookingService.getUserProfileByEmail(email));
+        model.addAttribute("trips", bookingService.getMyTrips(account.getId(), tab));
         model.addAttribute("activeTab", tab);
         return "Passenger/basic/my_trip";
     }
 
     @GetMapping("/roundtrip")
     public String showChooseSeatRoundtrip(@RequestParam UUID outboundId, @RequestParam UUID returnId, Model model) {
-        Trip outbound = tripRepository.findById(outboundId)
-                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
-        Trip returnTrip = tripRepository.findById(returnId)
-                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+        var outbound = tripService.getTripEntityById(outboundId);
+        var returnTrip = tripService.getTripEntityById(returnId);
 
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("EEEE, dd/MM • HH:mm");
-        DateTimeFormatter dateLabelFormatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", new java.util.Locale("vi", "VN"));
-
-        // Outbound Info
-        TripBookingResponseDTO outboundDTO = tripMapper.toTripBookingResponseDTO(outbound);
-        outboundDTO.setDepartureDateTimeLabel(outbound.getDepartureTime().format(dateTimeFormatter));
-        outboundDTO.setArrivalDateTimeLabel(outbound.getArrivalTime().format(dateTimeFormatter));
-        var outboundStops = tripService.getTripStopEtas(outboundId);
-        outboundDTO.setStopEtas(outboundStops);
-        try {
-            outboundDTO.setStopEtasJson(objectMapper.writeValueAsString(outboundStops));
-        } catch (Exception e) {
-            log.error("Error converting outbound stops to JSON", e);
-            outboundDTO.setStopEtasJson("[]");
-        }
-        outboundDTO.setExpired(outbound.getDepartureTime().minusHours(1).isBefore(java.time.LocalDateTime.now()));
-
-        // Return Info
-        TripBookingResponseDTO returnDTO = tripMapper.toTripBookingResponseDTO(returnTrip);
-        returnDTO.setDepartureDateTimeLabel(returnTrip.getDepartureTime().format(dateTimeFormatter));
-        returnDTO.setArrivalDateTimeLabel(returnTrip.getArrivalTime().format(dateTimeFormatter));
-        var returnStops = tripService.getTripStopEtas(returnId);
-        returnDTO.setStopEtas(returnStops);
-        try {
-            returnDTO.setStopEtasJson(objectMapper.writeValueAsString(returnStops));
-        } catch (Exception e) {
-            log.error("Error converting return stops to JSON", e);
-            returnDTO.setStopEtasJson("[]");
-        }
-        returnDTO.setExpired(returnTrip.getDepartureTime().minusHours(1).isBefore(java.time.LocalDateTime.now()));
+        var outboundDTO = tripService.getTripBookingData(outboundId);
+        var returnDTO = tripService.getTripBookingData(returnId);
 
         model.addAttribute("outboundTrip", outboundDTO);
         model.addAttribute("returnTrip", returnDTO);
@@ -204,20 +170,20 @@ public class BookingController {
         model.addAttribute("bookingForm", form);
 
         try {
-            Account currentAccount = getCurrentAccount();
+            String email = getCurrentUserEmail();
+            var currentAccount = accountService.getAccountByEmail(email);
             model.addAttribute("currentUser", currentAccount);
         } catch (AppException e) {}
 
         return "Passenger/basic/choose_seat_roundtrip";
     }
 
-    private Account getCurrentAccount() {
+    private String getCurrentUserEmail() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             throw new AppException(ErrorCode.USER_NOT_FOUND, "Vui lòng đăng nhập để tiếp tục");
         }
-        return accountRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return auth.getName();
     }
 
     @PostMapping("/{bookingId}/cancel")
@@ -225,14 +191,13 @@ public class BookingController {
                                @RequestParam(required = false, defaultValue = "false") boolean isPaymentPage,
                                RedirectAttributes redirectAttributes) {
         try {
-            Account currentAccount = getCurrentAccount();
+            String email = getCurrentUserEmail();
+            var account = accountService.getAccountByEmail(email);
             
             if (isPaymentPage) {
-                 // Lấy thông tin form trước khi hủy để người dùng có thể chỉnh sửa lại
-                 BookingFormDTO prefilledForm = bookingService.getBookingFormFromBooking(bookingId, currentAccount.getId());
-                 UUID tripId = bookingService.cancelBooking(bookingId, currentAccount.getId());
+                 BookingFormDTO prefilledForm = bookingService.getBookingFormFromBooking(bookingId, account.getId());
+                 UUID tripId = bookingService.cancelBooking(bookingId, account.getId());
                  
-                 // Chuyển đổi sang JSON ngay tại đây để View sử dụng trực tiếp
                  try {
                      String passengersJson = objectMapper.writeValueAsString(prefilledForm.getPassengers());
                      redirectAttributes.addFlashAttribute("prefilledPassengersJson", passengersJson);
@@ -244,7 +209,7 @@ public class BookingController {
                  redirectAttributes.addFlashAttribute("successMessage", "Đã hủy giao dịch thanh toán. Bạn có thể chọn lại ghế hoặc chỉnh sửa thông tin.");
                  return "redirect:/booking/" + tripId;
              } else {
-                bookingService.cancelBooking(bookingId, currentAccount.getId());
+                bookingService.cancelBooking(bookingId, account.getId());
                 redirectAttributes.addFlashAttribute("successMessage", "Hủy đặt vé thành công!");
                 return "redirect:/booking/my-trips";
             }
@@ -257,8 +222,9 @@ public class BookingController {
     @GetMapping("/ticket/{bookingCode}")
     public String viewTicket(@PathVariable String bookingCode, Model model) {
         try {
-            Account currentAccount = getCurrentAccount();
-            var ticketDetail = bookingService.getTicketDetailByBookingCode(bookingCode, currentAccount.getId());
+            String email = getCurrentUserEmail();
+            var account = accountService.getAccountByEmail(email);
+            var ticketDetail = bookingService.getTicketDetailByBookingCode(bookingCode, account.getId());
             model.addAttribute("ticket", ticketDetail);
             return "Passenger/basic/view_ticket";
         } catch (AppException e) {

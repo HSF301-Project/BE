@@ -20,6 +20,7 @@ public interface TripService {
     TripSearchResultDTO searchTrips(TripSearchRequestDTO request);
     BigDecimal getBasePriceByTripId(UUID tripId);
     List<TripStopEtaDTO> getTripStopEtas(UUID tripId);
+    sp26.group.busticket.modules.dto.trip.response.TripBookingResponseDTO getTripBookingData(UUID tripId);
 
     // Admin Side
     TripPageResponse getAdminDashboardData(String query, String status, int page, int size);
@@ -39,6 +40,10 @@ public interface TripService {
     void startTrip(UUID tripId);
 
     void finishTrip(UUID tripId);
+
+    List<sp26.group.busticket.modules.entity.Trip> getStaffTrips(String email);
+    sp26.group.busticket.modules.entity.Trip getTripEntityById(UUID tripId);
+    List<sp26.group.busticket.modules.entity.Ticket> getTicketsByTripId(UUID tripId);
 
     // Business Logic for Admin Form
     Optional<UUID> findReturnRouteId(UUID forwardRouteId);

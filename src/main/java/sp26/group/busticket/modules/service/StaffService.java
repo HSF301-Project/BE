@@ -14,6 +14,8 @@ public interface StaffService {
 
     Page<StaffResponseDTO> getStaffPage(String keyword, String role, int page, int size);
 
+    void toggleStatus(UUID staffId);
+
     List<StaffResponseDTO> getAllStaff();
 
     Optional<StaffResponseDTO> getStaffById(UUID staffId);

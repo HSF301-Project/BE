@@ -78,6 +78,11 @@ public class SeatServiceImpl implements SeatService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<Seat> getSeatsByCoachId(UUID coachId) {
+        return seatRepository.findByCoach_IdOrderBySeatNumberAsc(coachId);
+    }
+
     private boolean shouldAddAisle(String seatNumber) {
         // Simple logic for aisle: add aisle after every 2nd column in a 4-column layout
         // For example, if seatNumber is L02, L06, etc. (assuming 4 seats per row)

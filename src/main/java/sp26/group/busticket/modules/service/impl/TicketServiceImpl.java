@@ -19,28 +19,52 @@ public class TicketServiceImpl implements TicketService {
     private final TicketRepository ticketRepository;
 
     @Override
+    public long countTicketsByTrip(UUID tripId) {
+        return ticketRepository.countByBooking_Trip_Id(tripId);
+    }
+
+    @Override
+    public long countCheckedInTicketsByTrip(UUID tripId) {
+        return ticketRepository.countByBooking_Trip_IdAndStatus(tripId, "CHECKED_IN");
+    }
+
+    @Override
     @Transactional
     public void checkInTicket(String ticketCode, UUID tripId) {
         Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy vé với mã này."));
 
-        // Kiểm tra vé có thuộc chuyến đi này không
         if (!ticket.getBooking().getTrip().getId().equals(tripId)) {
             throw new AppException(ErrorCode.INVALID_INPUT, "Vé này không thuộc chuyến đi hiện tại.");
         }
 
-        // Kiểm tra trạng thái Booking (phải đã thanh toán/xác nhận)
         if (ticket.getBooking().getStatus() != BookingStatusEnum.CONFIRMED) {
             throw new AppException(ErrorCode.INVALID_INPUT, "Booking chưa được xác nhận hoặc đã bị hủy.");
         }
 
-        // Kiểm tra xem đã check-in chưa
         if ("CHECKED_IN".equals(ticket.getStatus())) {
             throw new AppException(ErrorCode.INVALID_INPUT, "Vé này đã được check-in trước đó.");
         }
 
-        // Cập nhật trạng thái
         ticket.setStatus("CHECKED_IN");
+        ticketRepository.save(ticket);
+    }
+
+    @Override
+    @Transactional
+    public void toggleCheckIn(UUID tripId, String ticketCode) {
+        Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy vé."));
+
+        if (!ticket.getBooking().getTrip().getId().equals(tripId)) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Vé không thuộc chuyến đi này.");
+        }
+
+        if ("CHECKED_IN".equals(ticket.getStatus())) {
+            ticket.setStatus("PENDING");
+        } else {
+            ticket.setStatus("CHECKED_IN");
+        }
         ticketRepository.save(ticket);
     }
 }

@@ -13,11 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.validation.Valid;
@@ -40,92 +36,48 @@ import sp26.group.busticket.modules.dto.trip.response.TripBookingResponseDTO;
 @Controller
 @RequestMapping("/staff/booking")
 @RequiredArgsConstructor
-//@PreAuthorize("hasRole('STAFF')") // User rule says staff booking
 public class StaffBookingController {
 
-    private final BookingService bookingService;
     private final TripService tripService;
-    private final SeatService seatService;
-    private final LocationService locationService;
-    private final AccountRepository accountRepository;
-    private final TripRepository tripRepository;
-    private final TripMapper tripMapper;
+    private final BookingService bookingService;
+    private final sp26.group.busticket.modules.service.AccountService accountService;
 
-    // 1. Xem danh sách chuyến đi (Staff Dashboard)
-    @GetMapping("/trips")
-    public String listTrips(@ModelAttribute TripSearchRequestDTO searchDTO, Model model) {
-        model.addAttribute("locations", locationService.getLocationsByType("TERMINAL"));
-        
-        if (searchDTO.getFrom() == null || searchDTO.getTo() == null || searchDTO.getFrom().isBlank() || searchDTO.getTo().isBlank()) {
-            model.addAttribute("trips", Collections.emptyList());
-        } else {
-            model.addAttribute("trips", tripService.searchTrips(searchDTO).getTrips());
-        }
-        return "staff/trip-list";
-    }
-
-    // 2. Chọn ghế và nhập thông tin khách
-    @GetMapping("/create/{tripId}")
-    public String showCreateForm(@PathVariable UUID tripId, Model model) {
-        populateCreateFormModel(tripId, model);
-        model.addAttribute("bookingDTO", new StaffBookingRequestDTO());
+    @GetMapping("/{tripId}")
+    public String showStaffBooking(@PathVariable UUID tripId, Model model) {
+        var tripData = tripService.getTripBookingData(tripId);
+        model.addAttribute("trip", tripData);
+        model.addAttribute("bookingRequest", new StaffBookingRequestDTO());
         return "staff/booking-form";
     }
 
-    // 3. Xử lý đặt vé
-    @PostMapping("/create/{tripId}")
-    public String processBooking(@PathVariable UUID tripId,
-                                 @Valid @ModelAttribute("bookingDTO") StaffBookingRequestDTO bookingDTO,
-                                 BindingResult bindingResult,
-                                 @AuthenticationPrincipal UserDetails userDetails,
-                                 Model model,
-                                 RedirectAttributes redirectAttributes) {
-        
-        if (bindingResult.hasErrors()) {
-            populateCreateFormModel(tripId, model);
+    @PostMapping("/{tripId}")
+    public String processStaffBooking(@PathVariable UUID tripId,
+                                      @Valid @ModelAttribute("bookingRequest") StaffBookingRequestDTO form,
+                                      BindingResult result,
+                                      @AuthenticationPrincipal UserDetails userDetails,
+                                      Model model,
+                                      RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            model.addAttribute("trip", tripService.getTripBookingData(tripId));
             return "staff/booking-form";
         }
 
         try {
-            Account staff = accountRepository.findByEmail(userDetails.getUsername()).orElseThrow();
-            UUID bookingId = bookingService.createStaffBooking(tripId, bookingDTO, staff);
-            redirectAttributes.addFlashAttribute("successMessage", "Đặt vé thành công! Mã Booking: " + bookingId);
-            return "redirect:/staff/booking/success/" + bookingId;
+            UUID bookingId = bookingService.createStaffBookingByEmail(tripId, form, userDetails.getUsername());
+            redirectAttributes.addFlashAttribute("successMessage", "Đặt vé tại quầy thành công!");
+            return "redirect:/staff/booking/success?bookingId=" + bookingId;
         } catch (AppException e) {
             model.addAttribute("errorMessage", e.getMessage());
-            populateCreateFormModel(tripId, model);
+            model.addAttribute("trip", tripService.getTripBookingData(tripId));
             return "staff/booking-form";
         }
     }
 
-    private void populateCreateFormModel(UUID tripId, Model model) {
-        Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
-
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("EEEE, dd/MM • HH:mm");
-        TripBookingResponseDTO tripDTO = tripMapper.toTripBookingResponseDTO(trip);
-        tripDTO.setDepartureDateTimeLabel(trip.getDepartureTime().format(dateTimeFormatter));
-        tripDTO.setArrivalDateTimeLabel(trip.getArrivalTime().format(dateTimeFormatter));
-        tripDTO.setStopEtas(tripService.getTripStopEtas(tripId));
-        tripDTO.setExpired(false);
-
-        BigDecimal unitPrice = trip.getPriceBase();
-        NumberFormat vnCurrency = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
-
-        model.addAttribute("tripId", tripId);
-        model.addAttribute("trip", tripDTO);
-        model.addAttribute("lowerDeckSeats", seatService.getSeatsByTripAndFloor(tripId, 1));
-        model.addAttribute("upperDeckSeats", seatService.getSeatsByTripAndFloor(tripId, 2));
-        model.addAttribute("unitPrice", unitPrice);
-        model.addAttribute("unitPriceFormatted", vnCurrency.format(unitPrice));
-    }
-
-    // 4. Màn hình thành công
-    @GetMapping("/success/{bookingId}")
-    public String showSuccess(@PathVariable UUID bookingId, 
-                             @AuthenticationPrincipal UserDetails userDetails,
-                             Model model) {
-        Account staff = accountRepository.findByEmail(userDetails.getUsername()).orElseThrow();
+    @GetMapping("/success")
+    public String showStaffSuccess(@RequestParam UUID bookingId,
+                                   @AuthenticationPrincipal UserDetails userDetails,
+                                   Model model) {
+        var staff = accountService.getAccountByEmail(userDetails.getUsername());
         model.addAttribute("ticket", bookingService.getStaffBookingSuccessInfo(bookingId, staff.getId()));
         return "staff/booking-success";
     }

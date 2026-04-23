@@ -7,8 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import sp26.group.busticket.modules.entity.Account;
-import sp26.group.busticket.modules.repository.AccountRepository;
+import sp26.group.busticket.modules.service.AccountService;
 import sp26.group.busticket.modules.service.ReportService;
 
 @Controller
@@ -17,11 +16,11 @@ import sp26.group.busticket.modules.service.ReportService;
 public class AdminReportController {
 
     private final ReportService reportService;
-    private final AccountRepository accountRepository;
+    private final AccountService accountService;
 
     @GetMapping
     public String showReports(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        Account admin = accountRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        var admin = accountService.getAccountByEmail(userDetails.getUsername());
         model.addAttribute("adminUser", admin);
         model.addAttribute("reports", reportService.getGeneralReport());
         model.addAttribute("title", "Báo cáo thống kê");

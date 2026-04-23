@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface SeatService {
     List<SeatDisplayDTO> getSeatsByTripAndFloor(UUID tripId, Integer floor);
     List<SeatDisplayDTO> getSeatsByTripId(UUID tripId);
+    List<sp26.group.busticket.modules.entity.Seat> getSeatsByCoachId(UUID coachId);
 }

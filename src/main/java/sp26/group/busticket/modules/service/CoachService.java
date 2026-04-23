@@ -6,6 +6,8 @@ import sp26.group.busticket.modules.dto.coach.response.CoachResponseDTO;
 import java.util.List;
 import java.util.UUID;
 
+import sp26.group.busticket.modules.entity.CoachType;
+
 public interface CoachService {
     CoachResponseDTO createCoach(CoachRequestDTO request);
     List<CoachResponseDTO> getAllCoaches();
@@ -14,4 +16,11 @@ public interface CoachService {
     void deleteCoach(UUID id);
     sp26.group.busticket.modules.dto.coach.response.CoachDetailResponseDTO getCoachDetails(UUID id);
     sp26.group.busticket.modules.dto.trip.response.AdminTripDetailResponseDTO getAdminTripDetail(UUID tripId);
+    
+    // CoachType methods
+    List<CoachType> getAllCoachTypes();
+    CoachType saveCoachType(CoachType coachType);
+    void deleteCoachType(UUID id);
+    long countCoachesByType(UUID typeId);
+    CoachType getCoachTypeById(UUID id);
 }

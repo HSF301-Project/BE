@@ -8,8 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import sp26.group.busticket.modules.entity.Account;
-import sp26.group.busticket.modules.repository.AccountRepository;
+import sp26.group.busticket.modules.service.AccountService;
 import sp26.group.busticket.modules.service.FinanceService;
 
 import java.util.Map;
@@ -22,14 +21,14 @@ import java.util.stream.IntStream;
 public class AdminFinanceController {
 
     private final FinanceService financeService;
-    private final AccountRepository accountRepository;
+    private final AccountService accountService;
 
     @GetMapping
     public String listPayments(@RequestParam(required = false) String q,
                                @RequestParam(defaultValue = "1") int page,
                                @AuthenticationPrincipal UserDetails userDetails,
                                Model model) {
-        Account admin = accountRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        var admin = accountService.getAccountByEmail(userDetails.getUsername());
         model.addAttribute("adminUser", admin);
         
         int pageSize = 10;

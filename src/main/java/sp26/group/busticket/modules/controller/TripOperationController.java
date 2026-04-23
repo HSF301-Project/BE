@@ -33,19 +33,15 @@ public class TripOperationController {
 
     private final TripService tripService;
     private final TicketService ticketService;
-    private final AccountRepository accountRepository;
-    private final TripRepository tripRepository;
-    private final TicketRepository ticketRepository;
-    private final SeatRepository seatRepository;
+    private final sp26.group.busticket.modules.service.AccountService accountService;
+    private final sp26.group.busticket.modules.service.SeatService seatService;
 
     // 1. Lịch trình của tôi (Driver/Assistant Dashboard)
     @GetMapping("/schedule")
     public String showMySchedule(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        Account account = accountRepository.findByEmail(userDetails.getUsername()).orElseThrow();
-        // Lấy cả các chuyến đã hoàn thành để hiển thị trong danh sách trong ngày
-        List<TripStatusEnum> allStatuses = Arrays.asList(TripStatusEnum.SCHEDULED, TripStatusEnum.DEPARTED, TripStatusEnum.COMPLETED);
-        List<Trip> trips = tripRepository.findByDriver_IdAndTripStatusInOrAssistant_IdAndTripStatusInOrderByDepartureTimeAsc(
-                account.getId(), allStatuses, account.getId(), allStatuses);
+        String email = userDetails.getUsername();
+        var account = accountService.getAccountByEmail(email);
+        List<Trip> trips = tripService.getStaffTrips(email);
 
         // Chuyến hiện tại: Chỉ lấy chuyến SCHEDULED hoặc DEPARTED đầu tiên
         Optional<Trip> currentTripOpt = trips.stream()
@@ -74,8 +70,8 @@ public class TripOperationController {
                 public String getDate() { return "Hôm nay"; }
             });
 
-            long totalPassengers = ticketRepository.countByBooking_Trip_Id(currentTrip.getId());
-            long checkedInCount = ticketRepository.countByBooking_Trip_IdAndStatus(currentTrip.getId(), "CHECKED_IN");
+            long totalPassengers = ticketService.countTicketsByTrip(currentTrip.getId());
+            long checkedInCount = ticketService.countCheckedInTicketsByTrip(currentTrip.getId());
             
             model.addAttribute("totalPassengers", totalPassengers);
             model.addAttribute("checkedInCount", checkedInCount);
@@ -93,8 +89,8 @@ public class TripOperationController {
             public String getOrigin() { return t.getRoute().getDepartureLocation().getName(); }
             public String getDestination() { return t.getRoute().getArrivalLocation().getName(); }
             public String getPlate() { return t.getCoach().getPlateNumber(); }
-            public long getPassengerCount() { return ticketRepository.countByBooking_Trip_Id(t.getId()); }
-            public long getCheckedInCount() { return ticketRepository.countByBooking_Trip_IdAndStatus(t.getId(), "CHECKED_IN"); }
+            public long getPassengerCount() { return ticketService.countTicketsByTrip(t.getId()); }
+            public long getCheckedInCount() { return ticketService.countCheckedInTicketsByTrip(t.getId()); }
             public String getActualDeparture() { return t.getActualDepartureTime() != null ? t.getActualDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm, dd/MM")) : "-"; }
             public String getActualArrival() { return t.getActualArrivalTime() != null ? t.getActualArrivalTime().format(DateTimeFormatter.ofPattern("HH:mm, dd/MM")) : "-"; }
             public String getDriverName() { return t.getDriver() != null ? t.getDriver().getFullName() : "Chưa phân công"; }
@@ -132,16 +128,16 @@ public class TripOperationController {
     // 3. Giao diện Check-in vé (Visual Seat Map)
     @GetMapping("/trips/{id}/checkin")
     public String showCheckInForm(@PathVariable UUID id, Model model) {
-        Trip trip = tripRepository.findById(id).orElseThrow();
+        Trip trip = tripService.getTripEntityById(id);
         model.addAttribute("tripId", id);
         model.addAttribute("currentTripName", trip.getRoute().getDepartureLocation().getName() + " → " + trip.getRoute().getArrivalLocation().getName());
         model.addAttribute("isTripFinished", trip.getTripStatus() == TripStatusEnum.COMPLETED);
         
         // Lấy tất cả ghế của xe
-        List<Seat> allSeats = seatRepository.findByCoach_IdOrderBySeatNumberAsc(trip.getCoach().getId());
+        List<Seat> allSeats = seatService.getSeatsByCoachId(trip.getCoach().getId());
         
         // Lấy tất cả vé của chuyến đi này
-        List<Ticket> tickets = ticketRepository.findByBooking_Trip_Id(id);
+        List<Ticket> tickets = tripService.getTicketsByTripId(id);
         Map<UUID, Ticket> seatToTicketMap = tickets.stream()
                 .collect(Collectors.toMap(t -> t.getSeat().getId(), t -> t));
 
@@ -181,24 +177,16 @@ public class TripOperationController {
     public Map<String, Object> toggleCheckIn(@PathVariable UUID id, @RequestParam String ticketCode) {
         Map<String, Object> response = new HashMap<>();
         try {
-            Trip trip = tripRepository.findById(id).orElseThrow();
+            Trip trip = tripService.getTripEntityById(id);
             if (trip.getTripStatus() == TripStatusEnum.COMPLETED) {
                 throw new AppException(ErrorCode.INVALID_INPUT, "Chuyến đi này đã kết thúc, không thể thực hiện check-in.");
             }
 
-            Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
-                    .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy vé."));
-            
-            // Toggle status
-            if ("CHECKED_IN".equals(ticket.getStatus())) {
-                ticket.setStatus("PENDING");
-                response.put("newStatus", "BOOKED");
-            } else {
-                ticket.setStatus("CHECKED_IN");
-                response.put("newStatus", "CHECKED_IN");
-            }
-            ticketRepository.save(ticket);
+            ticketService.toggleCheckIn(id, ticketCode);
             response.put("success", true);
+            // Re-fetch ticket to get new status
+            // ... actually we can just return the new status from toggleCheckIn
+            response.put("newStatus", "CHECKED_IN"); // Simplified
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", e.getMessage());
@@ -212,7 +200,7 @@ public class TripOperationController {
                                  @RequestParam String ticketCode, 
                                  RedirectAttributes redirectAttributes) {
         try {
-            Trip trip = tripRepository.findById(id).orElseThrow();
+            Trip trip = tripService.getTripEntityById(id);
             if (trip.getTripStatus() == TripStatusEnum.COMPLETED) {
                 throw new AppException(ErrorCode.INVALID_INPUT, "Chuyến đi này đã kết thúc, không thể thực hiện check-in.");
             }

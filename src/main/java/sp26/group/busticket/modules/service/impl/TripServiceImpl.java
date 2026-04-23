@@ -21,6 +21,7 @@ import sp26.group.busticket.modules.dto.trip.response.TripDriverOptionDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripSearchResultDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripStopEtaDTO;
 import sp26.group.busticket.modules.entity.Account;
+import sp26.group.busticket.modules.entity.Ticket;
 import sp26.group.busticket.modules.entity.Trip;
 import sp26.group.busticket.modules.enumType.BookingStatusEnum;
 import sp26.group.busticket.modules.enumType.StatusEnum;
@@ -438,10 +439,45 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Trip> getStaffTrips(String email) {
+        Account account = accountRepository.findByEmail(email).orElseThrow();
+        List<TripStatusEnum> allStatuses = Arrays.asList(TripStatusEnum.SCHEDULED, TripStatusEnum.DEPARTED, TripStatusEnum.COMPLETED);
+        return tripRepository.findByDriver_IdAndTripStatusInOrAssistant_IdAndTripStatusInOrderByDepartureTimeAsc(
+                account.getId(), allStatuses, account.getId(), allStatuses);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Trip getTripEntityById(UUID tripId) {
+        return tripRepository.findById(tripId).orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Ticket> getTicketsByTripId(UUID tripId) {
+        return ticketRepository.findByBooking_Trip_Id(tripId);
+    }
+
+    @Override
     public BigDecimal getBasePriceByTripId(UUID tripId) {
         return tripRepository.findById(tripId)
                 .map(Trip::getPriceBase)
                 .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+    }
+
+    @Override
+    public sp26.group.busticket.modules.dto.trip.response.TripBookingResponseDTO getTripBookingData(UUID tripId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("EEEE, dd/MM • HH:mm");
+        sp26.group.busticket.modules.dto.trip.response.TripBookingResponseDTO dto = tripMapper.toTripBookingResponseDTO(trip);
+        dto.setDepartureDateTimeLabel(trip.getDepartureTime().format(dateTimeFormatter));
+        dto.setArrivalDateTimeLabel(trip.getArrivalTime().format(dateTimeFormatter));
+        dto.setStopEtas(getTripStopEtas(tripId));
+        dto.setExpired(trip.getDepartureTime().minusHours(1).isBefore(LocalDateTime.now()));
+        return dto;
     }
 
     @Override

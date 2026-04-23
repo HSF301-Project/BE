@@ -10,12 +10,14 @@ import sp26.group.busticket.modules.dto.route.request.RouteStopRequestDTO;
 import sp26.group.busticket.modules.entity.Location;
 import sp26.group.busticket.modules.entity.Route;
 import sp26.group.busticket.modules.entity.RouteStop;
+import sp26.group.busticket.modules.enumType.StopTypeEnum;
 import sp26.group.busticket.modules.repository.LocationRepository;
 import sp26.group.busticket.modules.repository.RouteRepository;
 import sp26.group.busticket.modules.repository.RouteStopRepository;
 import sp26.group.busticket.modules.service.RouteService;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -145,22 +147,40 @@ public class RouteServiceImpl implements RouteService {
                 .stops(new ArrayList<>())
                 .build();
 
-        // Đảo ngược danh sách stops
-        List<RouteStop> forwardStops = forward.getStops().stream()
-                .sorted(Comparator.comparing(RouteStop::getStopOrder).reversed())
-                .toList();
+        // Đảo ngược danh sách stops và tính toán lại thông số
+        List<RouteStop> forwardStops = new ArrayList<>(forward.getStops());
+        forwardStops.sort(Comparator.comparing(RouteStop::getStopOrder));
+        Collections.reverse(forwardStops);
+
+        float totalDist = forward.getDistance();
+        int totalDuration = forward.getDuration();
 
         for (RouteStop fs : forwardStops) {
+            // Đảo ngược StopType: PICKUP <-> DROPOFF, BOTH giữ nguyên
+            StopTypeEnum reverseStopType = fs.getStopType();
+            if (fs.getStopType() == StopTypeEnum.PICKUP) {
+                reverseStopType = StopTypeEnum.DROPOFF;
+            } else if (fs.getStopType() == StopTypeEnum.DROPOFF) {
+                reverseStopType = StopTypeEnum.PICKUP;
+            }
+
+            // Tính toán lại khoảng cách và thời gian đảo ngược
+            Float reverseDist = fs.getDistanceFromStart() != null ? totalDist - fs.getDistanceFromStart() : null;
+            Integer reverseOffset = fs.getOffsetMinutes() != null ? totalDuration - fs.getOffsetMinutes() : null;
+
+            // Đảm bảo không âm do sai số
+            if (reverseDist != null && reverseDist < 0) reverseDist = 0f;
+            if (reverseOffset != null && reverseOffset < 0) reverseOffset = 0;
+
             backwardReq.getStops().add(RouteStopRequestDTO.builder()
                     .locationId(fs.getLocation().getId())
-                    .stopType(fs.getStopType())
+                    .stopType(reverseStopType)
+                    .distanceFromStart(reverseDist)
+                    .offsetMinutes(reverseOffset)
                     .notes(fs.getNotes())
-                    // Các chỉ số KM và Phút sẽ được tính lại hoặc đảo ngược
                     .build());
         }
         
-        // Tính lại metrics cho chuẩn
-        calculateMetrics(backwardReq);
         saveRoute(backwardReq);
     }
 

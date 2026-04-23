@@ -60,7 +60,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void changeStatus(UUID id) {
+    public String changeStatus(UUID id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         
@@ -71,5 +71,40 @@ public class AccountServiceImpl implements AccountService {
         }
         
         accountRepository.save(account);
+        return account.getRole();
+    }
+
+    @Override
+    public AccountResponseDTO getAccountById(UUID id) {
+        return accountRepository.findById(id)
+                .map(this::mapToDTO)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    @Override
+    public AccountResponseDTO getAccountByEmail(String email) {
+        return accountRepository.findByEmail(email)
+                .map(this::mapToDTO)
+                .orElse(null);
+    }
+
+    @Override
+    public List<AccountResponseDTO> getAccountsByRoleAndStatus(String role, StatusEnum status) {
+        return accountRepository.findByRoleAndStatusOrderByFullNameAsc(role, status).stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    private AccountResponseDTO mapToDTO(Account account) {
+        return AccountResponseDTO.builder()
+                .id(account.getId())
+                .email(account.getEmail())
+                .fullName(account.getFullName())
+                .phone(account.getPhone())
+                .role(account.getRole())
+                .status(account.getStatus())
+                .createdAt(account.getCreatedAt())
+                .updatedAt(account.getUpdatedAt())
+                .build();
     }
 }

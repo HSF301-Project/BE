@@ -288,6 +288,14 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
+    public UUID createStaffBookingByEmail(UUID tripId, StaffBookingRequestDTO form, String email) {
+        Account staff = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return createStaffBooking(tripId, form, staff);
+    }
+
+    @Override
+    @Transactional
     public void linkGuestBookingsToAccount(Account account) {
         // Tìm tất cả vé có SĐT trùng với SĐT của Account mới
         List<Ticket> guestTickets = ticketRepository.findByPassengerPhone(account.getPhone());
@@ -888,5 +896,20 @@ public class BookingServiceImpl implements BookingService {
             });
             bookingRepository.saveAll(expiredBookings);
         }
+    }
+
+    @Override
+    @Transactional
+    public UUID createBookingByEmail(UUID tripId, BookingFormDTO form, String email) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return createBooking(tripId, form, account);
+    }
+
+    @Override
+    public UserProfileDTO getUserProfileByEmail(String email) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return getUserProfile(account);
     }
 }

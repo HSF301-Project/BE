@@ -26,9 +26,6 @@ public class DataInitializer implements CommandLineRunner {
     private final CoachRepository coachRepository;
     private final SeatRepository seatRepository;
     private final TripRepository tripRepository;
-    private final BookingRepository bookingRepository;
-    private final TicketRepository ticketRepository;
-    private final PaymentRepository paymentRepository;
     private final PasswordEncoder passwordEncoder;
     private final CoachTypeRepository coachTypeRepository;
 
@@ -38,96 +35,68 @@ public class DataInitializer implements CommandLineRunner {
         // 1. Initialize Accounts
         initAccounts();
 
-        // 2. Initialize Locations (TERMINALs with specific addresses)
-        Location hnMyDinh = initLocation("Bến xe Mỹ Đình", "Hà Nội", "20 Phạm Hùng, Mỹ Đình, Nam Từ Liêm", "TERMINAL");
-        Location hnGiapBat = initLocation("Bến xe Giáp Bát", "Hà Nội", "Giải Phóng, Hoàng Mai", "TERMINAL");
-        Location hcmMienDong = initLocation("Bến xe Miền Đông", "TP. Hồ Chí Minh", "292 Đinh Bộ Lĩnh, P.26, Bình Thạnh", "TERMINAL");
-        Location hcmMienTay = initLocation("Bến xe Miền Tây", "TP. Hồ Chí Minh", "395 Kinh Dương Vương, An Lạc, Bình Tân", "TERMINAL");
-        Location dnTrungTam = initLocation("Bến xe Trung tâm Đà Nẵng", "Đà Nẵng", "201 Tôn Đức Thắng, Hòa Minh, Liên Chiểu", "TERMINAL");
-        Location dlLienTinh = initLocation("Bến xe Liên tỉnh Đà Lạt", "Lâm Đồng", "01 Tô Hiến Thành, Phường 3", "TERMINAL");
-        Location ctTrungTam = initLocation("Bến xe Trung tâm Cần Thơ", "Cần Thơ", "QL1A, Hưng Thạnh, Cái Răng", "TERMINAL");
-        Location vtVungTau = initLocation("Bến xe Vũng Tàu", "Bà Rịa - Vũng Tàu", "192 Nam Kỳ Khởi Nghĩa, Phường 3", "TERMINAL");
-        Location ntPhiaNam = initLocation("Bến xe Phía Nam Nha Trang", "Khánh Hòa", "Km số 6 đường 23/10, Vĩnh Trung", "TERMINAL");
-        Location lcLaoCai = initLocation("Bến xe Lào Cai", "Lào Cai", "Phố Mới, TP. Lào Cai", "TERMINAL");
+        // 2. Initialize Locations (4 Terminals + 4 Stops)
+        Location hcm = initLocation("Bến xe Miền Đông", "TP. Hồ Chí Minh", "292 Đinh Bộ Lĩnh", "TERMINAL");
+        Location dl = initLocation("Bến xe Đà Lạt", "Lâm Đồng", "01 Tô Hiến Thành", "TERMINAL");
+        Location hn = initLocation("Bến xe Mỹ Đình", "Hà Nội", "20 Phạm Hùng", "TERMINAL");
+        Location dn = initLocation("Bến xe Đà Nẵng", "Đà Nẵng", "201 Tôn Đức Thắng", "TERMINAL");
 
-        // Intermediate STOPS
-        Location stopPhuTho = initLocation("Trạm dừng chân Phú Thọ", "Phú Thọ", "Km 98 Cao tốc Nội Bài - Lào Cai", "STOP");
-        Location stopXuanLoc = initLocation("Trạm dừng chân Xuân Lộc", "Đồng Nai", "QL1A, Xuân Lộc", "STOP");
-        Location stopBaoLoc = initLocation("Trạm dừng chân Bảo Lộc", "Lâm Đồng", "QL20, Bảo Lộc", "STOP");
-        Location stopMekong = initLocation("Mekong Rest Stop", "Tiền Giang", "QL1A, Châu Thành", "STOP");
-        Location stopHaiVan = initLocation("Trạm dừng chân Hải Vân", "Đà Nẵng", "Nam hầm Hải Vân", "STOP");
+        Location stop1 = initLocation("Trạm dừng chân Xuân Lộc", "Đồng Nai", "QL1A", "STOP");
+        Location stop2 = initLocation("Trạm dừng chân Bảo Lộc", "Lâm Đồng", "QL20", "STOP");
+        Location stop3 = initLocation("Trạm dừng chân Phan Thiết", "Bình Thuận", "QL1A", "STOP");
+        Location stop4 = initLocation("Trạm dừng chân Nha Trang", "Khánh Hòa", "QL1A", "STOP");
 
-        // 3. Initialize Coach Types
-        CoachType t1 = initCoachType("Limousine Phòng", "Xe cao cấp, mỗi khách một phòng riêng biệt.");
-        CoachType t2 = initCoachType("Xe Giường nằm", "Xe giường nằm tiêu chuẩn.");
-        CoachType t3 = initCoachType("Xe Cabin Cung Điện", "Hạng thương gia cao cấp.");
-        CoachType t4 = initCoachType("Xe Ghế Ngồi", "Ghế ngả thoải mái.");
-        CoachType t5 = initCoachType("Limousine Ghế", "Dòng xe Transit cải tiến.");
+        // 3. Initialize 3 Coach Types
+        CoachType sleeper = initCoachType("Xe Giường nằm", "Xe giường nằm tiêu chuẩn 40 chỗ.");
+        CoachType seat = initCoachType("Xe Ghế Ngồi", "Xe ghế ngồi 29 chỗ.");
+        CoachType limousine = initCoachType("Limousine", "Xe Limousine cao cấp 22 phòng.");
 
-        // 4. Initialize Coaches
-        Coach c1 = initCoach("29B-123.45", t1, 22);
-        Coach c2 = initCoach("51B-678.90", t2, 40);
-        Coach c3 = initCoach("43B-111.22", t3, 20);
-        Coach c4 = initCoach("49B-555.66", t4, 29);
-        Coach c5 = initCoach("72B-999.88", t5, 9);
+        // 4. Initialize 10 Coaches
+        for (int i = 1; i <= 4; i++) initCoach("51B-000.0" + i, sleeper, 40);
+        for (int i = 5; i <= 7; i++) initCoach("51B-000.0" + i, seat, 29);
+        for (int i = 8; i <= 10; i++) {
+            String plate = (i == 10) ? "51B-000.10" : "51B-000.0" + i;
+            initCoach(plate, limousine, 22);
+        }
 
-        // 5. Initialize Routes with calculated durations
-        // Formula: duration = (distance / 50) * 1.2 * 60
-        Route r1 = initRoute("HN-LC-01", hnMyDinh, lcLaoCai, 320f); // 460 mins
-        initRouteStop(r1, stopPhuTho, 1, StopTypeEnum.BOTH, 180, 150f);
+        // 5. Initialize 1 Route and 1 Return Route
+        Route forward = initRoute("HCM-DL-01", hcm, dl, 300f);
+        if (routeStopRepository.findByRouteIdOrderByStopOrderAsc(forward.getId()).isEmpty()) {
+            initRouteStop(forward, stop1, 1, StopTypeEnum.BOTH, 120, 100f);
+            initRouteStop(forward, stop2, 2, StopTypeEnum.BOTH, 240, 200f);
+        }
 
-        Route r2 = initRoute("HCM-DL-01", hcmMienDong, dlLienTinh, 308f); // 443 mins
-        initRouteStop(r2, stopXuanLoc, 1, StopTypeEnum.BOTH, 150, 100f);
-        initRouteStop(r2, stopBaoLoc, 2, StopTypeEnum.BOTH, 280, 190f);
+        Route backward = initRoute("DL-HCM-01", dl, hcm, 300f);
+        if (routeStopRepository.findByRouteIdOrderByStopOrderAsc(backward.getId()).isEmpty()) {
+            initRouteStop(backward, stop2, 1, StopTypeEnum.BOTH, 60, 100f);
+            initRouteStop(backward, stop1, 2, StopTypeEnum.BOTH, 180, 200f);
+        }
 
-        Route r3 = initRoute("HCM-VT-01", hcmMienTay, vtVungTau, 110f); // 158 mins
-        Route r4 = initRoute("HCM-CT-01", hcmMienTay, ctTrungTam, 165f); // 237 mins
-        initRouteStop(r4, stopMekong, 1, StopTypeEnum.BOTH, 100, 70f);
+        // 6. Initialize some sample Trips
+        Account driver1 = accountRepository.findByEmail("driver1@gmail.com").orElse(null);
+        Account as1 = accountRepository.findByEmail("assistant1@gmail.com").orElse(null);
+        Coach coach1 = coachRepository.findByPlateNumber("51B-000.01").orElse(null);
 
-        Route r5 = initRoute("DN-HUE-01", dnTrungTam, initLocation("Bến xe Phía Nam Huế", "Thừa Thiên Huế", "An Cựu, TP. Huế", "TERMINAL"), 105f); // 151 mins
-        initRouteStop(r5, stopHaiVan, 1, StopTypeEnum.BOTH, 40, 30f);
-
-        // 6. Initialize Trips
-        Account dr1 = accountRepository.findByEmail("driver1@gmail.com").orElseThrow();
-        Account as1 = accountRepository.findByEmail("assistant1@gmail.com").orElseThrow();
-
-        // Trip 1: Soon (45 mins)
-        initTrip(r1, c1, LocalDateTime.now().plusMinutes(45), "0912345678", 350000, TripStatusEnum.SCHEDULED, dr1, as1);
-        
-        // Trip 2: Later (2 hours)
-        initTrip(r2, c2, LocalDateTime.now().plusHours(2), "0987654321", 280000, TripStatusEnum.SCHEDULED, dr1, as1);
-        
-        // Trip 3: HCM - Vung Tau (Soon)
-        initTrip(r3, c5, LocalDateTime.now().plusMinutes(30), "0901112223", 180000, TripStatusEnum.SCHEDULED, dr1, as1);
-        
-        // Trip 4: HCM - Can Tho (Afternoon)
-        initTrip(r4, c2, LocalDateTime.now().plusHours(5), "0904445556", 200000, TripStatusEnum.SCHEDULED, dr1, as1);
-        
-        // Trip 5: Da Nang - Hue
-        initTrip(r5, c3, LocalDateTime.now().plusHours(7), "0907778889", 150000, TripStatusEnum.SCHEDULED, dr1, as1);
-        
-        // Trip 6: Hanoi - Hai Phong
-        initTrip(r1, c4, LocalDateTime.now().plusHours(1), "0909990001", 120000, TripStatusEnum.SCHEDULED, dr1, as1);
-        
-        // Trip 7: Finished Trip
-        initTrip(r3, c5, LocalDateTime.now().minusDays(1), "0911223344", 180000, TripStatusEnum.COMPLETED, dr1, as1);
-        
-        // Trip 8: Running Trip
-        initTrip(r4, c2, LocalDateTime.now().minusMinutes(30), "0922334455", 200000, TripStatusEnum.DEPARTED, dr1, as1);
-        
-        // Trip 9: Night Trip
-        initTrip(r2, c1, LocalDateTime.now().plusHours(12), "0933445566", 350000, TripStatusEnum.SCHEDULED, dr1, as1);
-        
-        // Trip 10: Tomorrow Trip
-        initTrip(r1, c3, LocalDateTime.now().plusDays(1), "0944556677", 400000, TripStatusEnum.SCHEDULED, dr1, as1);
+        if (driver1 != null && coach1 != null) {
+            LocalDateTime tomorrow = LocalDateTime.now().plusDays(1).withHour(8).withMinute(0).withSecond(0).withNano(0);
+            initTrip(forward, coach1, driver1, as1, tomorrow, new BigDecimal("250000"), "0901234567");
+        }
     }
 
     private void initAccounts() {
-        createAccount("admin@gmail.com", "admin123", "Quản trị viên Hệ thống", "0123456789", "ADMIN", StatusEnum.ACTIVE);
-        createAccount("staff1@gmail.com", "staff123", "Lê Văn Phòng", "0988888881", "STAFF", StatusEnum.ACTIVE);
-        createAccount("driver1@gmail.com", "driver123", "Tài xế Nguyễn Văn Lái", "0911000001", "DRIVER", StatusEnum.ACTIVE);
-        createAccount("assistant1@gmail.com", "as123", "Phụ xe Lê Văn Em", "0922000001", "ASSISTANT", StatusEnum.ACTIVE);
-        createAccount("user1@gmail.com", "user123", "Nguyễn Văn Khách", "0933000001", "USER", StatusEnum.ACTIVE);
+        // Admin & Staff
+        createAccount("admin@gmail.com", "admin123", "Admin", "0000000000", "ADMIN", StatusEnum.ACTIVE);
+        createAccount("staff@gmail.com", "staff123", "Staff", "0000000001", "STAFF", StatusEnum.ACTIVE);
+        
+        // 10 Drivers
+        for (int i = 1; i <= 10; i++) {
+            createAccount("driver" + i + "@gmail.com", "driver123", "Driver " + i, "09120000" + String.format("%02d", i), "DRIVER", StatusEnum.ACTIVE);
+        }
+        
+        // 10 Assistants
+        for (int i = 1; i <= 10; i++) {
+            createAccount("assistant" + i + "@gmail.com", "as123", "Assistant " + i, "09220000" + String.format("%02d", i), "ASSISTANT", StatusEnum.ACTIVE);
+        }
     }
 
     private void createAccount(String email, String pass, String name, String phone, String role, StatusEnum status) {
@@ -188,13 +157,8 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private Route initRoute(String code, Location dep, Location arr, float dist) {
-        // Calculate duration based on formula: t = (S/50) * 1.2 * 60
         int duration = Math.round((dist / 50.0f) * 1.2f * 60.0f);
-        
-        return routeRepository.findAll().stream()
-                .filter(r -> r.getDepartureLocation().getId().equals(dep.getId()) && 
-                             r.getArrivalLocation().getId().equals(arr.getId()))
-                .findFirst()
+        return routeRepository.findByDepartureLocationAndArrivalLocation(dep, arr)
                 .orElseGet(() -> routeRepository.save(Route.builder()
                         .routeCode(code)
                         .departureLocation(dep)
@@ -215,17 +179,25 @@ public class DataInitializer implements CommandLineRunner {
                 .build());
     }
 
-    private void initTrip(Route r, Coach c, LocalDateTime dep, String phone, int price, TripStatusEnum s, Account dr, Account as) {
-        tripRepository.save(Trip.builder()
-                .route(r)
-                .coach(c)
-                .departureTime(dep)
-                .arrivalTime(dep.plusMinutes(r.getDuration()))
-                .priceBase(BigDecimal.valueOf(price))
-                .contactPhoneNumber(phone)
-                .tripStatus(s)
-                .driver(dr)
-                .assistant(as)
-                .build());
+    private void initTrip(Route route, Coach coach, Account driver, Account assistant, LocalDateTime departure, BigDecimal price, String phone) {
+        // Simple existence check: same route, coach, and departure time
+        boolean exists = tripRepository.findAll().stream()
+                .anyMatch(t -> t.getRoute().getId().equals(route.getId()) 
+                        && t.getCoach().getId().equals(coach.getId()) 
+                        && t.getDepartureTime().equals(departure));
+        
+        if (!exists) {
+            tripRepository.save(Trip.builder()
+                    .route(route)
+                    .coach(coach)
+                    .driver(driver)
+                    .assistant(assistant)
+                    .departureTime(departure)
+                    .arrivalTime(departure.plusMinutes(route.getDuration()))
+                    .priceBase(price)
+                    .contactPhoneNumber(phone)
+                    .tripStatus(TripStatusEnum.SCHEDULED)
+                    .build());
+        }
     }
 }
