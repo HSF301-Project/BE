@@ -78,7 +78,7 @@ public class TripServiceImpl implements TripService {
         String dateValue = "";
         if (request.getDate() != null && !request.getDate().isBlank()) {
             LocalDate date = LocalDate.parse(request.getDate());
-            dateLabel = date.format(DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy"));
+            dateLabel = date.format(DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy", new Locale("vi", "VN")));
             dateValue = date.toString();
         } else {
             dateLabel = "Tất cả ngày";
@@ -118,7 +118,7 @@ public class TripServiceImpl implements TripService {
             builder.returnTrips(returnTripDTOs)
                    .totalReturnCount((long) returnTripDTOs.size())
                    .returnDate(request.getReturnDate())
-                   .returnDateLabel(returnDate.format(DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy")));
+                   .returnDateLabel(returnDate.format(DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy", new Locale("vi", "VN"))));
         }
 
         return builder.build();

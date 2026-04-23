@@ -1,0 +1,88 @@
+<div th:fragment="trip-card(trip, isReturn)">
+    <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-[0_12px_32px_rgba(26,27,33,0.06)] hover:bg-surface-bright transition-all group border border-transparent hover:border-primary/10 trip-card"
+         th:id="'trip-card-' + ${trip.id}">
+        <div class="flex flex-col md:flex-row gap-8">
+
+            <div class="md:w-1/4 relative">
+                <div class="rounded-2xl overflow-hidden h-full min-h-[140px] bg-surface-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-6xl text-primary/30">directions_bus</span>
+                    <div class="absolute top-2 left-2 bg-white/90 backdrop-blur px-3 py-1 rounded-full flex items-center gap-1"
+                         th:if="${trip.rating != null}">
+                        <span class="material-symbols-outlined text-orange-500 text-sm" style="font-variation-settings:'FILL' 1">star</span>
+                        <span class="text-xs font-bold" th:text="${trip.rating}">4.9</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col justify-between">
+                <div class="flex justify-between items-center w-full">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <h3 class="text-xl font-bold text-primary">
+                                <span>Chuyến xe</span><br/>
+                                <span th:text="${trip.name.replaceFirst('Chuyến xe ', '')}">51B-12345</span>
+                            </h3>
+                        </div>
+                        <p class="text-sm text-on-surface-variant" th:text="${trip.amenities}">WiFi • Sạc • Nước uống</p>
+                    </div>
+
+                    <div class="flex-1 flex justify-center">
+                        <span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant text-xs font-black uppercase rounded-md tracking-wide"
+                              th:text="${trip.busTypeLabel}">
+                            Limousine
+                        </span>
+                    </div>
+
+                    <div class="flex-1 text-right flex flex-col items-end justify-center">
+                        <div class="text-2xl font-black text-secondary leading-none mb-1.5" th:text="${trip.priceFormatted}">
+                            450.000đ
+                        </div>
+                        <p class="text-[11px] font-bold text-on-surface-variant uppercase">Mỗi hành khách</p>
+                    </div>
+                </div>
+                <div class="mt-6 flex items-center gap-6">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold font-headline" th:text="${trip.departureTime}">19:30</div>
+                        <div class="text-[10px] font-bold text-primary/70 -mt-1 mb-1" th:text="${trip.departureDate}">22/04/2026</div>
+                        <p class="text-xs font-semibold text-on-surface-variant" th:text="${trip.departureStation}">Bến xe</p>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center relative">
+                        <div class="w-full h-[2px] bg-outline-variant relative">
+                            <div class="absolute -top-1 left-0 w-2 h-2 rounded-full bg-primary"></div>
+                            <div class="absolute -top-1 right-0 w-2 h-2 rounded-full bg-outline"></div>
+                        </div>
+                        <span class="material-symbols-outlined text-primary text-xl absolute -bottom-6">directions_bus</span>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold font-headline" th:text="${trip.arrivalTime}">10:15</div>
+                        <div class="text-[10px] font-bold text-secondary/70 -mt-1 mb-1" th:text="${trip.arrivalDate}">23/04/2026</div>
+                        <p class="text-xs font-semibold text-on-surface-variant" th:text="${trip.arrivalStation}">Bến đến</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md:w-1/5 flex flex-col items-center justify-center gap-3 border-t md:border-t-0 md:border-l border-outline-variant/30 pt-4 md:pt-0 md:pl-6">
+                <div class="text-center w-full">
+                    <p class="text-base font-medium text-on-surface-variant mb-2">
+                        Còn trống
+                        <span class="text-secondary font-bold text-lg" th:text="${trip.seatsLeft}">8</span>
+                        ghế
+                    </p>
+                    <!-- Oneway flow -->
+                    <a th:if="${searchResult.totalReturnCount == null}" th:href="@{'/booking/' + ${trip.id}}"
+                       class="block w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-center mx-auto max-w-[200px]">
+                        Chọn chuyến
+                    </a>
+                    
+                    <!-- Roundtrip flow -->
+                    <button th:if="${searchResult.totalReturnCount != null}" type="button"
+                            class="block w-full py-4 bg-surface-container-high text-primary hover:bg-gradient-to-r hover:from-primary hover:to-primary-container hover:text-white font-bold rounded-2xl shadow-sm transition-all text-center mx-auto max-w-[200px]"
+                            th:attr="onclick=|selectTrip('${trip.id}', '${isReturn ? 'return' : 'outbound'}')|"
+                            th:id="'btn-select-' + ${trip.id}">
+                        <span th:text="${isReturn ? 'Chọn chuyến về' : 'Chọn chuyến đi'}">Chọn chuyến</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

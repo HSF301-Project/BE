@@ -1,4 +1,4 @@
-// payment-timer.js
+//timer.js
 document.addEventListener('DOMContentLoaded', function() {
     const timerDisplay = document.getElementById('countdown-timer');
     if (!timerDisplay) return; // Dừng nếu không tìm thấy element

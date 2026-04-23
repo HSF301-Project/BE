@@ -150,7 +150,6 @@
 
         <div class="lg:col-span-9 space-y-6">
 
-            <!-- Round Trip Tabs UI (Matching image) -->
             <div th:if="${searchResult.roundTrip}" class="bg-white border-b border-outline-variant/30 sticky top-20 z-30 mb-8">
                 <div class="flex max-w-2xl mx-auto">
                     <button onclick="switchTab('departure')" id="tab-departure"
@@ -166,31 +165,39 @@
                 </div>
             </div>
 
-            <!-- Selection Banner (Floating for Round Trip) -->
-            <div th:if="${searchResult.roundTrip}" id="selection-banner" 
-                 class="fixed bottom-3 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[96%] md:w-[95%] max-w-[1000px] bg-[#1a1c1e]/95 backdrop-blur-2xl border border-white/10 p-3 md:p-6 rounded-2xl md:rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.5)] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 md:gap-6 transition-all translate-y-64">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 flex-1 w-full lg:w-auto overflow-hidden">
-                    <!-- Outbound Status -->
-                    <div id="outbound-selection-status" class="flex-1 lg:flex-none flex flex-col justify-center bg-white/5 p-4 px-6 rounded-2xl border border-white/5 min-w-0">
-                        <span class="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-1">Chiều đi</span>
-                        <span id="selected-outbound-info" class="font-bold text-sm text-white truncate opacity-40 italic">Chưa chọn chuyến đi</span>
+            <div th:if="${searchResult.roundTrip}" id="selection-banner"
+                 class="fixed bottom-4 md:bottom-8 left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 z-50 md:min-w-[850px] max-w-5xl bg-[#0f172a]/70 backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/20 p-4 flex flex-col md:flex-row items-stretch justify-between gap-4 transition-all duration-500 translate-y-[150%]">
+
+                <div class="flex flex-1 gap-3 w-full">
+                    <div class="flex-1 bg-white/5 rounded-2xl p-3 border border-white/10 relative overflow-hidden group">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                        <div class="text-[10px] font-black uppercase text-primary tracking-widest mb-2 flex items-center gap-1 pl-2">
+                            <span class="material-symbols-outlined text-[14px]">logout</span> Chiều đi
+                        </div>
+                        <div id="selected-outbound-info" class="pl-2 text-white/40 text-sm italic min-h-[44px] flex items-center">
+                            Đang chờ chọn...
+                        </div>
                     </div>
-                    
-                    <!-- Return Status -->
-                    <div id="return-selection-status" class="flex-1 lg:flex-none flex flex-col justify-center bg-white/5 p-4 px-6 rounded-2xl border border-white/5 min-w-0">
-                        <span class="text-[10px] font-black uppercase text-orange-500 tracking-[0.2em] mb-1">Chiều về</span>
-                        <span id="selected-return-info" class="font-bold text-sm text-white truncate opacity-40 italic">Chưa chọn chuyến về</span>
+
+                    <div class="flex-1 bg-white/5 rounded-2xl p-3 border border-white/10 relative overflow-hidden group">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-orange-500"></div>
+                        <div class="text-[10px] font-black uppercase text-orange-500 tracking-widest mb-2 flex items-center gap-1 pl-2">
+                            <span class="material-symbols-outlined text-[14px]">login</span> Chiều về
+                        </div>
+                        <div id="selected-return-info" class="pl-2 text-white/40 text-sm italic min-h-[44px] flex items-center">
+                            Đang chờ chọn...
+                        </div>
                     </div>
                 </div>
-                
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-6 w-full lg:w-auto shrink-0 justify-center">
-                    <div class="text-left sm:text-right hidden lg:block min-w-[140px]">
-                        <p class="text-[10px] font-black uppercase text-white/30 tracking-widest mb-1">Tiến độ</p>
-                        <p id="selection-summary" class="text-xs font-black text-primary uppercase">CHỌN CHIỀU ĐI</p>
+
+                <div class="w-full md:w-auto flex flex-col md:flex-row items-center justify-center gap-3 md:gap-5 md:pl-4">
+                    <div class="hidden md:block text-right min-w-[120px]">
+                        <p id="selection-summary" class="text-xs font-black text-primary uppercase tracking-widest animate-pulse">CHỌN CHIỀU ĐI</p>
                     </div>
-                    <button id="proceed-booking-btn" disabled onclick="proceedToBooking()"
-                            class="w-full lg:w-auto px-6 md:px-12 py-4 md:py-5 bg-primary text-white rounded-2xl font-black uppercase tracking-[0.16em] md:tracking-[0.2em] text-[11px] md:text-xs shadow-xl shadow-primary/20 disabled:bg-white/5 disabled:text-white/10 disabled:cursor-not-allowed disabled:shadow-none transition-all active:scale-95 whitespace-nowrap">
-                        TIẾP TỤC ĐẶT VÉ
+                    <button id="proceed-booking-btn" disabled onclick="window.proceedToBooking()"
+                            class="w-full md:w-auto px-8 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-[0.15em] text-xs shadow-lg disabled:bg-white/5 disabled:text-white/20 disabled:shadow-none transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <span>Tiếp tục</span>
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
                     </button>
                 </div>
             </div>
@@ -231,7 +238,6 @@
                     <div th:each="trip : ${searchResult.trips}"
                          class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-[0_12px_32px_rgba(26,27,33,0.06)] hover:bg-surface-bright transition-all group border border-transparent hover:border-primary/10">
                         <div class="flex flex-col md:flex-row gap-8">
-                            <!-- Trip Card Content (Existing) -->
                             <div class="md:w-1/4 relative">
                                 <div class="rounded-2xl overflow-hidden h-full min-h-[140px] bg-surface-container flex items-center justify-center">
                                     <span class="material-symbols-outlined text-6xl text-primary/30">directions_bus</span>
@@ -287,6 +293,7 @@
                                             th:data-trip-id="${trip.id}"
                                             th:data-trip-name="${trip.name}"
                                             th:data-trip-time="${trip.departureTime}"
+                                            th:data-trip-date="${trip.departureDateLabel}"
                                             th:data-trip-station="${trip.departureStation}"
                                             data-trip-type="outbound">
                                         Chọn chiều đi
@@ -302,7 +309,6 @@
                 </div>
             </div>
 
-            <!-- Return Results Tab Content -->
             <div id="return-results" class="space-y-6 hidden">
                 <div
                         class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-surface-container-low rounded-2xl border-l-4 border-orange-500">
@@ -385,6 +391,7 @@
                                             th:data-trip-id="${trip.id}"
                                             th:data-trip-name="${trip.name}"
                                             th:data-trip-time="${trip.departureTime}"
+                                            th:data-trip-date="${trip.departureDateLabel}"
                                             th:data-trip-station="${trip.departureStation}"
                                             data-trip-type="return">
                                         Chọn chiều về
@@ -398,130 +405,14 @@
 
         </div>
 
-        </div>
+    </div>
     </div>
 </main>
 
 <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 <th:block th:replace="~{fragments/mobile-nav :: mobile-nav(activeTab='search')}"></th:block>
 
-<script>
-    let selectedOutbound = null;
-    let selectedReturn = null;
-
-    function switchTab(tab) {
-        const departureBtn = document.getElementById('tab-departure');
-        const returnBtn = document.getElementById('tab-return');
-        const departureResults = document.getElementById('departure-results');
-        const returnResults = document.getElementById('return-results');
-
-        if (tab === 'departure') {
-            departureBtn.classList.add('border-primary', 'text-primary');
-            departureBtn.classList.remove('border-transparent', 'text-on-surface-variant');
-            returnBtn.classList.remove('border-primary', 'text-primary');
-            returnBtn.classList.add('border-transparent', 'text-on-surface-variant');
-            departureResults.classList.remove('hidden');
-            returnResults.classList.add('hidden');
-        } else {
-            returnBtn.classList.add('border-primary', 'text-primary');
-            returnBtn.classList.remove('border-transparent', 'text-on-surface-variant');
-            departureBtn.classList.remove('border-primary', 'text-primary');
-            departureBtn.classList.add('border-transparent', 'text-on-surface-variant');
-            returnResults.classList.remove('hidden');
-            departureResults.classList.add('hidden');
-        }
-    }
-
-    function selectTrip(type, id, name, time, station, targetBtn) {
-        const info = `${time} - ${station} (${name.replace('Chuyến xe ', '')})`;
-        
-        if (type === 'outbound') {
-            selectedOutbound = { id, name, time, station };
-            const infoEl = document.getElementById('selected-outbound-info');
-            infoEl.innerText = info;
-            infoEl.classList.remove('opacity-50', 'italic');
-            
-            // Highlight selection
-            document.querySelectorAll('.outbound-btn').forEach(btn => {
-                btn.classList.remove('ring-4', 'ring-primary/30', 'scale-105');
-                btn.innerText = 'Chọn chiều đi';
-            });
-            if (targetBtn) {
-                targetBtn.classList.add('ring-4', 'ring-primary/30', 'scale-105');
-                targetBtn.innerText = 'Đã chọn chiều đi';
-            }
-            
-            // Auto switch to return tab if not selected
-            if (!selectedReturn) {
-                setTimeout(() => {
-                    switchTab('return');
-                    const summary = document.getElementById('selection-summary');
-                    summary.innerText = 'CHỌN CHIỀU VỀ';
-                    summary.className = 'text-xs font-bold text-orange-500 tracking-wide';
-                }, 400);
-            }
-        } else {
-            selectedReturn = { id, name, time, station };
-            const infoEl = document.getElementById('selected-return-info');
-            infoEl.innerText = info;
-            infoEl.classList.remove('opacity-50', 'italic');
-            
-            // Highlight selection
-            document.querySelectorAll('.return-btn').forEach(btn => {
-                btn.classList.remove('ring-4', 'ring-orange-500/30', 'scale-105');
-                btn.innerText = 'Chọn chiều về';
-            });
-            if (targetBtn) {
-                targetBtn.classList.add('ring-4', 'ring-orange-500/30', 'scale-105');
-                targetBtn.innerText = 'Đã chọn chiều về';
-            }
-        }
-
-        updateBanner();
-    }
-
-    function updateBanner() {
-        const banner = document.getElementById('selection-banner');
-        const btn = document.getElementById('proceed-booking-btn');
-        const summary = document.getElementById('selection-summary');
-
-        if (selectedOutbound || selectedReturn) {
-            banner.classList.remove('translate-y-64');
-            banner.classList.add('translate-y-0');
-        }
-
-        if (selectedOutbound && selectedReturn) {
-            btn.disabled = false;
-            summary.innerText = 'ĐÃ CHỌN ĐỦ 2 CHIỀU';
-            summary.className = 'text-xs font-bold text-green-500 tracking-wide';
-        } else if (selectedOutbound) {
-            summary.innerText = 'CHỌN CHIỀU VỀ';
-            summary.className = 'text-xs font-bold text-orange-500 tracking-wide';
-        } else if (selectedReturn) {
-            summary.innerText = 'CHỌN CHIỀU ĐI';
-            summary.className = 'text-xs font-bold text-primary tracking-wide';
-        }
-    }
-
-    function proceedToBooking() {
-        if (selectedOutbound && selectedReturn) {
-            window.location.href = `/booking/roundtrip?outboundId=${selectedOutbound.id}&returnId=${selectedReturn.id}`;
-        }
-    }
-
-    // Event delegation for trip selection buttons using data attributes
-    document.addEventListener('click', function(e) {
-        const btn = e.target.closest('.trip-select-btn');
-        if (btn) {
-            const tripId = btn.dataset.tripId;
-            const tripName = btn.dataset.tripName;
-            const tripTime = btn.dataset.tripTime;
-            const tripStation = btn.dataset.tripStation;
-            const tripType = btn.dataset.tripType;
-            selectTrip(tripType, tripId, tripName, tripTime, tripStation, btn);
-        }
-    });
-</script>
+<script th:src="@{/js/search-results.js}"></script>
 
 </body>
 
