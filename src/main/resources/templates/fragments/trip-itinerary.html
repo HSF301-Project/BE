@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="itinerary(tripItem)" class="space-y-4 mb-8">
+    <div class="flex items-start justify-between">
+        <div>
+            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Điểm đi</p>
+            <p class="font-bold text-on-surface" th:text="${tripItem.departureStation}">Bến xe</p>
+            <p class="text-sm text-on-surface-variant" th:text="${tripItem.departureDateTimeLabel}">Thứ 6 • 08:30</p>
+        </div>
+        <span class="material-symbols-outlined text-primary mt-1">trip_origin</span>
+    </div>
+    <div class="border-l-2 border-dashed border-outline-variant ml-3 py-2"></div>
+    <div th:each="stop : ${tripItem.stopEtas}" th:if="${stop.stopType == 'INTERMEDIATE'}" class="flex items-start justify-between">
+        <div>
+            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1" th:text="${stop.pointTypeLabel}"></p>
+            <p class="font-bold text-on-surface" th:text="${stop.stopName}"></p>
+            <p class="text-sm text-on-surface-variant" th:text="${stop.etaTime}"></p>
+        </div>
+        <span class="material-symbols-outlined text-primary mt-1">location_on</span>
+    </div>
+    <div class="border-l-2 border-dashed border-outline-variant ml-3 py-2"></div>
+    <div class="flex items-start justify-between">
+        <div>
+            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Điểm đến</p>
+            <p class="font-bold text-on-surface" th:text="${tripItem.arrivalStation}">Bến đến</p>
+            <p class="text-sm text-on-surface-variant" th:text="${tripItem.arrivalDateTimeLabel}">Thứ 6 • 14:00</p>
+        </div>
+        <span class="material-symbols-outlined text-secondary mt-1">location_on</span>
+    </div>
+</div>
+</body>
+</html>

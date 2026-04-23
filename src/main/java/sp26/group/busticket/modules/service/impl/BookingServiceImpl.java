@@ -350,6 +350,23 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime actualPickupTime = trip.getDepartureTime().plusMinutes(pickupOffset);
         LocalDateTime actualDropoffTime = trip.getDepartureTime().plusMinutes(dropoffOffset);
 
+        // Fetch the payment to get the actual total amount (which includes return trip if roundtrip)
+        Payment payment = paymentRepository.findByBooking_Id(bookingId)
+                .orElseThrow(() -> new AppException(ErrorCode.UNEXPECTED_ERROR, "Không tìm thấy thông tin thanh toán cho đơn hàng này."));
+
+        // Count all tickets (including return trip if roundtrip)
+        long totalTicketCount = ticketRepository.findAll().stream()
+                .filter(t -> t.getBooking().getId().equals(bookingId))
+                .count();
+        
+        // If this is a parent booking, add children's tickets
+        List<Booking> children = bookingRepository.findByParentBooking_Id(bookingId);
+        for (Booking child : children) {
+            totalTicketCount += ticketRepository.findAll().stream()
+                    .filter(t -> t.getBooking().getId().equals(child.getId()))
+                    .count();
+        }
+
         return PaymentResponseDTO.builder()
                 .bookingId(bookingId)
                 .expiryTime(expiryAt.format(timeFormatter))
@@ -364,8 +381,8 @@ public class BookingServiceImpl implements BookingService {
                 .arrivalTime(trip.getArrivalTime().format(timeFormatter))
                 .dateLabel(trip.getDepartureTime().format(dateFormatter))
                 .busTypeLabel(trip.getCoach().getCoachType().getName())
-                .ticketCount((int) ticketRepository.findAll().stream().filter(t -> t.getBooking().getId().equals(bookingId)).count())
-                .totalFormatted(vnFormat.format(booking.getTotalAmount()))
+                .ticketCount((int) totalTicketCount)
+                .totalFormatted(vnFormat.format(payment.getAmount()))
                 .build();
     }
 
@@ -494,6 +511,13 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime actualPickupTime = trip.getDepartureTime().plusMinutes(pickupOffset);
         LocalDateTime actualDropoffTime = trip.getDepartureTime().plusMinutes(dropoffOffset);
 
+        // Calculate total amount for this booking and its children if any
+        BigDecimal totalAmount = booking.getTotalAmount();
+        List<Booking> children = bookingRepository.findByParentBooking_Id(bookingId);
+        for (Booking child : children) {
+            totalAmount = totalAmount.add(child.getTotalAmount());
+        }
+
         return TicketConfirmationDTO.builder()
                 .id(firstTicket.getId())
                 .statusLabel(booking.getStatus() == BookingStatusEnum.CONFIRMED ? "Đã xác nhận" : "Chờ thanh toán")
@@ -516,7 +540,7 @@ public class BookingServiceImpl implements BookingService {
                 .licensePlate(trip.getCoach().getPlateNumber())
                 .serviceType(trip.getCoach().getCoachType().getName())
                 .passengerName(firstTicket.getPassengerName())
-                .totalFormatted(vnFormat.format(booking.getTotalAmount()))
+                .totalFormatted(vnFormat.format(totalAmount))
                 .bookingDate(bookingDate)
                 .build();
     }
@@ -747,6 +771,12 @@ public class BookingServiceImpl implements BookingService {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", localeVN);
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
+        BigDecimal totalAmount = booking.getTotalAmount();
+        List<Booking> children = bookingRepository.findByParentBooking_Id(booking.getId());
+        for (Booking child : children) {
+            totalAmount = totalAmount.add(child.getTotalAmount());
+        }
+
         return TicketDetailResponseDTO.builder()
                 .bookingCode(booking.getBookingCode())
                 .status(booking.getStatus())
@@ -776,9 +806,9 @@ public class BookingServiceImpl implements BookingService {
                 .serviceType(trip.getCoach().getCoachType().getName())
                 .basePrice(trip.getPriceBase().doubleValue())
                 .seatCount(tickets.size())
-                .totalAmount(booking.getTotalAmount().doubleValue())
-                .totalAmountFormatted(String.format("%,.0fđ", booking.getTotalAmount()))
-                .totalFormatted(String.format("%,.0fđ", booking.getTotalAmount()))
+                .totalAmount(totalAmount.doubleValue())
+                .totalAmountFormatted(String.format("%,.0fđ", totalAmount))
+                .totalFormatted(String.format("%,.0fđ", totalAmount))
                 .build();
     }
 

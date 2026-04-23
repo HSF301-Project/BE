@@ -15,7 +15,7 @@
 <main class="max-w-7xl mx-auto px-4 md:px-8 py-8">
 
     <div class="mb-12 flex items-center justify-start space-x-4">
-        <a th:href="@{/search}" class="flex items-center text-primary font-semibold hover:opacity-70 transition-opacity group">
+        <a th:href="@{/search}" class="flex items-center text-primary font-semibold hover:opacity-70 transition-opacity cursor-pointer group">
             <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center mr-2 text-sm shadow-sm group-hover:scale-105 transition-transform">1</span>
             <span class="text-sm">Tìm kiếm</span>
         </a>
@@ -31,15 +31,19 @@
         </div>
     </div>
 
-    <div th:if="${errorMessage}" class="mb-8 p-4 bg-error-container text-on-error-container rounded-xl flex items-center gap-3">
+    <div th:if="${errorMessage}"
+         class="mb-8 p-4 bg-error-container text-on-error-container rounded-xl flex items-center gap-3">
         <span class="material-symbols-outlined">error</span>
         <p th:text="${errorMessage}"></p>
     </div>
 
-    <div th:if="${outboundTrip.isExpired || returnTrip.isExpired}" class="mb-8 p-6 bg-error-container/10 text-on-error-container rounded-2xl flex items-center gap-4 border-2 border-error/20 animate-pulse">
-        <span class="material-symbols-outlined text-4xl text-error">timer_off</span>
+    <div th:if="${outboundTrip.isExpired || returnTrip.isExpired}"
+         class="mb-8 p-6 bg-error-container/10 text-on-error-container rounded-2xl flex items-center gap-4 border-2 border-error/20 shadow-sm animate-pulse">
+        <div class="w-12 h-12 rounded-full bg-error text-white flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-2xl">timer_off</span>
+        </div>
         <div>
-            <p class="font-black text-lg">Hết thời gian đặt vé trực tuyến!</p>
+            <p class="font-black text-lg" style="font-family:'Plus Jakarta Sans',sans-serif">Hết thời gian đặt vé trực tuyến!</p>
             <p class="text-sm opacity-90">Một trong hai chuyến xe đã gần giờ khởi hành. Vui lòng chọn chuyến khác.</p>
         </div>
     </div>
@@ -54,12 +58,12 @@
                 <section>
                     <div class="bg-white border-b border-outline-variant/30 mb-8">
                         <div class="flex">
-                            <button type="button" id="tab-btn-outbound" onclick="switchSeatTab('outbound')"
+                            <button type="button" id="tab-btn-outbound" onclick="window.switchSeatTab('outbound')"
                                     class="flex-1 py-4 px-6 text-center transition-all border-b-4 border-primary text-primary font-bold">
                                 <div class="uppercase text-[11px] tracking-widest opacity-70 mb-1">Chiều đi</div>
                                 <div class="text-sm md:text-base" th:text="${outboundTrip.departureStation + ' → ' + outboundTrip.arrivalStation}">Sài Gòn → Đà Lạt</div>
                             </button>
-                            <button type="button" id="tab-btn-return" onclick="switchSeatTab('return')"
+                            <button type="button" id="tab-btn-return" onclick="window.switchSeatTab('return')"
                                     class="flex-1 py-4 px-6 text-center transition-all border-b-4 border-transparent text-on-surface-variant font-bold hover:bg-surface-container-low">
                                 <div class="uppercase text-[11px] tracking-widest opacity-70 mb-1">Chiều về</div>
                                 <div class="text-sm md:text-base" th:text="${returnTrip.departureStation + ' → ' + returnTrip.arrivalStation}">Đà Lạt → Sài Gòn</div>
@@ -68,18 +72,9 @@
                     </div>
 
                     <div class="flex flex-wrap gap-6 mb-8 p-4 bg-surface-container-low rounded-xl">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-6 h-7 bg-[#AACDDC] rounded-t-lg border-b-2 border-black/10"></div>
-                            <span class="text-sm font-medium">Trống</span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-6 h-7 bg-secondary rounded-t-lg border-b-2 border-black/10"></div>
-                            <span class="text-sm font-medium">Đang chọn</span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-6 h-7 bg-surface-dim opacity-40 rounded-t-lg border-b-2 border-black/10"></div>
-                            <span class="text-sm font-medium">Đã đặt</span>
-                        </div>
+                        <div class="flex items-center space-x-2"><div class="w-6 h-7 bg-[#AACDDC] rounded-t-lg rounded-b-sm border-b-2 border-black/10"></div><span class="text-sm font-medium">Trống</span></div>
+                        <div class="flex items-center space-x-2"><div class="w-6 h-7 bg-secondary rounded-t-lg rounded-b-sm border-b-2 border-black/10"></div><span class="text-sm font-medium">Đang chọn</span></div>
+                        <div class="flex items-center space-x-2"><div class="w-6 h-7 bg-surface-dim opacity-40 rounded-t-lg rounded-b-sm border-b-2 border-black/10"></div><span class="text-sm font-medium">Đã đặt</span></div>
                     </div>
 
                     <div id="seat-tab-outbound">
@@ -101,9 +96,9 @@
 
                 <section class="space-y-6">
                     <h2 class="text-3xl font-extrabold tracking-tight text-on-surface mb-2">Thông tin hành khách</h2>
-                    <p class="text-on-surface-variant">Thông tin này sẽ áp dụng cho cả chuyến đi và chuyến về.</p>
+                    <p class="text-on-surface-variant">Vui lòng nhập thông tin cho hành khách. Thông tin này sẽ áp dụng cho cả chuyến đi và chuyến về.</p>
 
-                    <div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border-l-4 border-primary">
+                    <div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border-l-4 border-primary" id="passenger-container">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="space-y-1">
                                 <label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Họ và tên</label>
@@ -125,35 +120,78 @@
 
             <aside class="lg:col-span-4 sticky top-24 space-y-6">
                 <div class="bg-surface-container-high rounded-[2.5rem] p-8 overflow-hidden relative">
+
                     <div id="trip-detail-outbound">
                         <h3 class="text-xl font-extrabold text-primary mb-6">Chi tiết chuyến đi</h3>
+                        <p class="font-bold text-on-surface text-sm" th:text="${outboundTrip.departureStation + ' -> ' + outboundTrip.arrivalStation}"></p>
+                        <p class="text-xs text-on-surface-variant mb-4" th:text="${outboundTrip.departureDateTimeLabel}"></p>
                         <p class="text-sm font-bold text-primary">Ghế: <span id="outbound-seats">Chưa chọn</span></p>
-                        <div class="space-y-3 mt-6 mb-8">
-                            <select th:field="*{pickupLocationId}" class="w-full rounded-xl border-none bg-white p-3"><option th:each="s : ${outboundTrip.stopEtas}" th:if="${s.pointType == 'PICKUP' || s.pointType == 'BOTH'}" th:value="${s.stopId}" th:text="${s.stopName + ' (' + s.etaTime + ')'}"></option></select>
-                            <select th:field="*{dropoffLocationId}" class="w-full rounded-xl border-none bg-white p-3"><option th:each="s : ${outboundTrip.stopEtas}" th:if="${s.pointType == 'DROPOFF' || s.pointType == 'BOTH'}" th:value="${s.stopId}" th:text="${s.stopName + ' (' + s.etaTime + ')'}"></option></select>
+
+                        <th:block th:replace="~{fragments/trip-itinerary :: itinerary(tripItem=${outboundTrip})}"></th:block>
+
+                        <div class="space-y-3 mb-8">
+                            <div class="flex flex-col gap-1">
+                                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Điểm đón</p>
+                                <select th:field="*{pickupLocationId}" class="w-full rounded-xl border-surface-border bg-white p-3 location-select">
+                                    <option th:each="stop : ${outboundTrip.stopEtas}"
+                                            th:if="${stop.pointType == 'PICKUP' or stop.pointType == 'BOTH'}"
+                                            th:value="${stop.stopId}"
+                                            th:text="${stop.stopName + ' (' + stop.etaTime + ')'}"></option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Điểm trả</p>
+                                <select th:field="*{dropoffLocationId}" class="w-full rounded-xl border-surface-border bg-white p-3 location-select">
+                                    <option th:each="stop : ${outboundTrip.stopEtas}"
+                                            th:if="${stop.pointType == 'DROPOFF' or stop.pointType == 'BOTH'}"
+                                            th:value="${stop.stopId}"
+                                            th:text="${stop.stopName + ' (' + stop.etaTime + ')'}"></option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
                     <div id="trip-detail-return" class="hidden">
                         <h3 class="text-xl font-extrabold text-secondary mb-6">Chi tiết chuyến về</h3>
+                        <p class="font-bold text-on-surface text-sm" th:text="${returnTrip.departureStation + ' -> ' + returnTrip.arrivalStation}"></p>
+                        <p class="text-xs text-on-surface-variant mb-4" th:text="${returnTrip.departureDateTimeLabel}"></p>
                         <p class="text-sm font-bold text-secondary">Ghế: <span id="return-seats">Chưa chọn</span></p>
-                        <div class="space-y-3 mt-6 mb-8">
-                            <select th:field="*{returnPickupLocationId}" class="w-full rounded-xl border-none bg-white p-3"><option th:each="s : ${returnTrip.stopEtas}" th:if="${s.pointType == 'PICKUP' || s.pointType == 'BOTH'}" th:value="${s.stopId}" th:text="${s.stopName + ' (' + s.etaTime + ')'}"></option></select>
-                            <select th:field="*{returnDropoffLocationId}" class="w-full rounded-xl border-none bg-white p-3"><option th:each="s : ${returnTrip.stopEtas}" th:if="${s.pointType == 'DROPOFF' || s.pointType == 'BOTH'}" th:value="${s.stopId}" th:text="${s.stopName + ' (' + s.etaTime + ')'}"></option></select>
+
+                        <th:block th:replace="~{fragments/trip-itinerary :: itinerary(tripItem=${returnTrip})}"></th:block>
+
+                        <div class="space-y-3 mb-8">
+                            <div class="flex flex-col gap-1">
+                                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Điểm đón</p>
+                                <select th:field="*{returnPickupLocationId}" class="w-full rounded-xl border-surface-border bg-white p-3 location-select">
+                                    <option th:each="stop : ${returnTrip.stopEtas}"
+                                            th:if="${stop.pointType == 'PICKUP' or stop.pointType == 'BOTH'}"
+                                            th:value="${stop.stopId}"
+                                            th:text="${stop.stopName + ' (' + stop.etaTime + ')'}"></option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Điểm trả</p>
+                                <select th:field="*{returnDropoffLocationId}" class="w-full rounded-xl border-surface-border bg-white p-3 location-select">
+                                    <option th:each="stop : ${returnTrip.stopEtas}"
+                                            th:if="${stop.pointType == 'DROPOFF' or stop.pointType == 'BOTH'}"
+                                            th:value="${stop.stopId}"
+                                            th:text="${stop.stopName + ' (' + stop.etaTime + ')'}"></option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="bg-primary/5 rounded-2xl p-6">
-                        <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Tổng cộng</p>
-                        <p class="text-2xl font-black text-secondary" id="summary-total">0đ</p>
+                    <div class="bg-primary/5 rounded-2xl p-6 mt-6">
+                        <p class="text-xs font-bold text-primary uppercase tracking-widest mb-1">Tổng cộng</p>
+                        <p class="text-2xl font-black text-secondary leading-none" id="summary-total">0đ</p>
                     </div>
 
                     <span id="unit-price-out" th:data-price="${outboundUnitPrice}" class="hidden"></span>
                     <span id="unit-price-ret" th:data-price="${returnUnitPrice}" class="hidden"></span>
                 </div>
 
-                <button type="button" id="btn-submit-form" onclick="submitRoundTrip()"
-                        class="w-full bg-gradient-to-r from-primary to-primary-container text-white py-5 rounded-2xl font-bold text-lg shadow-xl opacity-50 cursor-not-allowed pointer-events-none transition-all">
+                <button type="button" id="btn-submit-form" onclick="window.submitRoundTrip()"
+                        class="w-full bg-gradient-to-r from-primary to-primary-container text-white py-5 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all opacity-50 cursor-not-allowed pointer-events-none">
                     Tiếp tục thanh toán
                 </button>
             </aside>
@@ -169,6 +207,7 @@
     returnStopEtas: [(${returnTrip.stopEtasJson != null ? returnTrip.stopEtasJson : '[]'})]
     };
 </script>
+
 <script th:src="@{/js/roundtrip-seat-selection.js}"></script>
 
 </body>

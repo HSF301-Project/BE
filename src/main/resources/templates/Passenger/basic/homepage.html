@@ -30,8 +30,7 @@
             <div class="w-full max-w-5xl mx-auto">
                 <form th:action="@{/search}" method="get" id="searchForm"
                       class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] shadow-2xl flex flex-col gap-6">
-                    
-                    <!-- Round Trip Toggle -->
+
                     <div class="flex items-center gap-6 ml-4">
                         <label class="flex items-center gap-2 cursor-pointer group">
                             <input type="radio" name="roundTrip" value="false" checked
@@ -87,7 +86,6 @@
                                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary">calendar_today</span>
                                 <input name="date" id="homepage-date"
                                        type="date"
-                                       required
                                        th:value="${searchForm?.date}"
                                        class="w-full pl-12 pr-4 py-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-surface-tint text-on-surface font-semibold text-sm"
                                        style="font-family:'Inter',sans-serif"/>
@@ -176,17 +174,21 @@
     function toggleRoundTrip(isRound) {
         const container = document.getElementById('returnDateContainer');
         const returnInput = document.getElementById('homepage-return-date');
+        const departureInput = document.getElementById('homepage-date');
+
         if (isRound) {
             container.classList.remove('hidden');
             returnInput.setAttribute('required', 'required');
-            // Cập nhật min date cho ngày về dựa trên ngày đi
-            const departureDate = document.getElementById('homepage-date').value;
+            departureInput.setAttribute('required', 'required');
+
+            const departureDate = departureInput.value;
             if (departureDate) {
                 returnInput.setAttribute('min', departureDate);
             }
         } else {
             container.classList.add('hidden');
             returnInput.removeAttribute('required');
+            departureInput.removeAttribute('required');
             returnInput.value = '';
         }
     }
@@ -194,11 +196,11 @@
     document.addEventListener('DOMContentLoaded', function() {
         const dateInput = document.getElementById('homepage-date');
         const returnInput = document.getElementById('homepage-return-date');
-        
+
         if (dateInput) {
             const today = new Date().toISOString().split('T')[0];
             dateInput.setAttribute('min', today);
-            
+
             dateInput.addEventListener('change', function() {
                 if (returnInput && this.value) {
                     returnInput.setAttribute('min', this.value);
@@ -209,7 +211,6 @@
             });
         }
 
-        // Khôi phục trạng thái nếu là quay lại trang từ search
         const roundTripActive = document.querySelector('input[name="roundTrip"][value="true"]').checked;
         if (roundTripActive) {
             toggleRoundTrip(true);

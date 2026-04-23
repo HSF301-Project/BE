@@ -4,10 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropoffSelect = document.querySelector('select[name="dropoffLocationId"]');
 
     function updateDropoffOptions() {
-        if (!pickupSelect || !dropoffSelect) return;
+        if (!pickupSelect || !dropoffSelect || tripStopEtas.length === 0) return;
 
         const selectedPickupId = pickupSelect.value;
-        const selectedPickupStop = tripStopEtas.find(stop => stop.stopId === selectedPickupId);
+        // FIX: Dùng == (loose equality) hoặc String() để ép kiểu vì ID trong HTML là chuỗi, ID trong JSON có thể là số
+        const selectedPickupStop = tripStopEtas.find(stop => String(stop.stopId) === String(selectedPickupId));
         const currentDropoffId = dropoffSelect.value;
 
         dropoffSelect.innerHTML = '';
@@ -16,37 +17,39 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectedPickupStop) {
             const pickupOffset = selectedPickupStop.offsetMinutes;
             tripStopEtas.forEach(stop => {
-                // Chỉ hiện điểm TRẢ (DROPOFF) có thời gian ĐẾN sau thời gian ĐÓN
                 if ((stop.pointType === 'DROPOFF' || stop.pointType === 'BOTH') && stop.offsetMinutes > pickupOffset) {
                     const option = document.createElement('option');
                     option.value = stop.stopId;
-                    option.textContent = `${stop.stopName} (${stop.etaTime})`;
+                    option.textContent = stop.stopName + ' (' + stop.etaTime + ')';
                     dropoffSelect.appendChild(option);
                     addedCount++;
                 }
             });
         }
 
-        // Nếu không tìm thấy chặng hợp lệ, fallback hiện tất cả điểm trả
+        // Fallback: nếu rỗng (lỗi offset hoặc không có điểm sau đó) thì hiện tất cả điểm trả
         if (addedCount === 0) {
             tripStopEtas.forEach(stop => {
                 if (stop.pointType === 'DROPOFF' || stop.pointType === 'BOTH') {
                     const option = document.createElement('option');
                     option.value = stop.stopId;
-                    option.textContent = `${stop.stopName} (${stop.etaTime})`;
+                    option.textContent = stop.stopName + ' (' + stop.etaTime + ')';
                     dropoffSelect.appendChild(option);
                 }
             });
         }
 
-        // Giữ lại giá trị cũ nếu nó vẫn hợp lệ trong list mới
-        if (Array.from(dropoffSelect.options).some(opt => opt.value === currentDropoffId)) {
+        if (Array.from(dropoffSelect.options).some(opt => opt.value === String(currentDropoffId))) {
             dropoffSelect.value = currentDropoffId;
+        } else if (dropoffSelect.options.length > 0) {
+            dropoffSelect.value = dropoffSelect.options[0].value;
         }
     }
 
+    // Khởi tạo ngay khi load
+    updateDropoffOptions();
+
     if (pickupSelect) {
         pickupSelect.addEventListener('change', updateDropoffOptions);
-        updateDropoffOptions();
     }
 });
