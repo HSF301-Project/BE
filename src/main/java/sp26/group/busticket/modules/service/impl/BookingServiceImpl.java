@@ -645,4 +645,55 @@ public class BookingServiceImpl implements BookingService {
             bookingRepository.saveAll(expiredBookings);
         }
     }
+    @Override
+    public int countBookedSeats(UUID tripId) {
+        return (int) ticketRepository.findByBooking_Trip_Id(tripId).stream()
+                .filter(t -> t.getBooking().getStatus() == BookingStatusEnum.PENDING
+                        || t.getBooking().getStatus() == BookingStatusEnum.CONFIRMED)
+                .count();
+    }
+
+    @Override
+    public boolean existsByCoachId(UUID coachId) {
+        return ticketRepository.findAll().stream()
+                .anyMatch(t -> t.getSeat() != null
+                        && t.getSeat().getCoach() != null
+                        && t.getSeat().getCoach().getId().equals(coachId)
+                        && (t.getBooking().getStatus() == BookingStatusEnum.PENDING
+                            || t.getBooking().getStatus() == BookingStatusEnum.CONFIRMED));
+    }
+
+    @Override
+    public List<sp26.group.busticket.modules.dto.trip.response.AdminSeatStatusDTO> getSeatStatuses(UUID tripId) {
+        return ticketRepository.findByBooking_Trip_Id(tripId).stream()
+                .filter(t -> t.getBooking().getStatus() == BookingStatusEnum.PENDING
+                        || t.getBooking().getStatus() == BookingStatusEnum.CONFIRMED)
+                .map(t -> sp26.group.busticket.modules.dto.trip.response.AdminSeatStatusDTO.builder()
+                        .seatNumber(t.getSeat().getSeatNumber())
+                        .floor(t.getSeat().getFloor())
+                        .isOccupied(true)
+                        .passengerName(t.getPassengerName())
+                        .passengerPhone(t.getPassengerPhone())
+                        .ticketCode(t.getTicketCode())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public long countTotalBookings() {
+        return bookingRepository.count();
+    }
+
+    @Override
+    public List<Object[]> getTopRoutes() {
+        return bookingRepository.findAll().stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        b -> b.getTrip().getRoute().getId(),
+                        java.util.stream.Collectors.counting()))
+                .entrySet().stream()
+                .sorted(java.util.Map.Entry.<UUID, Long>comparingByValue().reversed())
+                .limit(5)
+                .map(e -> new Object[]{e.getKey(), e.getValue()})
+                .collect(Collectors.toList());
+    }
 }

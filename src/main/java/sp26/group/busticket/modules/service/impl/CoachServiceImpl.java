@@ -115,7 +115,7 @@ public class CoachServiceImpl implements CoachService {
     }
 
     @Override
-    public CoachDetailResponseDTO getCoachDetails(UUID id) {
+    public CoachDetailResponseDTO getCoachDetail(UUID id) {
         Coach coach = coachRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.COACH_NOT_FOUND));
 
@@ -345,5 +345,16 @@ public class CoachServiceImpl implements CoachService {
             case INACTIVE -> "Ngừng hoạt động";
             default -> "Không xác định";
         };
+    }
+
+    @Override
+    public boolean existsById(UUID id) {
+        return coachRepository.existsById(id);
+    }
+
+    @Override
+    public Coach getCoachEntityById(UUID id) {
+        return coachRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.COACH_NOT_FOUND));
     }
 }

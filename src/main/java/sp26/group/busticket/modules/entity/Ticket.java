@@ -47,6 +47,6 @@ public class Ticket extends BaseEntity {
      * Trạng thái vé: PENDING (Chưa lên xe), CHECKED_IN (Đã lên xe), CANCELLED (Đã hủy)
      */
     @Builder.Default
-    @Column(name = "status", nullable = false, columnDefinition = "NVARCHAR(20) DEFAULT 'PENDING'")
+    @Column(name = "status", nullable = false, columnDefinition = "NVARCHAR(20)")
     private String status = "PENDING";
 }

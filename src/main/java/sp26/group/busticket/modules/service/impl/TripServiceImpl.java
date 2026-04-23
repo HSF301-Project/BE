@@ -13,11 +13,12 @@ import sp26.group.busticket.common.exception.AppException;
 import sp26.group.busticket.common.exception.ErrorCode;
 import sp26.group.busticket.modules.dto.trip.TripAdminConstants;
 import sp26.group.busticket.modules.dto.trip.TripPageResponse;
-import sp26.group.busticket.modules.dto.trip.TripResponseDTO;
+import sp26.group.busticket.modules.dto.trip.TripAdminResponseDTO;
 import sp26.group.busticket.modules.dto.trip.TripStatsResponseDTO;
 import sp26.group.busticket.modules.dto.trip.request.TripRequestDTO;
 import sp26.group.busticket.modules.dto.trip.request.TripSearchRequestDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripDriverOptionDTO;
+import sp26.group.busticket.modules.dto.trip.response.TripResponseDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripSearchResultDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripStopEtaDTO;
 import sp26.group.busticket.modules.entity.Account;
@@ -76,7 +77,7 @@ public class TripServiceImpl implements TripService {
         List<Trip> trips = tripRepository.findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeBetween(
                 request.getFrom(), request.getTo(), searchStart, searchEnd);
 
-        List<sp26.group.busticket.modules.dto.trip.response.TripResponseDTO> tripDTOs = trips.stream()
+        List<TripResponseDTO> tripDTOs = trips.stream()
                 .filter(t -> request.getBusType() == null || request.getBusType().isEmpty() ||
                         t.getCoach().getCoachType().equalsIgnoreCase(request.getBusType()))
                 .filter(t -> request.getMaxPrice() == null ||
@@ -105,7 +106,7 @@ public class TripServiceImpl implements TripService {
         LocalDateTime soonTime = now.plusHours(2);
         Page<Trip> tripPage = tripRepository.findAllBySearchAndStatus(query != null ? query : "", status, now, soonTime, pageable);
 
-        List<TripResponseDTO> dtos = tripPage.getContent().stream()
+        List<TripAdminResponseDTO> dtos = tripPage.getContent().stream()
                 .map(this::mapToAdminResponseDTO)
                 .collect(Collectors.toList());
 
@@ -121,7 +122,7 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public TripResponseDTO getTripById(UUID id) {
+    public TripAdminResponseDTO getTripById(UUID id) {
         return tripRepository.findById(id)
                 .map(this::mapToAdminResponseDTO)
                 .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
@@ -265,6 +266,26 @@ public class TripServiceImpl implements TripService {
         }
         
         tripRepository.save(trip);
+    }
+
+    @Override
+    public boolean existsByCoachId(UUID coachId) {
+        return false;
+    }
+
+    @Override
+    public List<Trip> findAllTripsByCoach(UUID coachId) {
+        return List.of();
+    }
+
+    @Override
+    public Trip findTripEntityById(UUID id) {
+        return null;
+    }
+
+    @Override
+    public long countActiveTrips() {
+        return 0;
     }
 
     @Override
@@ -459,8 +480,8 @@ public class TripServiceImpl implements TripService {
         return normalizedStops.split("\\|\\|")[0].trim();
     }
 
-    private sp26.group.busticket.modules.dto.trip.response.TripResponseDTO mapToClientResponseDTO(Trip trip) {
-        sp26.group.busticket.modules.dto.trip.response.TripResponseDTO dto = tripMapper.toTripResponseDTO(trip);
+    private TripResponseDTO mapToClientResponseDTO(Trip trip) {
+        TripResponseDTO dto = tripMapper.toClientTripResponseDTO(trip);
         int booked = getBookedSeats(trip.getId());
         int total = trip.getCoach().getTotalSeats() != null ? trip.getCoach().getTotalSeats() : 0;
 
@@ -474,7 +495,7 @@ public class TripServiceImpl implements TripService {
         return dto;
     }
 
-    private TripResponseDTO mapToAdminResponseDTO(Trip trip) {
+    private TripAdminResponseDTO mapToAdminResponseDTO(Trip trip) {
         DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
         DateTimeFormatter dateTimeFmt = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
         DateTimeFormatter timeOnly = DateTimeFormatter.ofPattern("HH:mm");
@@ -495,7 +516,7 @@ public class TripServiceImpl implements TripService {
             minutesUntilDeparture = (int) mins;
         }
 
-        return TripResponseDTO.builder()
+        return TripAdminResponseDTO.builder()
                 .id(trip.getId())
                 .tripCode("TRP-" + trip.getId().toString().substring(0, 8).toUpperCase())
                 .fromStation(trip.getRoute().getDepartureLocation().getName())
@@ -658,6 +679,7 @@ public class TripServiceImpl implements TripService {
             case SCHEDULED -> "Đã lên lịch";
             case DEPARTED -> "Đang chạy";
             case COMPLETED -> "Hoàn thành";
+            case CANCELLED -> "Đã hủy";
         };
     }
 
