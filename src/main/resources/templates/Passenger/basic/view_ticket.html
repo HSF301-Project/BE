@@ -1,247 +1,424 @@
-<!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
+<!doctype html>
+<html
+  lang="vi"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head>
     <th:block
-            th:replace="~{fragments/head-common :: head-common(title='Chi tiết vé điện tử | Premium Transit')}"></th:block>
-    <style>
-        .ticket-gradient {
-            background: linear-gradient(135deg, #1A1C1E 0%, #2C3E50 100%);
-        }
+      th:replace="~{fragments/head-common :: head-common(title='Chi tiết vé điện tử | Premium Transit')}"
+    ></th:block>
+  </head>
+  <body class="bg-[#F8F9FA] text-on-surface min-h-screen">
+    <th:block th:replace="~{fragments/navbar :: navbar}"></th:block>
 
-        .dashed-line {
-            border-top: 2px dashed rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-
-        .dashed-line::before, .dashed-line::after {
-            content: '';
-            position: absolute;
-            top: -10px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #F8F9FA;
-        }
-
-        .dashed-line::before {
-            left: -30px;
-        }
-
-        .dashed-line::after {
-            right: -30px;
-        }
-    </style>
-</head>
-<body class="bg-[#F8F9FA] text-on-surface min-h-screen">
-
-<th:block th:replace="~{fragments/navbar :: navbar}"></th:block>
-
-<main class="max-w-2xl mx-auto px-4 py-12">
-
-    <div class="mb-8 flex items-center justify-between">
-        <a th:href="@{/booking/my-trips}"
-           class="flex items-center text-primary font-bold hover:opacity-70 transition-all">
-            <span class="material-symbols-outlined mr-2">arrow_back</span>
-            Quay lại chuyến đi của tôi
+    <main class="max-w-2xl mx-auto px-4 py-12">
+      <div class="mb-8 flex items-center justify-between">
+        <a
+          th:href="@{/booking/my-trips}"
+          class="flex items-center text-primary font-bold hover:opacity-70 transition-all"
+        >
+          <span class="material-symbols-outlined mr-2">arrow_back</span>
+          Quay lại chuyến đi của tôi
         </a>
-        <button onclick="window.print()"
-                class="p-3 rounded-full bg-white shadow-sm text-primary hover:bg-primary hover:text-white transition-all">
-            <span class="material-symbols-outlined">print</span>
-        </button>
-    </div>
 
-    <div class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-outline-variant/10">
+      </div>
+
+      <div
+        class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-outline-variant/10"
+      >
         <!-- 1. Thông tin chung & Trạng thái -->
         <div class="ticket-gradient p-8 text-white">
-            <div class="flex justify-between items-start mb-6">
-                <div>
-                    <p class="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Mã đặt chỗ</p>
-                    <h1 class="text-3xl font-black" th:text="'#' + ${ticket.bookingCode}">#PTA-123456</h1>
-                </div>
-                <div class="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
-                    <span class="text-xs font-black uppercase"
-                          th:text="${ticket.status.name() == 'CONFIRMED'} ? 'Đã xác nhận' : (${ticket.status.name() == 'COMPLETED'} ? 'Đã hoàn thành' : (${ticket.status.name() == 'CANCELLED'} ? 'Đã hủy' : 'Chờ thanh toán'))">ĐÃ XÁC NHẬN</span>
-                </div>
+          <div class="flex justify-between items-start mb-6">
+            <div>
+              <p
+                class="text-white/60 text-xs font-bold uppercase tracking-widest mb-1"
+              >
+                Mã đặt chỗ
+              </p>
+              <h1
+                class="text-3xl font-black"
+                th:text="'#' + ${ticket.bookingCode}"
+              >
+                #PTA-123456
+              </h1>
             </div>
-            <div class="flex items-center gap-2 text-white/80 text-sm">
-                <span class="material-symbols-outlined text-sm">event_available</span>
-                <span>Ngày đặt: </span>
-                <span th:text="${#temporals.format(ticket.bookingTime, 'dd/MM/yyyy HH:mm')}">24/05/2024 14:30</span>
+            <div
+              class="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20"
+            >
+              <span
+                class="text-xs font-black uppercase"
+                th:text="${ticket.status.name() == 'CONFIRMED'} ? 'Đã xác nhận' : (${ticket.status.name() == 'COMPLETED'} ? 'Đã hoàn thành' : (${ticket.status.name() == 'CANCELLED'} ? 'Đã hủy' : 'Chờ thanh toán'))"
+                >ĐÃ XÁC NHẬN</span
+              >
             </div>
+          </div>
+          <div class="flex items-center gap-2 text-white/80 text-sm">
+            <span class="material-symbols-outlined text-sm"
+              >event_available</span
+            >
+            <span>Ngày đặt: </span>
+            <span
+              th:text="${#temporals.format(ticket.bookingTime, 'dd/MM/yyyy HH:mm')}"
+              >24/05/2024 14:30</span
+            >
+          </div>
         </div>
 
         <div class="p-8 space-y-10">
-            <!-- 2. Thông tin hành khách -->
-            <section>
-                <h3 class="text-xs font-black text-primary uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm">person</span>
-                    Thông tin hành khách
-                </h3>
-                <div class="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30">
-                    <div class="grid grid-cols-2 gap-y-4">
-                        <div>
-                            <p class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Họ và tên</p>
-                            <p class="font-bold text-lg" th:text="${ticket.passengerName}">Nguyễn Văn A</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Số điện thoại</p>
-                            <p class="font-bold text-lg" th:text="${ticket.passengerPhone}">0987 654 321</p>
-                        </div>
-                        <div class="col-span-2">
-                            <p class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Email</p>
-                            <p class="font-bold" th:text="${ticket.passengerEmail}">nguyenvana@example.com</p>
-                        </div>
-                    </div>
+          <!-- 2. Thông tin hành khách -->
+          <section>
+            <h3
+              class="text-xs font-black text-primary uppercase tracking-[0.2em] mb-4 flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined text-sm">person</span>
+              Thông tin hành khách
+            </h3>
+            <div
+              class="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30"
+            >
+              <div class="grid grid-cols-2 gap-y-4">
+                <div>
+                  <p
+                    class="text-[10px] font-bold text-on-surface-variant uppercase mb-1"
+                  >
+                    Họ và tên
+                  </p>
+                  <p
+                    class="font-bold text-lg"
+                    th:text="${ticket.passengerName}"
+                  >
+                    Nguyễn Văn A
+                  </p>
                 </div>
-            </section>
-
-            <!-- 3. Chi tiết Chuyến đi (Chiều đi) -->
-            <section>
-                <div class="flex items-center gap-2 mb-4">
-                    <h3 class="text-xs font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm">directions_bus</span>
-                        Chiều đi
-                    </h3>
-                    <span th:if="${ticket.roundTrip}" class="px-2 py-0.5 bg-primary/10 text-primary text-[9px] font-black rounded uppercase">Khứ hồi</span>
+                <div>
+                  <p
+                    class="text-[10px] font-bold text-on-surface-variant uppercase mb-1"
+                  >
+                    Số điện thoại
+                  </p>
+                  <p
+                    class="font-bold text-lg"
+                    th:text="${ticket.passengerPhone}"
+                  >
+                    0987 654 321
+                  </p>
                 </div>
-                
-                <div class="space-y-6 bg-primary/5 p-6 rounded-2xl border border-primary/10">
-                    <div class="flex items-center gap-4">
-                        <div class="flex-1 text-center py-3 bg-white rounded-xl border border-primary/10">
-                            <p class="text-xl font-black text-primary" th:text="${ticket.routeName}">Sài Gòn -> Đà Lạt</p>
-                            <p class="text-[10px] font-bold text-on-surface-variant mt-1" th:text="${ticket.departureDateLabel}">24 Th10, 2024</p>
-                        </div>
-                    </div>
-
-                    <div class="relative pl-8 space-y-6 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-primary/20 before:border-dashed">
-                        <div class="relative">
-                            <div class="absolute -left-[27px] top-1 w-4 h-4 rounded-full bg-primary border-4 border-white shadow-sm"></div>
-                            <div>
-                                <p class="text-[9px] font-bold text-on-surface-variant uppercase">Điểm đón</p>
-                                <p class="font-bold" th:text="${ticket.pickupPointName}">Bến xe Miền Đông</p>
-                                <div class="flex items-center gap-2">
-                                    <p class="text-sm text-primary font-bold" th:text="${ticket.pickupTime}">08:00</p>
-                                    <span class="text-[10px] text-on-surface-variant" th:text="${ticket.departureDateLabel}">24/05/2024</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="relative">
-                            <div class="absolute -left-[27px] top-1 w-4 h-4 rounded-full bg-primary/40 border-4 border-white shadow-sm"></div>
-                            <div>
-                                <p class="text-[9px] font-bold text-on-surface-variant uppercase">Điểm trả</p>
-                                <p class="font-bold" th:text="${ticket.dropoffPointName}">Bến xe Đà Lạt</p>
-                                <div class="flex items-center gap-2">
-                                    <p class="text-sm text-on-surface-variant font-bold" th:text="${ticket.dropoffTime}">15:30</p>
-                                    <span class="text-[10px] text-on-surface-variant" th:text="${ticket.arrivalDateLabel}">24/05/2024</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="pt-4 border-t border-primary/10">
-                        <p class="text-[9px] font-bold text-primary uppercase mb-2">Vị trí ghế chiều đi</p>
-                        <div class="flex flex-wrap gap-2">
-                            <div th:each="seat : ${ticket.seatNumbers}"
-                                 class="px-3 py-1 bg-white rounded-lg border border-primary/20 font-black text-primary text-sm"
-                                 th:text="${seat}">[A1 | PTT-0001]</div>
-                        </div>
-                    </div>
+                <div class="col-span-2">
+                  <p
+                    class="text-[10px] font-bold text-on-surface-variant uppercase mb-1"
+                  >
+                    Email
+                  </p>
+                  <p class="font-bold" th:text="${ticket.passengerEmail}">
+                    nguyenvana@example.com
+                  </p>
                 </div>
-            </section>
+              </div>
+            </div>
+          </section>
 
-            <!-- 4. Chi tiết Chuyến đi (Chiều về) - Chỉ hiện nếu có returnTicket -->
-            <section th:if="${ticket.roundTrip and ticket.returnTicket != null}">
-                <h3 class="text-xs font-black text-orange-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm">directions_bus</span>
-                    Chiều về
-                </h3>
-                
-                <div class="space-y-6 bg-orange-50 p-6 rounded-2xl border border-orange-200">
-                    <div class="flex items-center gap-4">
-                        <div class="flex-1 text-center py-3 bg-white rounded-xl border border-orange-200">
-                            <p class="text-xl font-black text-orange-700" th:text="${ticket.returnTicket.routeName}">Đà Lạt -> Sài Gòn</p>
-                            <p class="text-[10px] font-bold text-on-surface-variant mt-1" th:text="${ticket.returnTicket.departureDateLabel}">26 Th10, 2024</p>
-                        </div>
-                    </div>
+          <!-- 3. Chi tiết Chuyến đi (Chiều đi) -->
+          <section>
+            <div class="flex items-center gap-2 mb-4">
+              <h3
+                class="text-xs font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2"
+              >
+                <span class="material-symbols-outlined text-sm"
+                  >directions_bus</span
+                >
+                Chiều đi
+              </h3>
+              <span
+                th:if="${ticket.roundTrip}"
+                class="px-2 py-0.5 bg-primary/10 text-primary text-[9px] font-black rounded uppercase"
+                >Khứ hồi</span
+              >
+            </div>
 
-                    <div class="relative pl-8 space-y-6 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-orange-300 before:border-dashed">
-                        <div class="relative">
-                            <div class="absolute -left-[27px] top-1 w-4 h-4 rounded-full bg-orange-500 border-4 border-white shadow-sm"></div>
-                            <div>
-                                <p class="text-[9px] font-bold text-on-surface-variant uppercase">Điểm đón chiều về</p>
-                                <p class="font-bold" th:text="${ticket.returnTicket.pickupPointName}">Bến xe Đà Lạt</p>
-                                <div class="flex items-center gap-2">
-                                    <p class="text-sm text-orange-600 font-bold" th:text="${ticket.returnTicket.pickupTime}">08:00</p>
-                                    <span class="text-[10px] text-on-surface-variant" th:text="${ticket.returnTicket.departureDateLabel}">26/05/2024</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="relative">
-                            <div class="absolute -left-[27px] top-1 w-4 h-4 rounded-full bg-orange-300 border-4 border-white shadow-sm"></div>
-                            <div>
-                                <p class="text-[9px] font-bold text-on-surface-variant uppercase">Điểm trả chiều về</p>
-                                <p class="font-bold" th:text="${ticket.returnTicket.dropoffPointName}">Bến xe Miền Đông</p>
-                                <div class="flex items-center gap-2">
-                                    <p class="text-sm text-on-surface-variant font-bold" th:text="${ticket.returnTicket.dropoffTime}">15:30</p>
-                                    <span class="text-[10px] text-on-surface-variant" th:text="${ticket.returnTicket.arrivalDateLabel}">26/05/2024</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="pt-4 border-t border-orange-200">
-                        <p class="text-[9px] font-bold text-orange-600 uppercase mb-2">Vị trí ghế chiều về</p>
-                        <div class="flex flex-wrap gap-2">
-                            <div th:each="seat : ${ticket.returnTicket.seatNumbers}"
-                                 class="px-3 py-1 bg-white rounded-lg border border-orange-200 font-black text-orange-600 text-sm"
-                                 th:text="${seat}">[B1 | PTT-R-0001]</div>
-                        </div>
-                    </div>
+            <div
+              class="space-y-6 bg-primary/5 p-6 rounded-2xl border border-primary/10"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="flex-1 text-center py-3 bg-white rounded-xl border border-primary/10"
+                >
+                  <p
+                    class="text-xl font-black text-primary"
+                    th:text="${ticket.routeName}"
+                  >
+                    Sài Gòn -> Đà Lạt
+                  </p>
+                  <p
+                    class="text-[10px] font-bold text-on-surface-variant mt-1"
+                    th:text="${ticket.departureDateLabel}"
+                  >
+                    24 Th10, 2024
+                  </p>
                 </div>
-            </section>
+              </div>
 
-            <!-- 5. Chi tiết Thanh toán -->
-            <div class="dashed-line my-10"></div>
-
-            <section class="bg-primary/5 p-8 rounded-[2rem] border border-primary/10">
-                <div class="flex justify-between items-end">
-                    <div>
-                        <p class="text-xs font-black text-primary uppercase tracking-widest mb-2">Tổng tiền đã thanh
-                            toán</p>
-                        <h2 class="text-4xl font-black text-secondary" th:text="${ticket.totalAmountFormatted}">
-                            900.000đ</h2>
-                        <div class="mt-4 flex items-center gap-2 text-xs text-on-surface-variant font-bold italic">
-                            <span class="material-symbols-outlined text-sm">calculate</span>
-                            <span th:text="${#numbers.formatDecimal(ticket.basePrice, 0, 'COMMA', 0, 'POINT')} + 'đ x ' + ${ticket.seatCount} + ' ghế'">450.000đ x 2 ghế</span>
-                        </div>
+              <div
+                class="relative pl-8 space-y-6 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-primary/20 before:border-dashed"
+              >
+                <div class="relative">
+                  <div
+                    class="absolute -left-[27px] top-1 w-4 h-4 rounded-full bg-primary border-4 border-white shadow-sm"
+                  ></div>
+                  <div>
+                    <p
+                      class="text-[9px] font-bold text-on-surface-variant uppercase"
+                    >
+                      Điểm đón
+                    </p>
+                    <p class="font-bold" th:text="${ticket.pickupPointName}">
+                      Bến xe Miền Đông
+                    </p>
+                    <div class="flex items-center gap-2">
+                      <p
+                        class="text-sm text-primary font-bold"
+                        th:text="${ticket.pickupTime}"
+                      >
+                        08:00
+                      </p>
+                      <span
+                        class="text-[10px] text-on-surface-variant"
+                        th:text="${ticket.departureDateLabel}"
+                        >24/05/2024</span
+                      >
                     </div>
-                    <div class="text-right">
-                        <span class="material-symbols-outlined text-primary/20 text-6xl"
-                              style="font-variation-settings:'FILL' 1">payments</span>
-                    </div>
+                  </div>
                 </div>
-            </section>
+                <div class="relative">
+                  <div
+                    class="absolute -left-[27px] top-1 w-4 h-4 rounded-full bg-primary/40 border-4 border-white shadow-sm"
+                  ></div>
+                  <div>
+                    <p
+                      class="text-[9px] font-bold text-on-surface-variant uppercase"
+                    >
+                      Điểm trả
+                    </p>
+                    <p class="font-bold" th:text="${ticket.dropoffPointName}">
+                      Bến xe Đà Lạt
+                    </p>
+                    <div class="flex items-center gap-2">
+                      <p
+                        class="text-sm text-on-surface-variant font-bold"
+                        th:text="${ticket.dropoffTime}"
+                      >
+                        15:30
+                      </p>
+                      <span
+                        class="text-[10px] text-on-surface-variant"
+                        th:text="${ticket.arrivalDateLabel}"
+                        >24/05/2024</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pt-4 border-t border-primary/10">
+                <p class="text-[9px] font-bold text-primary uppercase mb-2">
+                  Vị trí ghế chiều đi
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <div
+                    th:each="seat : ${ticket.seatNumbers}"
+                    class="px-3 py-1 bg-white rounded-lg border border-primary/20 font-black text-primary text-sm"
+                    th:text="${seat}"
+                  >
+                    [A1 | PTT-0001]
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 4. Chi tiết Chuyến đi (Chiều về) - Chỉ hiện nếu có returnTicket -->
+          <section th:if="${ticket.roundTrip and ticket.returnTicket != null}">
+            <h3
+              class="text-xs font-black text-orange-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined text-sm"
+                >directions_bus</span
+              >
+              Chiều về
+            </h3>
+
+            <div
+              class="space-y-6 bg-orange-50 p-6 rounded-2xl border border-orange-200"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="flex-1 text-center py-3 bg-white rounded-xl border border-orange-200"
+                >
+                  <p
+                    class="text-xl font-black text-orange-700"
+                    th:text="${ticket.returnTicket.routeName}"
+                  >
+                    Đà Lạt -> Sài Gòn
+                  </p>
+                  <p
+                    class="text-[10px] font-bold text-on-surface-variant mt-1"
+                    th:text="${ticket.returnTicket.departureDateLabel}"
+                  >
+                    26 Th10, 2024
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="relative pl-8 space-y-6 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-orange-300 before:border-dashed"
+              >
+                <div class="relative">
+                  <div
+                    class="absolute -left-[27px] top-1 w-4 h-4 rounded-full bg-orange-500 border-4 border-white shadow-sm"
+                  ></div>
+                  <div>
+                    <p
+                      class="text-[9px] font-bold text-on-surface-variant uppercase"
+                    >
+                      Điểm đón chiều về
+                    </p>
+                    <p
+                      class="font-bold"
+                      th:text="${ticket.returnTicket.pickupPointName}"
+                    >
+                      Bến xe Đà Lạt
+                    </p>
+                    <div class="flex items-center gap-2">
+                      <p
+                        class="text-sm text-orange-600 font-bold"
+                        th:text="${ticket.returnTicket.pickupTime}"
+                      >
+                        08:00
+                      </p>
+                      <span
+                        class="text-[10px] text-on-surface-variant"
+                        th:text="${ticket.returnTicket.departureDateLabel}"
+                        >26/05/2024</span
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div class="relative">
+                  <div
+                    class="absolute -left-[27px] top-1 w-4 h-4 rounded-full bg-orange-300 border-4 border-white shadow-sm"
+                  ></div>
+                  <div>
+                    <p
+                      class="text-[9px] font-bold text-on-surface-variant uppercase"
+                    >
+                      Điểm trả chiều về
+                    </p>
+                    <p
+                      class="font-bold"
+                      th:text="${ticket.returnTicket.dropoffPointName}"
+                    >
+                      Bến xe Miền Đông
+                    </p>
+                    <div class="flex items-center gap-2">
+                      <p
+                        class="text-sm text-on-surface-variant font-bold"
+                        th:text="${ticket.returnTicket.dropoffTime}"
+                      >
+                        15:30
+                      </p>
+                      <span
+                        class="text-[10px] text-on-surface-variant"
+                        th:text="${ticket.returnTicket.arrivalDateLabel}"
+                        >26/05/2024</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pt-4 border-t border-orange-200">
+                <p class="text-[9px] font-bold text-orange-600 uppercase mb-2">
+                  Vị trí ghế chiều về
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <div
+                    th:each="seat : ${ticket.returnTicket.seatNumbers}"
+                    class="px-3 py-1 bg-white rounded-lg border border-orange-200 font-black text-orange-600 text-sm"
+                    th:text="${seat}"
+                  >
+                    [B1 | PTT-R-0001]
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 5. Chi tiết Thanh toán -->
+          <div class="dashed-line my-10"></div>
+
+          <section
+            class="bg-primary/5 p-8 rounded-[2rem] border border-primary/10"
+          >
+            <div class="flex justify-between items-end">
+              <div>
+                <p
+                  class="text-xs font-black text-primary uppercase tracking-widest mb-2"
+                >
+                  Tổng tiền đã thanh toán
+                </p>
+                <h2
+                  class="text-4xl font-black text-secondary"
+                  th:text="${ticket.totalAmountFormatted}"
+                >
+                  900.000đ
+                </h2>
+                <div
+                  class="mt-4 flex items-center gap-2 text-xs text-on-surface-variant font-bold italic"
+                >
+                  <span class="material-symbols-outlined text-sm"
+                    >calculate</span
+                  >
+                  <span
+                    th:if="${!ticket.roundTrip}"
+                    th:text="${#numbers.formatDecimal(ticket.basePrice, 0, 'COMMA', 0, 'POINT')} + 'đ x ' + ${ticket.seatCount} + ' ghế'"
+                    >450.000đ x 2 ghế</span
+                  >
+                  <span
+                    th:if="${ticket.roundTrip and ticket.returnTicket != null}"
+                    th:text="'(' + ${#numbers.formatDecimal(ticket.basePrice, 0, 'COMMA', 0, 'POINT')} + 'đ x ' + ${ticket.seatCount} + ' ghế đi) + (' + ${#numbers.formatDecimal(ticket.returnTicket.basePrice, 0, 'COMMA', 0, 'POINT')} + 'đ x ' + ${ticket.returnTicket.seatCount} + ' ghế về)'"
+                  ></span>
+                </div>
+              </div>
+              <div class="text-right">
+                <span
+                  class="material-symbols-outlined text-primary/20 text-6xl"
+                  style="font-variation-settings: &quot;FILL&quot; 1"
+                  >payments</span
+                >
+              </div>
+            </div>
+          </section>
         </div>
 
         <!-- Footer vé -->
         <div class="bg-surface-container-low p-6 text-center">
-            <p class="text-xs text-on-surface-variant font-medium">Chúc quý khách có một hành trình thượng lưu cùng
-                Premium Transit!</p>
+          <p class="text-xs text-on-surface-variant font-medium">
+            Chúc quý khách có một hành trình thượng lưu cùng Premium Transit!
+          </p>
         </div>
-    </div>
+      </div>
 
-    <div class="mt-12 text-center space-y-4">
-        <a th:href="@{/}"
-           class="inline-flex items-center text-on-surface-variant hover:text-primary font-bold transition-all">
-            <span class="material-symbols-outlined mr-2">home</span>
-            Về trang chủ
+      <div class="mt-12 text-center space-y-4">
+        <a
+          th:href="@{/}"
+          class="inline-flex items-center text-on-surface-variant hover:text-primary font-bold transition-all"
+        >
+          <span class="material-symbols-outlined mr-2">home</span>
+          Về trang chủ
         </a>
-    </div>
+      </div>
+    </main>
 
-</main>
-
-<th:block th:replace="~{fragments/footer :: footer}"></th:block>
-
-</body>
+    <th:block th:replace="~{fragments/footer :: footer}"></th:block>
+  </body>
 </html>

@@ -1,35 +1,20 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Kiểm vé - Staff Portal</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"/>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"/>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: "#003178",
-                        secondary: "#fe5825",
-                        background: "#faf8ff",
-                    }
-                }
-            }
-        }
-    </script>
+    <th:block th:replace="~{fragments/head-common :: head-common(title='Kiểm vé | Staff')}"></th:block>
     <style>
-        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-        .seat-booked { background-color: #003178; color: white; }
+        .seat-booked { background-color: var(--tw-primary, #003178); color: white; }
         .seat-checked { background-color: #10b981; color: white; }
         .seat-empty { background-color: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
     </style>
 </head>
-<body class="bg-background min-h-screen font-['Inter']">
+<body class="bg-slate-50 text-slate-900 min-h-screen" style="font-family:'Public Sans',sans-serif">
 
-    <div class="max-w-7xl mx-auto px-4 py-8">
+<th:block th:replace="~{fragments/staff-sidebar :: staff-sidebar(activeTab='schedule')}"></th:block>
+
+<main class="ml-64 min-h-screen p-8">
+
+    <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">
             <div class="flex items-center gap-4">
@@ -175,6 +160,7 @@
             </div>
         </div>
     </div>
+</main>
 
     <!-- Check-in Modal -->
     <div id="checkInModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -230,115 +216,14 @@
         </div>
     </div>
 
+    <script th:src="@{/js/staff-checkin.js}"></script>
     <script th:inline="javascript">
         /*<![CDATA[*/
-        let currentTicketCode = '';
-        let currentButton = null;
-
-        function openCheckInModal(button) {
-            currentButton = button;
-            currentTicketCode = button.getAttribute('data-ticket-code');
-            const passengerName = button.getAttribute('data-passenger-name');
-            const seatNumber = button.getAttribute('data-seat-number');
-            const isChecked = button.getAttribute('data-is-checked') === 'true';
-
-            document.getElementById('modalSeatNumber').innerText = seatNumber;
-            document.getElementById('modalPassengerName').innerText = passengerName;
-            document.getElementById('modalTicketCodeInput').value = '';
-            document.getElementById('modalErrorMessage').classList.add('hidden');
-            
-            const formGroup = document.getElementById('checkInFormGroup');
-            const statusBox = document.getElementById('checkedStatusBox');
-            const confirmBtn = document.getElementById('modalConfirmBtn');
-            const cancelBtn = document.getElementById('modalCancelBtn');
-
-
-            if (isChecked) {
-                formGroup.classList.add('hidden');
-                statusBox.classList.remove('hidden');
-                confirmBtn.classList.add('hidden');
-                cancelBtn.classList.remove('hidden');
-            } else {
-                formGroup.classList.remove('hidden');
-                statusBox.classList.add('hidden');
-                confirmBtn.classList.remove('hidden');
-                cancelBtn.classList.add('hidden');
-            }
-
-            document.getElementById('checkInModal').classList.remove('hidden');
-            document.getElementById('modalTicketCodeInput').focus();
-        }
-
-        function closeModal() {
-            document.getElementById('checkInModal').classList.add('hidden');
-        }
-
-        function confirmCheckIn() {
-            const inputCode = document.getElementById('modalTicketCodeInput').value.trim();
-            const isChecked = currentButton.getAttribute('data-is-checked') === 'true';
-
-            if (!isChecked && inputCode !== currentTicketCode) {
-                document.getElementById('modalErrorMessage').classList.remove('hidden');
-                return;
-            }
-
-            toggleCheckIn(currentTicketCode, currentButton);
-            closeModal();
-        }
-
-        // Event delegation for seat button clicks
-        document.addEventListener('click', function(e) {
-            if (e.target.matches('.seat-button')) {
-                openCheckInModal(e.target);
-            }
-        });
-
-        function toggleCheckIn(ticketCode, button) {
-            if (!ticketCode || ticketCode === 'null') return;
-            
-            const tripId = /*[[${tripId}]]*/ '0';
-            const url = '/staff/operations/trips/' + tripId + '/checkin/toggle?ticketCode=' + ticketCode;
-            
-            const csrfToken = /*[[${_csrf.token}]]*/ '';
-            const csrfHeader = /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN';
-            
-            button.classList.add('animate-pulse');
-            
-            fetch(url, { 
-                method: 'POST',
-                headers: {
-                    [csrfHeader]: csrfToken
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    button.classList.remove('animate-pulse');
-                    if (data.success) {
-                        const checkedCountEl = document.getElementById('checkedCount');
-                        let count = parseInt(checkedCountEl.innerText);
-                        
-                        if (data.newStatus === 'CHECKED_IN') {
-                            button.classList.remove('seat-booked');
-                            button.classList.add('seat-checked');
-                            button.setAttribute('data-is-checked', 'true');
-                            count++;
-                        } else {
-                            button.classList.remove('seat-checked');
-                            button.classList.add('seat-booked');
-                            button.setAttribute('data-is-checked', 'false');
-                            count--;
-                        }
-                        checkedCountEl.innerText = count;
-                    } else {
-                        alert('Lỗi: ' + data.message);
-                    }
-                })
-                .catch(err => {
-                    button.classList.remove('animate-pulse');
-                    console.error(err);
-                    alert('Đã có lỗi xảy ra!');
-                });
-        }
+        window.StaffCheckinConfig = {
+            tripId: /*[[${tripId}]]*/ '0',
+            csrfToken: /*[[${_csrf.token}]]*/ '',
+            csrfHeader: /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN'
+        };
         /*]]>*/
     </script>
 </body>

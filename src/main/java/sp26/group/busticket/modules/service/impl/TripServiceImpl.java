@@ -85,6 +85,12 @@ public class TripServiceImpl implements TripService {
             dateLabel = "Tất cả ngày";
         }
 
+        if ("price_asc".equals(request.getSort())) {
+            departureTripDTOs.sort(java.util.Comparator.comparing(sp26.group.busticket.modules.dto.trip.response.TripResponseDTO::getPrice));
+        } else if ("departure_asc".equals(request.getSort())) {
+            departureTripDTOs.sort(java.util.Comparator.comparing(sp26.group.busticket.modules.dto.trip.response.TripResponseDTO::getDepartureTime));
+        }
+
         TripSearchResultDTO.TripSearchResultDTOBuilder builder = TripSearchResultDTO.builder()
                 .fromCity(request.getFrom())
                 .toCity(request.getTo())
@@ -115,6 +121,12 @@ public class TripServiceImpl implements TripService {
                     .filter(dto -> dto.getSeatsLeft() != null && dto.getSeatsLeft() > 0)
                     .collect(Collectors.toList());
 
+            if ("price_asc".equals(request.getSort())) {
+                returnTripDTOs.sort(java.util.Comparator.comparing(sp26.group.busticket.modules.dto.trip.response.TripResponseDTO::getPrice));
+            } else if ("departure_asc".equals(request.getSort())) {
+                returnTripDTOs.sort(java.util.Comparator.comparing(sp26.group.busticket.modules.dto.trip.response.TripResponseDTO::getDepartureTime));
+            }
+
             LocalDate returnDate = LocalDate.parse(request.getReturnDate());
             builder.returnTrips(returnTripDTOs)
                    .totalReturnCount((long) returnTripDTOs.size())
@@ -135,16 +147,40 @@ public class TripServiceImpl implements TripService {
             LocalDate date = LocalDate.parse(dateStr);
             LocalDateTime searchStart = date.equals(now.toLocalDate()) ? now : date.atStartOfDay();
             LocalDateTime searchEnd = date.atTime(LocalTime.MAX);
-            trips = tripRepository.findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeBetween(
+            trips = tripRepository.findByRoute_DepartureLocation_CityAndRoute_ArrivalLocation_CityAndDepartureTimeBetween(
                     from, to, searchStart, searchEnd);
         } else {
-            trips = tripRepository.findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeAfter(
+            trips = tripRepository.findByRoute_DepartureLocation_CityAndRoute_ArrivalLocation_CityAndDepartureTimeAfter(
                     from, to, now);
         }
 
+        String busTypeQuery = null;
+        if (request.getBusType() != null && !request.getBusType().isEmpty()) {
+            switch (request.getBusType().toUpperCase()) {
+                case "SLEEPER": busTypeQuery = "giường nằm"; break;
+                case "SEATING": busTypeQuery = "ghế ngồi"; break;
+                case "LIMOUSINE": busTypeQuery = "limousine"; break;
+                default: busTypeQuery = request.getBusType().toLowerCase(); break;
+            }
+        }
+        final String finalBusTypeQuery = busTypeQuery;
+
         return trips.stream()
-                .filter(t -> request.getBusType() == null || request.getBusType().isEmpty() ||
-                        t.getCoach().getCoachType().getName().equalsIgnoreCase(request.getBusType()))
+                .filter(t -> {
+                    if (request.getTimeSlots() == null || request.getTimeSlots().isEmpty()) {
+                        return true;
+                    }
+                    int hour = t.getDepartureTime().getHour();
+                    for (String slot : request.getTimeSlots()) {
+                        if ("early_morning".equals(slot) && hour >= 0 && hour < 6) return true;
+                        if ("morning".equals(slot) && hour >= 6 && hour < 12) return true;
+                        if ("afternoon".equals(slot) && hour >= 12 && hour < 18) return true;
+                        if ("evening".equals(slot) && hour >= 18 && hour <= 23) return true;
+                    }
+                    return false;
+                })
+                .filter(t -> finalBusTypeQuery == null || 
+                        t.getCoach().getCoachType().getName().toLowerCase().contains(finalBusTypeQuery))
                 .filter(t -> request.getMaxPrice() == null ||
                         t.getPriceBase().compareTo(BigDecimal.valueOf(request.getMaxPrice())) <= 0)
                 .collect(Collectors.toList());
@@ -475,7 +511,15 @@ public class TripServiceImpl implements TripService {
         sp26.group.busticket.modules.dto.trip.response.TripBookingResponseDTO dto = tripMapper.toTripBookingResponseDTO(trip);
         dto.setDepartureDateTimeLabel(trip.getDepartureTime().format(dateTimeFormatter));
         dto.setArrivalDateTimeLabel(trip.getArrivalTime().format(dateTimeFormatter));
-        dto.setStopEtas(getTripStopEtas(tripId));
+        List<TripStopEtaDTO> stopEtas = getTripStopEtas(tripId);
+        dto.setStopEtas(stopEtas);
+        // Serialize stopEtas thành JSON để JS phía client có thể sử dụng cho việc lọc Điểm đón/trả
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            dto.setStopEtasJson(mapper.writeValueAsString(stopEtas));
+        } catch (Exception e) {
+            dto.setStopEtasJson("[]");
+        }
         dto.setExpired(trip.getDepartureTime().minusHours(1).isBefore(LocalDateTime.now()));
         return dto;
     }
@@ -727,7 +771,8 @@ public class TripServiceImpl implements TripService {
                 : trip.getDepartureTime();
 
         List<StopWithKm> stops = new ArrayList<>();
-        stops.add(new StopWithKm(trip.getRoute().getDepartureLocation().getName(), 0f, "START", null, trip.getRoute().getDepartureLocation().getId()));
+        // Điểm xuất phát luôn là PICKUP (chỉ đón khách, không trả)
+        stops.add(new StopWithKm(trip.getRoute().getDepartureLocation().getName(), 0f, "START", new StopMeta("PICKUP", 0), trip.getRoute().getDepartureLocation().getId()));
 
         // Iterate structured RouteStop list (sorted by stopOrder)
         if (trip.getRoute().getStops() != null) {
@@ -744,7 +789,9 @@ public class TripServiceImpl implements TripService {
 
         Float totalKm = trip.getRoute().getDistance();
         if (totalKm == null || totalKm <= 0) totalKm = 1f;
-        stops.add(new StopWithKm(trip.getRoute().getArrivalLocation().getName(), totalKm, "END", null, trip.getRoute().getArrivalLocation().getId()));
+        // Điểm đến luôn là DROPOFF (chỉ trả khách, không đón)
+        long totalMins = java.time.Duration.between(trip.getDepartureTime(), trip.getArrivalTime()).toMinutes();
+        stops.add(new StopWithKm(trip.getRoute().getArrivalLocation().getName(), totalKm, "END", new StopMeta("DROPOFF", (int) totalMins), trip.getRoute().getArrivalLocation().getId()));
 
         long totalMinutes = java.time.Duration.between(trip.getDepartureTime(), trip.getArrivalTime()).toMinutes();
         if (totalMinutes <= 0 && trip.getRoute().getDuration() != null) totalMinutes = trip.getRoute().getDuration();

@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Element: #tab-departure, #tab-return, #departure-results, #return-results
-    window.switchTab = function(tab) {
+    window.switchTab = function (tab) {
         const departureBtn = document.getElementById('tab-departure');
         const returnBtn = document.getElementById('tab-return');
         const departureResults = document.getElementById('departure-results');
@@ -113,14 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Element: window.location
-    window.proceedToBooking = function() {
+    window.proceedToBooking = function () {
         if (selectedOutbound && selectedReturn) {
             window.location.href = `/booking/roundtrip?outboundId=${selectedOutbound.id}&returnId=${selectedReturn.id}`;
         }
     };
 
     // Element: .trip-select-btn
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const btn = e.target.closest('.trip-select-btn');
         if (btn) {
             const tripId = btn.dataset.tripId;

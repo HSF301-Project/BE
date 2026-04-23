@@ -7,11 +7,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import sp26.group.busticket.modules.dto.trip.request.TripSearchRequestDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripSearchResultDTO;
+import sp26.group.busticket.modules.entity.Location;
 import sp26.group.busticket.modules.service.BookingService;
 import sp26.group.busticket.modules.service.LocationService;
 import sp26.group.busticket.modules.service.TripService;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -27,14 +30,22 @@ public class HomeController {
                 .date(LocalDate.now().toString())
                 .build();
         model.addAttribute("searchForm", searchForm);
-        model.addAttribute("locations", locationService.getLocationsByType("TERMINAL"));
+        List<String> cities = locationService.getLocationsByType("TERMINAL").stream()
+                .map(Location::getCity)
+                .distinct()
+                .collect(Collectors.toList());
+        model.addAttribute("cities", cities);
         model.addAttribute("popularRoutes", bookingService.getTopPopularRoutesAllTime(5));
         return "Passenger/basic/homepage";
     }
 
     @GetMapping("/search")
     public String searchTrips(@ModelAttribute("searchForm") TripSearchRequestDTO searchForm, Model model) {
-        model.addAttribute("locations", locationService.getLocationsByType("TERMINAL"));
+        List<String> cities = locationService.getLocationsByType("TERMINAL").stream()
+                .map(Location::getCity)
+                .distinct()
+                .collect(Collectors.toList());
+        model.addAttribute("cities", cities);
         
         TripSearchResultDTO searchResult = tripService.searchTrips(searchForm);
         model.addAttribute("searchResult", searchResult);

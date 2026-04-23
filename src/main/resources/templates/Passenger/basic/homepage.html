@@ -1,298 +1,501 @@
-<!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <th:block th:replace="~{fragments/head-common :: head-common(title='Premium Transit | Trang chủ')}"></th:block>
-</head>
-<body class="bg-background text-on-surface">
+<!doctype html>
+<html
+  lang="vi"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head>
+    <th:block
+      th:replace="~{fragments/head-common :: head-common(title='Premium Transit | Trang chủ')}"
+    ></th:block>
+  </head>
+  <body class="bg-background text-on-surface">
+    <th:block th:replace="~{fragments/navbar :: navbar}"></th:block>
 
-<th:block th:replace="~{fragments/navbar :: navbar}"></th:block>
-
-<main>
-    <section class="relative min-h-[716px] flex flex-col justify-center px-8 pt-20 pb-32 overflow-hidden bg-gradient-to-br from-primary to-primary-container">
+    <main>
+      <section
+        class="relative min-h-[716px] flex flex-col justify-center px-8 pt-20 pb-32 overflow-hidden bg-gradient-to-br from-primary to-primary-container"
+      >
         <div class="absolute inset-0 opacity-20 pointer-events-none">
-            <img class="w-full h-full object-cover"
-                 src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1400&q=80"
-                 alt="Bus on a scenic highway"/>
+          <img
+            class="w-full h-full object-cover"
+            src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1400&q=80"
+            alt="Bus on a scenic highway"
+          />
         </div>
 
         <div class="relative z-10 max-w-7xl mx-auto w-full">
-            <div class="md:w-2/3 lg:w-1/2 mb-12">
-                <h1 class="editorial-heading text-5xl md:text-7xl font-extrabold text-white leading-tight tracking-tight mb-6">
-                    Khởi hành cùng <br/>
-                    <span class="text-on-tertiary-container">Sự Sang Trọng.</span>
-                </h1>
-                <p class="text-xl text-primary-fixed leading-relaxed max-w-md" style="font-family:'Inter',sans-serif">
-                    Nâng tầm trải nghiệm di chuyển của bạn với dịch vụ xe khách cao cấp hàng đầu Việt Nam.
-                </p>
-            </div>
+          <div class="md:w-2/3 lg:w-1/2 mb-12">
+            <h1
+              class="editorial-heading text-5xl md:text-7xl font-extrabold text-white leading-tight tracking-tight mb-6"
+            >
+              Khởi hành cùng <br />
+              <span class="text-on-tertiary-container">Sự Sang Trọng.</span>
+            </h1>
+            <p
+              class="text-xl text-primary-fixed leading-relaxed max-w-md"
+              style="font-family: &quot;Inter&quot;, sans-serif"
+            >
+              Nâng tầm trải nghiệm di chuyển của bạn với dịch vụ xe khách cao
+              cấp hàng đầu Việt Nam.
+            </p>
+          </div>
 
-            <div class="w-full max-w-5xl mx-auto">
-                <form th:action="@{/search}" method="get" id="searchForm"
-                      class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] shadow-2xl flex flex-col gap-6">
+          <div class="w-full max-w-5xl mx-auto">
+            <form
+              th:action="@{/search}"
+              method="get"
+              id="searchForm"
+              class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] shadow-2xl flex flex-col gap-6"
+            >
+              <div class="flex items-center gap-6 ml-4">
+                <label class="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="roundTrip"
+                    value="false"
+                    checked
+                    class="w-4 h-4 text-primary focus:ring-primary border-outline"
+                    onchange="toggleRoundTrip(false)"
+                  />
+                  <span
+                    class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors"
+                    >Một chiều</span
+                  >
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="roundTrip"
+                    value="true"
+                    th:checked="${searchForm?.roundTrip}"
+                    class="w-4 h-4 text-primary focus:ring-primary border-outline"
+                    onchange="toggleRoundTrip(true)"
+                  />
+                  <span
+                    class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors"
+                    >Khứ hồi</span
+                  >
+                </label>
+              </div>
 
-                    <div class="flex items-center gap-6 ml-4">
-                        <label class="flex items-center gap-2 cursor-pointer group">
-                            <input type="radio" name="roundTrip" value="false" checked
-                                   class="w-4 h-4 text-primary focus:ring-primary border-outline"
-                                   onchange="toggleRoundTrip(false)"/>
-                            <span class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">Một chiều</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer group">
-                            <input type="radio" name="roundTrip" value="true"
-                                   th:checked="${searchForm?.roundTrip}"
-                                   class="w-4 h-4 text-primary focus:ring-primary border-outline"
-                                   onchange="toggleRoundTrip(true)"/>
-                            <span class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">Khứ hồi</span>
-                        </label>
-                    </div>
+              <div class="flex flex-col md:flex-row gap-4 items-end">
+                <div class="flex-1 w-full space-y-2">
+                  <label
+                    class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-4"
+                    >Điểm đi</label
+                  >
+                  <div class="relative" id="fromCombobox">
+                    <span
+                      class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10"
+                      >location_on</span
+                    >
+                    <input
+                      type="text"
+                      id="fromSearch"
+                      autocomplete="off"
+                      placeholder="Nhập hoặc chọn điểm đi"
+                      class="w-full pl-12 pr-10 py-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-surface-tint text-on-surface font-semibold"
+                      style="font-family: &quot;Inter&quot;, sans-serif"
+                    />
+                    <input
+                      type="hidden"
+                      name="from"
+                      id="fromValue"
+                      th:value="${searchForm?.from}"
+                    />
+                    <span
+                      class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 cursor-pointer transition-transform"
+                      id="fromArrow"
+                      >expand_more</span
+                    >
+                    <ul
+                      id="fromDropdown"
+                      class="absolute z-50 w-full bg-white rounded-2xl shadow-2xl border border-outline-variant/20 mt-2 max-h-60 overflow-y-auto hidden"
+                    >
+                      <li
+                        th:each="city : ${cities}"
+                        th:data-value="${city}"
+                        th:text="${city}"
+                        class="px-5 py-3 cursor-pointer hover:bg-primary/5 text-on-surface font-medium text-sm transition-colors combobox-option"
+                      ></li>
+                    </ul>
+                  </div>
+                </div>
 
-                    <div class="flex flex-col md:flex-row gap-4 items-end">
-                        <div class="flex-1 w-full space-y-2">
-                            <label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">Điểm đi</label>
-                            <div class="relative" id="fromCombobox">
-                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">location_on</span>
-                                <input type="text" id="fromSearch" autocomplete="off" placeholder="Nhập hoặc chọn điểm đi"
-                                       class="w-full pl-12 pr-10 py-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-surface-tint text-on-surface font-semibold"
-                                       style="font-family:'Inter',sans-serif"/>
-                                <input type="hidden" name="from" id="fromValue" th:value="${searchForm?.from}"/>
-                                <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 cursor-pointer transition-transform" id="fromArrow">expand_more</span>
-                                <ul id="fromDropdown" class="absolute z-50 w-full bg-white rounded-2xl shadow-2xl border border-outline-variant/20 mt-2 max-h-60 overflow-y-auto hidden">
-                                    <li th:each="loc : ${locations}" th:data-value="${loc.name}" th:text="${loc.name}"
-                                        class="px-5 py-3 cursor-pointer hover:bg-primary/5 text-on-surface font-medium text-sm transition-colors combobox-option"></li>
-                                </ul>
-                            </div>
-                        </div>
+                <div class="flex-1 w-full space-y-2">
+                  <label
+                    class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-4"
+                    >Điểm đến</label
+                  >
+                  <div class="relative" id="toCombobox">
+                    <span
+                      class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10"
+                      >near_me</span
+                    >
+                    <input
+                      type="text"
+                      id="toSearch"
+                      autocomplete="off"
+                      placeholder="Nhập hoặc chọn điểm đến"
+                      class="w-full pl-12 pr-10 py-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-surface-tint text-on-surface font-semibold"
+                      style="font-family: &quot;Inter&quot;, sans-serif"
+                    />
+                    <input
+                      type="hidden"
+                      name="to"
+                      id="toValue"
+                      th:value="${searchForm?.to}"
+                    />
+                    <span
+                      class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 cursor-pointer transition-transform"
+                      id="toArrow"
+                      >expand_more</span
+                    >
+                    <ul
+                      id="toDropdown"
+                      class="absolute z-50 w-full bg-white rounded-2xl shadow-2xl border border-outline-variant/20 mt-2 max-h-60 overflow-y-auto hidden"
+                    >
+                      <li
+                        th:each="city : ${cities}"
+                        th:data-value="${city}"
+                        th:text="${city}"
+                        class="px-5 py-3 cursor-pointer hover:bg-primary/5 text-on-surface font-medium text-sm transition-colors combobox-option"
+                      ></li>
+                    </ul>
+                  </div>
+                </div>
 
-                        <div class="flex-1 w-full space-y-2">
-                            <label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">Điểm đến</label>
-                            <div class="relative" id="toCombobox">
-                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">near_me</span>
-                                <input type="text" id="toSearch" autocomplete="off" placeholder="Nhập hoặc chọn điểm đến"
-                                       class="w-full pl-12 pr-10 py-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-surface-tint text-on-surface font-semibold"
-                                       style="font-family:'Inter',sans-serif"/>
-                                <input type="hidden" name="to" id="toValue" th:value="${searchForm?.to}"/>
-                                <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 cursor-pointer transition-transform" id="toArrow">expand_more</span>
-                                <ul id="toDropdown" class="absolute z-50 w-full bg-white rounded-2xl shadow-2xl border border-outline-variant/20 mt-2 max-h-60 overflow-y-auto hidden">
-                                    <li th:each="loc : ${locations}" th:data-value="${loc.name}" th:text="${loc.name}"
-                                        class="px-5 py-3 cursor-pointer hover:bg-primary/5 text-on-surface font-medium text-sm transition-colors combobox-option"></li>
-                                </ul>
-                            </div>
-                        </div>
+                <div class="flex-none w-full md:w-44 space-y-2">
+                  <label
+                    class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-4"
+                    >Ngày đi</label
+                  >
+                  <div class="relative">
+                    <span
+                      class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary"
+                      >calendar_today</span
+                    >
+                    <input
+                      name="date"
+                      id="homepage-date"
+                      type="date"
+                      th:value="${searchForm?.date}"
+                      class="w-full pl-12 pr-4 py-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-surface-tint text-on-surface font-semibold text-sm"
+                      style="font-family: &quot;Inter&quot;, sans-serif"
+                    />
+                  </div>
+                </div>
 
-                        <div class="flex-none w-full md:w-44 space-y-2">
-                            <label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">Ngày đi</label>
-                            <div class="relative">
-                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary">calendar_today</span>
-                                <input name="date" id="homepage-date"
-                                       type="date"
-                                       th:value="${searchForm?.date}"
-                                       class="w-full pl-12 pr-4 py-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-surface-tint text-on-surface font-semibold text-sm"
-                                       style="font-family:'Inter',sans-serif"/>
-                            </div>
-                        </div>
+                <div
+                  id="returnDateContainer"
+                  class="flex-none w-full md:w-44 space-y-2 hidden"
+                >
+                  <label
+                    class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-4"
+                    >Ngày về</label
+                  >
+                  <div class="relative">
+                    <span
+                      class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary"
+                      >event_repeat</span
+                    >
+                    <input
+                      name="returnDate"
+                      id="homepage-return-date"
+                      type="date"
+                      th:value="${searchForm?.returnDate}"
+                      class="w-full pl-12 pr-4 py-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-secondary text-on-surface font-semibold text-sm"
+                      style="font-family: &quot;Inter&quot;, sans-serif"
+                    />
+                  </div>
+                </div>
 
-                        <div id="returnDateContainer" class="flex-none w-full md:w-44 space-y-2 hidden">
-                            <label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-4">Ngày về</label>
-                            <div class="relative">
-                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary">event_repeat</span>
-                                <input name="returnDate" id="homepage-return-date"
-                                       type="date"
-                                       th:value="${searchForm?.returnDate}"
-                                       class="w-full pl-12 pr-4 py-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-secondary text-on-surface font-semibold text-sm"
-                                       style="font-family:'Inter',sans-serif"/>
-                            </div>
-                        </div>
-
-                        <button type="submit"
-                                class="w-full md:w-auto bg-gradient-to-r from-secondary to-secondary-container text-white px-10 py-5 rounded-full font-bold text-lg hover:shadow-lg hover:shadow-secondary/20 transition-all active:scale-95 duration-150">
-                            Tìm Chuyến
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <button
+                  type="submit"
+                  class="w-full md:w-auto bg-gradient-to-r from-secondary to-secondary-container text-white px-10 py-5 rounded-full font-bold text-lg hover:shadow-lg hover:shadow-secondary/20 transition-all active:scale-95 duration-150"
+                >
+                  Tìm Chuyến
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-    </section>
+      </section>
 
-    <section class="max-w-7xl mx-auto px-8 py-24" th:if="${popularRoutes != null and !popularRoutes.isEmpty()}">
-        <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
-            <div>
-                <span class="text-secondary font-bold tracking-[0.2em] uppercase text-sm mb-4 block">Hành trình gợi ý</span>
-                <h2 class="editorial-heading text-4xl md:text-5xl font-black text-primary">Tuyến đường phổ biến</h2>
-            </div>
-            <a th:href="@{/search}" class="text-primary font-bold flex items-center gap-2 group">
-                Xem tất cả tuyến đường
-                <span class="material-symbols-outlined transition-transform group-hover:translate-x-1">arrow_forward</span>
-            </a>
+      <section
+        class="max-w-7xl mx-auto px-8 py-24"
+        th:if="${popularRoutes != null and !popularRoutes.isEmpty()}"
+      >
+        <div
+          class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4"
+        >
+          <div>
+            <span
+              class="text-secondary font-bold tracking-[0.2em] uppercase text-sm mb-4 block"
+              >Hành trình gợi ý</span
+            >
+            <h2
+              class="editorial-heading text-4xl md:text-5xl font-black text-primary"
+            >
+              Tuyến đường phổ biến
+            </h2>
+          </div>
+          <a
+            th:href="@{/search}"
+            class="text-primary font-bold flex items-center gap-2 group"
+          >
+            Xem tất cả tuyến đường
+            <span
+              class="material-symbols-outlined transition-transform group-hover:translate-x-1"
+              >arrow_forward</span
+            >
+          </a>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 md:auto-rows-[220px] gap-8">
-            <a th:each="route, stat : ${popularRoutes}"
-               th:href="@{/search(from=${route.fromLocationName}, to=${route.toLocationName}, date=${#dates.format(new java.util.Date(), 'yyyy-MM-dd')})}"
-               th:class="${stat.index == 0} ? 'md:col-span-2 md:row-span-2 relative group overflow-hidden rounded-3xl bg-surface-container-low h-full min-h-[320px] block cursor-pointer' : (${stat.index == 1} ? 'md:row-span-2 relative group overflow-hidden rounded-3xl bg-surface-container-low h-full min-h-[320px] block cursor-pointer' : 'relative group overflow-hidden rounded-3xl bg-surface-container-low h-full min-h-[220px] block cursor-pointer')">
-                <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                     th:src="${route.imageUrl}"
-                     th:alt="${route.toCity}"/>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+          <a
+            th:each="route, stat : ${popularRoutes}"
+            th:href="@{/search(from=${route.fromLocationName}, to=${route.toLocationName}, date=${#dates.format(new java.util.Date(), 'yyyy-MM-dd')})}"
+            th:class="${stat.index == 0} ? 'md:col-span-2 md:row-span-2 relative group overflow-hidden rounded-3xl bg-surface-container-low h-full min-h-[320px] block cursor-pointer' : (${stat.index == 1} ? 'md:row-span-2 relative group overflow-hidden rounded-3xl bg-surface-container-low h-full min-h-[320px] block cursor-pointer' : 'relative group overflow-hidden rounded-3xl bg-surface-container-low h-full min-h-[220px] block cursor-pointer')"
+          >
+            <img
+              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              th:src="${route.imageUrl}"
+              th:alt="${route.toCity}"
+            />
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"
+            ></div>
 
-                <div th:if="${stat.index == 0}" class="absolute bottom-0 left-0 p-8 w-full flex justify-between items-end z-10">
-                    <div>
-                        <p class="text-white/80 text-sm font-medium mb-1" th:text="${route.fromCity + ' -> ' + route.toCity}"></p>
-                        <h3 class="text-white text-3xl font-black editorial-heading drop-shadow-md" th:text="${route.toCity}"></h3>
-                        <div class="flex items-center gap-2 mt-2">
-                            <span class="material-symbols-outlined text-on-tertiary-container text-sm">trending_up</span>
-                            <span class="text-white/90 text-xs font-medium" th:text="${route.bookingsCount + ' lượt đặt'}"></span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="block text-white/80 text-xs font-bold uppercase tracking-widest drop-shadow-sm">Chỉ từ</span>
-                        <span class="text-secondary-container text-3xl font-black drop-shadow-md" style="font-family:'Inter',sans-serif" th:text="${route.priceDisplay}"></span>
-                    </div>
+            <div
+              th:if="${stat.index == 0}"
+              class="absolute bottom-0 left-0 p-8 w-full flex justify-between items-end z-10"
+            >
+              <div>
+                <p
+                  class="text-white/80 text-sm font-medium mb-1"
+                  th:text="${route.fromCity + ' -> ' + route.toCity}"
+                ></p>
+                <h3
+                  class="text-white text-3xl font-black editorial-heading drop-shadow-md"
+                  th:text="${route.toCity}"
+                ></h3>
+                <div class="flex items-center gap-2 mt-2">
+                  <span
+                    class="material-symbols-outlined text-on-tertiary-container text-sm"
+                    >trending_up</span
+                  >
+                  <span
+                    class="text-white/90 text-xs font-medium"
+                    th:text="${route.bookingsCount + ' lượt đặt'}"
+                  ></span>
                 </div>
+              </div>
+              <div class="text-right">
+                <span
+                  class="block text-white/80 text-xs font-bold uppercase tracking-widest drop-shadow-sm"
+                  >Chỉ từ</span
+                >
+                <span
+                  class="text-secondary-container text-3xl font-black drop-shadow-md"
+                  style="font-family: &quot;Inter&quot;, sans-serif"
+                  th:text="${route.priceDisplay}"
+                ></span>
+              </div>
+            </div>
 
-                <div th:if="${stat.index != 0}" class="absolute bottom-0 left-0 p-6 w-full z-10">
-                    <p class="text-white/80 text-xs font-medium mb-1" th:text="${route.fromCity + ' -> ' + route.toCity}"></p>
-                    <h3 class="text-white text-xl font-black editorial-heading mb-4 drop-shadow-md" th:text="${route.toCity}"></h3>
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-1 text-on-tertiary-container">
-                            <span class="material-symbols-outlined text-sm">trending_up</span>
-                            <span class="text-white font-bold" th:text="${route.bookingsCount}"></span>
-                        </div>
-                        <span class="text-secondary-container font-black drop-shadow-md" style="font-family:'Inter',sans-serif" th:text="${route.priceDisplay}"></span>
-                    </div>
+            <div
+              th:if="${stat.index != 0}"
+              class="absolute bottom-0 left-0 p-6 w-full z-10"
+            >
+              <p
+                class="text-white/80 text-xs font-medium mb-1"
+                th:text="${route.fromCity + ' -> ' + route.toCity}"
+              ></p>
+              <h3
+                class="text-white text-xl font-black editorial-heading mb-4 drop-shadow-md"
+                th:text="${route.toCity}"
+              ></h3>
+              <div class="flex justify-between items-center">
+                <div class="flex items-center gap-1 text-on-tertiary-container">
+                  <span class="material-symbols-outlined text-sm"
+                    >trending_up</span
+                  >
+                  <span
+                    class="text-white font-bold"
+                    th:text="${route.bookingsCount}"
+                  ></span>
                 </div>
-            </a>
+                <span
+                  class="text-secondary-container font-black drop-shadow-md"
+                  style="font-family: &quot;Inter&quot;, sans-serif"
+                  th:text="${route.priceDisplay}"
+                ></span>
+              </div>
+            </div>
+          </a>
         </div>
-    </section>
-</main>
+      </section>
+    </main>
 
-<th:block th:replace="~{fragments/footer :: footer}"></th:block>
-<th:block th:replace="~{fragments/mobile-nav :: mobile-nav(activeTab='search')}"></th:block>
+    <th:block th:replace="~{fragments/footer :: footer}"></th:block>
+    <th:block
+      th:replace="~{fragments/mobile-nav :: mobile-nav(activeTab='search')}"
+    ></th:block>
 
-
-<script>
-    function toggleRoundTrip(isRound) {
-        const container = document.getElementById('returnDateContainer');
-        const returnInput = document.getElementById('homepage-return-date');
-        const departureInput = document.getElementById('homepage-date');
+    <script>
+      function toggleRoundTrip(isRound) {
+        const container = document.getElementById("returnDateContainer");
+        const returnInput = document.getElementById("homepage-return-date");
+        const departureInput = document.getElementById("homepage-date");
 
         if (isRound) {
-            container.classList.remove('hidden');
-            returnInput.setAttribute('required', 'required');
-            departureInput.setAttribute('required', 'required');
+          container.classList.remove("hidden");
+          returnInput.setAttribute("required", "required");
+          departureInput.setAttribute("required", "required");
 
-            const departureDate = departureInput.value;
-            if (departureDate) {
-                returnInput.setAttribute('min', departureDate);
-            }
+          const departureDate = departureInput.value;
+          if (departureDate) {
+            returnInput.setAttribute("min", departureDate);
+          }
         } else {
-            container.classList.add('hidden');
-            returnInput.removeAttribute('required');
-            departureInput.removeAttribute('required');
-            returnInput.value = '';
+          container.classList.add("hidden");
+          returnInput.removeAttribute("required");
+          departureInput.removeAttribute("required");
+          returnInput.value = "";
         }
-    }
+      }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const dateInput = document.getElementById('homepage-date');
-        const returnInput = document.getElementById('homepage-return-date');
+      document.addEventListener("DOMContentLoaded", function () {
+        const dateInput = document.getElementById("homepage-date");
+        const returnInput = document.getElementById("homepage-return-date");
 
         if (dateInput) {
-            const today = new Date().toISOString().split('T')[0];
-            dateInput.setAttribute('min', today);
+          const today = new Date().toISOString().split("T")[0];
+          dateInput.setAttribute("min", today);
 
-            dateInput.addEventListener('change', function() {
-                if (returnInput && this.value) {
-                    returnInput.setAttribute('min', this.value);
-                    if (returnInput.value && returnInput.value < this.value) {
-                        returnInput.value = this.value;
-                    }
-                }
-            });
+          dateInput.addEventListener("change", function () {
+            if (returnInput && this.value) {
+              returnInput.setAttribute("min", this.value);
+              if (returnInput.value && returnInput.value < this.value) {
+                returnInput.value = this.value;
+              }
+            }
+          });
         }
 
-        const roundTripActive = document.querySelector('input[name="roundTrip"][value="true"]').checked;
+        const roundTripActive = document.querySelector(
+          'input[name="roundTrip"][value="true"]',
+        ).checked;
         if (roundTripActive) {
-            toggleRoundTrip(true);
+          toggleRoundTrip(true);
         }
 
-        function initCombobox(searchId, hiddenId, dropdownId, arrowId, otherHiddenId) {
-            const searchInput = document.getElementById(searchId);
-            const hiddenInput = document.getElementById(hiddenId);
-            const dropdown = document.getElementById(dropdownId);
-            const arrow = document.getElementById(arrowId);
-            const allOptions = Array.from(dropdown.querySelectorAll('.combobox-option'));
+        function initCombobox(
+          searchId,
+          hiddenId,
+          dropdownId,
+          arrowId,
+          otherHiddenId,
+        ) {
+          const searchInput = document.getElementById(searchId);
+          const hiddenInput = document.getElementById(hiddenId);
+          const dropdown = document.getElementById(dropdownId);
+          const arrow = document.getElementById(arrowId);
+          const allOptions = Array.from(
+            dropdown.querySelectorAll(".combobox-option"),
+          );
 
-            if (hiddenInput.value) {
-                searchInput.value = hiddenInput.value;
+          if (hiddenInput.value) {
+            searchInput.value = hiddenInput.value;
+          }
+
+          function filterAndShow() {
+            const query = searchInput.value.toLowerCase();
+            const otherVal = document.getElementById(otherHiddenId).value;
+            let hasVisible = false;
+            allOptions.forEach((opt) => {
+              const val = opt.getAttribute("data-value");
+              const matchSearch = val.toLowerCase().includes(query);
+              const notDuplicate = val !== otherVal;
+              if (matchSearch && notDuplicate) {
+                opt.style.display = "";
+                hasVisible = true;
+              } else {
+                opt.style.display = "none";
+              }
+            });
+            dropdown.classList.toggle("hidden", !hasVisible);
+            arrow.style.transform = hasVisible
+              ? "translateY(-50%) rotate(180deg)"
+              : "";
+          }
+
+          searchInput.addEventListener("focus", filterAndShow);
+          searchInput.addEventListener("input", function () {
+            hiddenInput.value = "";
+            filterAndShow();
+          });
+
+          arrow.addEventListener("click", function () {
+            if (dropdown.classList.contains("hidden")) {
+              searchInput.focus();
+              filterAndShow();
+            } else {
+              dropdown.classList.add("hidden");
+              arrow.style.transform = "";
             }
+          });
 
-            function filterAndShow() {
-                const query = searchInput.value.toLowerCase();
-                const otherVal = document.getElementById(otherHiddenId).value;
-                let hasVisible = false;
-                allOptions.forEach(opt => {
-                    const val = opt.getAttribute('data-value');
-                    const matchSearch = val.toLowerCase().includes(query);
-                    const notDuplicate = val !== otherVal;
-                    if (matchSearch && notDuplicate) {
-                        opt.style.display = '';
-                        hasVisible = true;
-                    } else {
-                        opt.style.display = 'none';
-                    }
-                });
-                dropdown.classList.toggle('hidden', !hasVisible);
-                arrow.style.transform = hasVisible ? 'translateY(-50%) rotate(180deg)' : '';
+          allOptions.forEach((opt) => {
+            opt.addEventListener("click", function () {
+              const val = this.getAttribute("data-value");
+              searchInput.value = val;
+              hiddenInput.value = val;
+              dropdown.classList.add("hidden");
+              arrow.style.transform = "";
+            });
+          });
+
+          document.addEventListener("click", function (e) {
+            if (
+              !searchInput.contains(e.target) &&
+              !dropdown.contains(e.target) &&
+              !arrow.contains(e.target)
+            ) {
+              dropdown.classList.add("hidden");
+              arrow.style.transform = "";
             }
-
-            searchInput.addEventListener('focus', filterAndShow);
-            searchInput.addEventListener('input', function() {
-                hiddenInput.value = '';
-                filterAndShow();
-            });
-
-            arrow.addEventListener('click', function() {
-                if (dropdown.classList.contains('hidden')) {
-                    searchInput.focus();
-                    filterAndShow();
-                } else {
-                    dropdown.classList.add('hidden');
-                    arrow.style.transform = '';
-                }
-            });
-
-            allOptions.forEach(opt => {
-                opt.addEventListener('click', function() {
-                    const val = this.getAttribute('data-value');
-                    searchInput.value = val;
-                    hiddenInput.value = val;
-                    dropdown.classList.add('hidden');
-                    arrow.style.transform = '';
-                });
-            });
-
-            document.addEventListener('click', function(e) {
-                if (!searchInput.contains(e.target) && !dropdown.contains(e.target) && !arrow.contains(e.target)) {
-                    dropdown.classList.add('hidden');
-                    arrow.style.transform = '';
-                }
-            });
+          });
         }
 
-        initCombobox('fromSearch', 'fromValue', 'fromDropdown', 'fromArrow', 'toValue');
-        initCombobox('toSearch', 'toValue', 'toDropdown', 'toArrow', 'fromValue');
+        initCombobox(
+          "fromSearch",
+          "fromValue",
+          "fromDropdown",
+          "fromArrow",
+          "toValue",
+        );
+        initCombobox(
+          "toSearch",
+          "toValue",
+          "toDropdown",
+          "toArrow",
+          "fromValue",
+        );
 
-        document.getElementById('searchForm').addEventListener('submit', function(e) {
-            const from = document.getElementById('fromValue').value;
-            const to = document.getElementById('toValue').value;
+        document
+          .getElementById("searchForm")
+          .addEventListener("submit", function (e) {
+            const from = document.getElementById("fromValue").value;
+            const to = document.getElementById("toValue").value;
             if (!from || !to) {
-                e.preventDefault();
-                alert('Vui lòng chọn cả điểm đi và điểm đến.');
+              e.preventDefault();
+              alert("Vui lòng chọn cả điểm đi và điểm đến.");
             }
-        });
-    });
-</script>
-
-</body>
+          });
+      });
+    </script>
+  </body>
 </html>
