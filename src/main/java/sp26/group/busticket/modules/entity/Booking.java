@@ -56,4 +56,9 @@ public class Booking extends BaseEntity {
 
     @Column(name = "booking_code", nullable = false, unique = true)
     private String bookingCode;
+
+    // Link ngược lại booking cha để tính làm 1 payment cho chuyến khư hồi thay vì bị bị tách làm 2.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_booking_id")
+    private Booking parentBooking;
 }

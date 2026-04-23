@@ -125,11 +125,63 @@ public class BookingServiceImpl implements BookingService {
                 .build();
         booking = bookingRepository.save(booking);
 
-        // Tạo Payment ban đầu
+        // Handle Return Trip (Roundtrip)
+        if (form.isRoundTrip() && form.getReturnTripId() != null && form.getReturnPassengers() != null && !form.getReturnPassengers().isEmpty()) {
+            Trip returnTrip = tripRepository.findById(form.getReturnTripId())
+                    .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+
+            BigDecimal returnTotal = returnTrip.getPriceBase().multiply(BigDecimal.valueOf(form.getReturnPassengers().size()));
+            
+            Location returnPickup = locationRepository.findById(form.getReturnPickupLocationId())
+                    .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Điểm đón chiều về không hợp lệ."));
+            Location returnDropoff = locationRepository.findById(form.getReturnDropoffLocationId())
+                    .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Điểm trả chiều về không hợp lệ."));
+
+            // Validate pickup/dropoff are not the same
+            if (form.getPickupLocationId().equals(form.getDropoffLocationId())) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Điểm đón và điểm trả chiều đi không được trùng nhau.");
+            }
+            if (form.getReturnPickupLocationId().equals(form.getReturnDropoffLocationId())) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Điểm đón và điểm trả chiều về không được trùng nhau.");
+            }
+            
+            totalAmount = totalAmount.add(returnTotal); // Sum for single payment
+
+            Booking returnBooking = Booking.builder()
+                    .user(currentAccount)
+                    .trip(returnTrip)
+                    .pickupLocation(returnPickup)
+                    .dropoffLocation(returnDropoff)
+                    .totalAmount(returnTotal)
+                    .status(BookingStatusEnum.PENDING)
+                    .bookingCode("PTB-R-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                    .parentBooking(booking) // Link to outbound
+                    .build();
+            returnBooking = bookingRepository.save(returnBooking);
+
+            for (PassengerInfoDTO p : form.getReturnPassengers()) {
+                Seat seat = seatRepository.findByCoach_IdOrderBySeatNumberAsc(returnTrip.getCoach().getId()).stream()
+                        .filter(s -> s.getSeatNumber().equals(p.getSeatId()))
+                        .findFirst()
+                        .orElseThrow(() -> new AppException(ErrorCode.SEAT_NOT_FOUND));
+
+                Ticket returnTicket = Ticket.builder()
+                        .booking(returnBooking)
+                        .seat(seat)
+                        .passengerName(p.getFullName())
+                        .passengerPhone(p.getPhoneNumber())
+                        .passengerEmail(p.getEmail())
+                        .ticketCode("PTT-R-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                        .build();
+                ticketRepository.save(returnTicket);
+            }
+        }
+
+        // Tạo Payment ban đầu (Dùng totalAmount đã gộp nếu là khứ hồi)
         Payment payment = Payment.builder()
                 .booking(booking)
                 .amount(totalAmount)
-                .paymentMethod("VNPAY") // Mặc định hoặc từ form
+                .paymentMethod("VNPAY")
                 .status(PaymentStatusEnum.PENDING)
                 .build();
         paymentRepository.save(payment);
@@ -327,6 +379,12 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(BookingStatusEnum.CONFIRMED);
         bookingRepository.save(booking);
 
+        // Confirm linked return booking if any
+        bookingRepository.findByParentBooking_Id(bookingId).forEach(child -> {
+            child.setStatus(BookingStatusEnum.CONFIRMED);
+            bookingRepository.save(child);
+        });
+
         Payment payment = paymentRepository.findByBooking_Id(bookingId)
                 .orElseThrow(() -> new AppException(ErrorCode.UNEXPECTED_ERROR, "Không tìm thấy thông tin thanh toán!"));
         
@@ -367,6 +425,20 @@ public class BookingServiceImpl implements BookingService {
 
     private TicketConfirmationDTO buildTicketConfirmationDTO(Booking booking) {
         UUID bookingId = booking.getId();
+        TicketConfirmationDTO outboundDTO = buildSingleTicketDTO(booking);
+        
+        // Find return trip if exists
+        List<Booking> children = bookingRepository.findByParentBooking_Id(bookingId);
+        if (!children.isEmpty()) {
+            outboundDTO.setRoundTrip(true);
+            outboundDTO.setReturnTicket(buildSingleTicketDTO(children.get(0)));
+        }
+        
+        return outboundDTO;
+    }
+
+    private TicketConfirmationDTO buildSingleTicketDTO(Booking booking) {
+        UUID bookingId = booking.getId();
         List<Ticket> tickets = ticketRepository.findAll().stream()
                 .filter(t -> t.getBooking().getId().equals(bookingId))
                 .collect(Collectors.toList());
@@ -383,17 +455,17 @@ public class BookingServiceImpl implements BookingService {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", localeVN);
         DateTimeFormatter fullDateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-        // Gộp tất cả số ghế
+        // Gộp tất cả số ghế kèm mã vé
+        List<String> seatTicketLines = tickets.stream()
+                .map(t -> "[" + t.getSeat().getSeatNumber() + " | " + t.getTicketCode() + "]")
+                .toList();
+        
         String allSeats = tickets.stream()
                 .map(t -> t.getSeat().getSeatNumber())
                 .collect(Collectors.joining(", "));
 
-        List<String> seatTicketLines = tickets.stream()
-                .map(t -> "[" + t.getSeat().getSeatNumber() + " | " + t.getTicketCode() + "]")
-                .toList();
-
         // Lấy thời gian đặt (thanh toán thành công)
-        String bookingDate = paymentRepository.findByBooking_Id(bookingId)
+        String bookingDate = paymentRepository.findByBooking_Id(booking.getParentBooking() != null ? booking.getParentBooking().getId() : bookingId)
                 .map(p -> p.getPaidAt() != null ? p.getPaidAt().format(fullDateTimeFormatter) : booking.getCreatedAt().format(fullDateTimeFormatter))
                 .orElse(booking.getCreatedAt().format(fullDateTimeFormatter));
 
@@ -416,11 +488,11 @@ public class BookingServiceImpl implements BookingService {
 
         return TicketConfirmationDTO.builder()
                 .id(firstTicket.getId())
-                .statusLabel("Đã xác nhận")
+                .statusLabel(booking.getStatus() == BookingStatusEnum.CONFIRMED ? "Đã xác nhận" : "Chờ thanh toán")
                 .bookingCode(booking.getBookingCode())
                 .ticketCode(firstTicket.getTicketCode())
-                .fromCityShort(trip.getRoute().getDepartureLocation().getCity().toUpperCase())
-                .toCityShort(trip.getRoute().getArrivalLocation().getCity().toUpperCase())
+                .fromCityShort(trip.getRoute().getDepartureLocation().getCity())
+                .toCityShort(trip.getRoute().getArrivalLocation().getCity())
                 .departureStation(trip.getRoute().getDepartureLocation().getName())
                 .arrivalStation(trip.getRoute().getArrivalLocation().getName())
                 .pickupLocationName(booking.getPickupLocation().getName())
@@ -430,6 +502,7 @@ public class BookingServiceImpl implements BookingService {
                 .departureTime(trip.getDepartureTime().format(timeFormatter))
                 .arrivalTime(trip.getArrivalTime().format(timeFormatter))
                 .departureDateLabel(trip.getDepartureTime().format(dateFormatter))
+                .arrivalDateLabel(trip.getArrivalTime().format(dateFormatter))
                 .seatLabel(allSeats)
                 .seatTicketLines(seatTicketLines)
                 .licensePlate(trip.getCoach().getPlateNumber())
@@ -442,63 +515,33 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<MyTripResponseDTO> getMyTrips(UUID accountId, String tab) {
-        List<Booking> bookings = bookingRepository.findByUser_IdOrderByCreatedAtDesc(accountId);
+        List<Booking> allBookings = bookingRepository.findByUser_IdOrderByCreatedAtDesc(accountId);
+        
+        // Chỉ lấy booking cha hoặc booking đơn lẻ
+        List<Booking> parentOrSingleBookings = allBookings.stream()
+                .filter(b -> b.getParentBooking() == null)
+                .collect(Collectors.toList());
+
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         DateTimeFormatter fullDateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", new Locale("vi", "VN"));
         LocalDateTime now = LocalDateTime.now();
 
-        return bookings.stream()
+        return parentOrSingleBookings.stream()
                 .map(b -> {
-                    Trip trip = b.getTrip();
-                    BookingStatusEnum status = b.getStatus();
-
-                    // Nếu đã thanh toán nhưng chuyến đi đã kết thúc thì coi là COMPLETED
-                    if (status == BookingStatusEnum.CONFIRMED && trip.getArrivalTime().isBefore(now)) {
-                        status = BookingStatusEnum.COMPLETED;
+                    MyTripResponseDTO dto = buildMyTripResponseDTO(b, now, timeFormatter, fullDateTimeFormatter, dateFormatter);
+                    
+                    // Tìm chuyến về nếu có
+                    List<Booking> children = allBookings.stream()
+                            .filter(child -> child.getParentBooking() != null && child.getParentBooking().getId().equals(b.getId()))
+                            .toList();
+                    
+                    if (!children.isEmpty()) {
+                        dto.setRoundTrip(true);
+                        dto.setReturnTrip(buildMyTripResponseDTO(children.get(0), now, timeFormatter, fullDateTimeFormatter, dateFormatter));
                     }
-
-                    // Lấy thời gian thanh toán từ Payment, nếu không có thì lấy thời gian tạo Booking
-                    String bookingDate = paymentRepository.findByBooking_Id(b.getId())
-                            .map(p -> p.getPaidAt() != null ? p.getPaidAt().format(fullDateTimeFormatter) : b.getCreatedAt().format(fullDateTimeFormatter))
-                            .orElse(b.getCreatedAt().format(fullDateTimeFormatter));
-
-                    // Calculate pickup and dropoff times for MyTripResponseDTO
-                    List<TripStopEtaDTO> tripStopEtas = tripService.getTripStopEtas(trip.getId());
-
-                    Integer pickupOffset = tripStopEtas.stream()
-                            .filter(stop -> stop.getStopId().equals(b.getPickupLocation().getId()))
-                            .map(TripStopEtaDTO::getOffsetMinutes)
-                            .findFirst()
-                            .orElseThrow(() -> new AppException(ErrorCode.UNEXPECTED_ERROR, "Không tìm thấy offset cho điểm đón đã lưu."));
-
-                    Integer dropoffOffset = tripStopEtas.stream()
-                            .filter(stop -> stop.getStopId().equals(b.getDropoffLocation().getId()))
-                            .map(TripStopEtaDTO::getOffsetMinutes)
-                            .findFirst()
-                            .orElseThrow(() -> new AppException(ErrorCode.UNEXPECTED_ERROR, "Không tìm thấy offset cho điểm trả đã lưu."));
-
-                    LocalDateTime actualPickupTime = trip.getDepartureTime().plusMinutes(pickupOffset);
-                    LocalDateTime actualDropoffTime = trip.getDepartureTime().plusMinutes(dropoffOffset);
-
-                    return MyTripResponseDTO.builder()
-                            .id(b.getId())
-                            .bookingCode(b.getBookingCode())
-                            .status(status)
-                            .busTypeLabel(trip.getCoach().getCoachType())
-                            .daysUntilDeparture(java.time.Duration.between(now, trip.getDepartureTime()).toDays())
-                            .fromCity(trip.getRoute().getDepartureLocation().getCity())
-                            .departureStation(b.getPickupLocation().getName())
-                            .departureTime(trip.getDepartureTime().format(timeFormatter))
-                            .toCity(trip.getRoute().getArrivalLocation().getCity())
-                            .arrivalStation(b.getDropoffLocation().getName())
-                            .arrivalTime(trip.getArrivalTime().format(timeFormatter))
-                            .pickupLocationName(b.getPickupLocation().getName())
-                            .dropoffLocationName(b.getDropoffLocation().getName())
-                            .pickupTime(actualPickupTime.format(timeFormatter))
-                            .dropoffTime(actualDropoffTime.format(timeFormatter))
-                            .bookingDate(bookingDate)
-                            .isCancellable(status == BookingStatusEnum.CONFIRMED && trip.getDepartureTime().minusHours(2).isAfter(now))
-                            .build();
+                    
+                    return dto;
                 })
                 .filter(dto -> {
                     if (tab == null || tab.equalsIgnoreCase("all")) return true;
@@ -509,6 +552,61 @@ public class BookingServiceImpl implements BookingService {
                     return dto.getStatus().name().equalsIgnoreCase(tab);
                 })
                 .collect(Collectors.toList());
+    }
+
+    private MyTripResponseDTO buildMyTripResponseDTO(Booking b, LocalDateTime now, DateTimeFormatter timeFormatter, DateTimeFormatter fullDateTimeFormatter, DateTimeFormatter dateFormatter) {
+        Trip trip = b.getTrip();
+        BookingStatusEnum status = b.getStatus();
+
+        // Nếu đã thanh toán nhưng chuyến đi đã kết thúc thì coi là COMPLETED
+        if (status == BookingStatusEnum.CONFIRMED && trip.getArrivalTime().isBefore(now)) {
+            status = BookingStatusEnum.COMPLETED;
+        }
+
+        // Lấy thời gian thanh toán từ Payment, nếu không có thì lấy thời gian tạo Booking
+        String bookingDate = paymentRepository.findByBooking_Id(b.getId())
+                .map(p -> p.getPaidAt() != null ? p.getPaidAt().format(fullDateTimeFormatter) : b.getCreatedAt().format(fullDateTimeFormatter))
+                .orElse(b.getCreatedAt().format(fullDateTimeFormatter));
+
+        // Calculate pickup and dropoff times for MyTripResponseDTO
+        List<TripStopEtaDTO> tripStopEtas = tripService.getTripStopEtas(trip.getId());
+
+        Integer pickupOffset = tripStopEtas.stream()
+                .filter(stop -> stop.getStopId().equals(b.getPickupLocation().getId()))
+                .map(TripStopEtaDTO::getOffsetMinutes)
+                .findFirst()
+                .orElse(0);
+
+        Integer dropoffOffset = tripStopEtas.stream()
+                .filter(stop -> stop.getStopId().equals(b.getDropoffLocation().getId()))
+                .map(TripStopEtaDTO::getOffsetMinutes)
+                .findFirst()
+                .orElse(0);
+
+        LocalDateTime actualPickupTime = trip.getDepartureTime().plusMinutes(pickupOffset);
+        LocalDateTime actualDropoffTime = trip.getDepartureTime().plusMinutes(dropoffOffset);
+
+        return MyTripResponseDTO.builder()
+                .id(b.getId())
+                .bookingCode(b.getBookingCode())
+                .status(status)
+                .busTypeLabel(trip.getCoach().getCoachType())
+                .daysUntilDeparture(java.time.Duration.between(now, trip.getDepartureTime()).toDays())
+                .fromCity(trip.getRoute().getDepartureLocation().getCity())
+                .departureStation(b.getPickupLocation().getName())
+                .departureTime(trip.getDepartureTime().format(timeFormatter))
+                .toCity(trip.getRoute().getArrivalLocation().getCity())
+                .arrivalStation(b.getDropoffLocation().getName())
+                .arrivalTime(trip.getArrivalTime().format(timeFormatter))
+                .pickupLocationName(b.getPickupLocation().getName())
+                .dropoffLocationName(b.getDropoffLocation().getName())
+                .pickupTime(actualPickupTime.format(timeFormatter))
+                .dropoffTime(actualDropoffTime.format(timeFormatter))
+                .departureDateLabel(trip.getDepartureTime().format(dateFormatter))
+                .arrivalDateLabel(trip.getArrivalTime().format(dateFormatter))
+                .bookingDate(bookingDate)
+                .isCancellable(status == BookingStatusEnum.CONFIRMED && trip.getDepartureTime().minusHours(2).isAfter(now))
+                .build();
     }
 
     @Override
@@ -605,6 +703,27 @@ public class BookingServiceImpl implements BookingService {
             throw new AppException(ErrorCode.FORBIDDEN, "Bạn không có quyền xem vé này.");
         }
 
+        TicketDetailResponseDTO outboundDTO = buildSingleTicketDetailDTO(booking);
+        
+        // Handle roundtrip if this is a parent or child
+        Booking parent = booking.getParentBooking();
+        if (parent != null) {
+            // If user viewing child ticket, show parent as main and child as return
+            outboundDTO = buildSingleTicketDetailDTO(parent);
+            outboundDTO.setRoundTrip(true);
+            outboundDTO.setReturnTicket(buildSingleTicketDetailDTO(booking));
+        } else {
+            List<Booking> children = bookingRepository.findByParentBooking_Id(booking.getId());
+            if (!children.isEmpty()) {
+                outboundDTO.setRoundTrip(true);
+                outboundDTO.setReturnTicket(buildSingleTicketDetailDTO(children.get(0)));
+            }
+        }
+
+        return outboundDTO;
+    }
+
+    private TicketDetailResponseDTO buildSingleTicketDetailDTO(Booking booking) {
         List<Ticket> tickets = ticketRepository.findByBooking_Trip_Id(booking.getTrip().getId())
                 .stream()
                 .filter(t -> t.getBooking().getId().equals(booking.getId()))
@@ -616,6 +735,9 @@ public class BookingServiceImpl implements BookingService {
 
         Ticket firstTicket = tickets.get(0);
         Trip trip = booking.getTrip();
+        Locale localeVN = new Locale("vi", "VN");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", localeVN);
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         
         return TicketDetailResponseDTO.builder()
                 .bookingCode(booking.getBookingCode())
@@ -625,17 +747,30 @@ public class BookingServiceImpl implements BookingService {
                 .passengerPhone(firstTicket.getPassengerPhone())
                 .passengerEmail(firstTicket.getPassengerEmail())
                 .seatNumbers(tickets.stream().map(t -> "[" + t.getSeat().getSeatNumber() + " | " + t.getTicketCode() + "]").toList())
+                .seatLabel(tickets.stream().map(t -> t.getSeat().getSeatNumber()).collect(Collectors.joining(", ")))
+                .seatTicketLines(tickets.stream().map(t -> "[" + t.getSeat().getSeatNumber() + " | " + t.getTicketCode() + "]").toList())
                 .routeName(trip.getRoute().getDepartureLocation().getName() + " -> " + trip.getRoute().getArrivalLocation().getName())
+                .fromCity(trip.getRoute().getDepartureLocation().getCity())
+                .toCity(trip.getRoute().getArrivalLocation().getCity())
+                .fromCityShort(trip.getRoute().getDepartureLocation().getCity())
+                .toCityShort(trip.getRoute().getArrivalLocation().getCity())
                 .pickupPointName(booking.getPickupLocation() != null ? booking.getPickupLocation().getName() : "Tại văn phòng")
-                .pickupTime(trip.getDepartureTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")))
+                .pickupLocationName(booking.getPickupLocation() != null ? booking.getPickupLocation().getName() : "Tại văn phòng")
+                .pickupTime(trip.getDepartureTime().format(timeFormatter))
                 .dropoffPointName(booking.getDropoffLocation() != null ? booking.getDropoffLocation().getName() : "Tại văn phòng")
-                .dropoffTime(trip.getArrivalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")))
+                .dropoffLocationName(booking.getDropoffLocation() != null ? booking.getDropoffLocation().getName() : "Tại văn phòng")
+                .dropoffTime(trip.getArrivalTime().format(timeFormatter))
+                .departureDateLabel(trip.getDepartureTime().format(dateFormatter))
+                .arrivalDateLabel(trip.getArrivalTime().format(dateFormatter))
                 .coachPlate(trip.getCoach().getPlateNumber())
+                .licensePlate(trip.getCoach().getPlateNumber())
                 .coachType(trip.getCoach().getCoachType())
+                .serviceType(trip.getCoach().getCoachType())
                 .basePrice(trip.getPriceBase().doubleValue())
                 .seatCount(tickets.size())
                 .totalAmount(booking.getTotalAmount().doubleValue())
                 .totalAmountFormatted(String.format("%,.0fđ", booking.getTotalAmount()))
+                .totalFormatted(String.format("%,.0fđ", booking.getTotalAmount()))
                 .build();
     }
 

@@ -28,6 +28,7 @@ public class TicketConfirmationDTO {
     private String departureTime;
     private String arrivalTime;
     private String departureDateLabel;
+    private String arrivalDateLabel;
     private String seatLabel;
     private List<String> seatTicketLines;
     private String licensePlate;
@@ -35,4 +36,6 @@ public class TicketConfirmationDTO {
     private String passengerName;
     private String totalFormatted;
     private String bookingDate;
+    private boolean roundTrip;
+    private TicketConfirmationDTO returnTicket;
 }

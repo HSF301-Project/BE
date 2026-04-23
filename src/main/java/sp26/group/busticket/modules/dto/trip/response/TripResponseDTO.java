@@ -23,9 +23,11 @@ public class TripResponseDTO {
     private BigDecimal price;
     private String priceFormatted;
     private String departureTime;
+    private String departureDateLabel;
     private String departureAmPm;
     private String departureStation;
     private String arrivalTime;
+    private String arrivalDateLabel;
     private String arrivalStation;
     private String duration;
     private Integer seatsLeft;

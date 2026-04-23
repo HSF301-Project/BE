@@ -16,6 +16,8 @@ public class TripSearchRequestDTO {
     private String from;
     private String to;
     private String date;
+    private String returnDate;
+    private boolean roundTrip;
     @Builder.Default
     private List<String> timeSlots = new ArrayList<>();
     private String busType;

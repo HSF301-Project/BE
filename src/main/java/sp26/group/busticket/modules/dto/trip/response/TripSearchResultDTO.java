@@ -16,8 +16,13 @@ public class TripSearchResultDTO {
     private String toCity;
     private String date;
     private String dateLabel;
+    private String returnDate;
+    private String returnDateLabel;
+    private boolean roundTrip;
     private List<TripResponseDTO> trips;
+    private List<TripResponseDTO> returnTrips;
     private Long totalCount;
+    private Long totalReturnCount;
     private boolean hasMore;
     private Integer currentPage;
     private Integer displayedCount;

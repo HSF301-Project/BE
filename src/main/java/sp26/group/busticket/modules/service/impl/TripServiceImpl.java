@@ -66,45 +66,87 @@ public class TripServiceImpl implements TripService {
     @Override
     public TripSearchResultDTO searchTrips(TripSearchRequestDTO request) {
         LocalDateTime now = LocalDateTime.now();
-        boolean hasDate = request.getDate() != null && !request.getDate().isBlank();
-
-        List<Trip> trips;
-        String dateLabel;
-        String dateValue;
-
-        if (hasDate) {
-            LocalDate date = LocalDate.parse(request.getDate());
-            LocalDateTime searchStart = date.equals(now.toLocalDate()) ? now : date.atStartOfDay();
-            LocalDateTime searchEnd = date.atTime(LocalTime.MAX);
-            trips = tripRepository.findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeBetween(
-                    request.getFrom(), request.getTo(), searchStart, searchEnd);
-            dateLabel = date.format(DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy"));
-            dateValue = date.toString();
-        } else {
-            // Không chọn ngày → tìm tất cả chuyến tương lai
-            trips = tripRepository.findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeAfter(
-                    request.getFrom(), request.getTo(), now);
-            dateLabel = "Tất cả ngày";
-            dateValue = "";
-        }
-
-        List<sp26.group.busticket.modules.dto.trip.response.TripResponseDTO> tripDTOs = trips.stream()
-                .filter(t -> request.getBusType() == null || request.getBusType().isEmpty() ||
-                        t.getCoach().getCoachType().equalsIgnoreCase(request.getBusType()))
-                .filter(t -> request.getMaxPrice() == null ||
-                        t.getPriceBase().compareTo(BigDecimal.valueOf(request.getMaxPrice())) <= 0)
+        
+        // 1. Tìm chuyến đi (Departure Trips)
+        List<Trip> departureTrips = performSearchEntities(request.getFrom(), request.getTo(), request.getDate(), request, now);
+        List<sp26.group.busticket.modules.dto.trip.response.TripResponseDTO> departureTripDTOs = departureTrips.stream()
                 .map(this::mapToClientResponseDTO)
                 .filter(dto -> dto.getSeatsLeft() != null && dto.getSeatsLeft() > 0)
                 .collect(Collectors.toList());
+        
+        String dateLabel = "";
+        String dateValue = "";
+        if (request.getDate() != null && !request.getDate().isBlank()) {
+            LocalDate date = LocalDate.parse(request.getDate());
+            dateLabel = date.format(DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy"));
+            dateValue = date.toString();
+        } else {
+            dateLabel = "Tất cả ngày";
+        }
 
-        return TripSearchResultDTO.builder()
+        TripSearchResultDTO.TripSearchResultDTOBuilder builder = TripSearchResultDTO.builder()
                 .fromCity(request.getFrom())
                 .toCity(request.getTo())
                 .date(dateValue)
                 .dateLabel(dateLabel)
-                .trips(tripDTOs)
-                .totalCount((long) tripDTOs.size())
-                .build();
+                .trips(departureTripDTOs)
+                .totalCount((long) departureTripDTOs.size())
+                .roundTrip(request.isRoundTrip());
+
+        // 2. Tìm chuyến về (Return Trips) nếu là khứ hồi
+        if (request.isRoundTrip() && StringUtils.hasText(request.getReturnDate())) {
+            List<Trip> returnTrips = performSearchEntities(request.getTo(), request.getFrom(), request.getReturnDate(), request, now);
+            
+            // Áp dụng ràng buộc: (departureTime về > arrivalTime đi)
+            if (!departureTrips.isEmpty() && !returnTrips.isEmpty()) {
+                LocalDateTime minArrivalOfDeparture = departureTrips.stream()
+                        .map(Trip::getArrivalTime)
+                        .min(LocalDateTime::compareTo)
+                        .orElse(now);
+                
+                returnTrips = returnTrips.stream()
+                        .filter(rt -> rt.getDepartureTime().isAfter(minArrivalOfDeparture))
+                        .collect(Collectors.toList());
+            }
+
+            List<sp26.group.busticket.modules.dto.trip.response.TripResponseDTO> returnTripDTOs = returnTrips.stream()
+                    .map(this::mapToClientResponseDTO)
+                    .filter(dto -> dto.getSeatsLeft() != null && dto.getSeatsLeft() > 0)
+                    .collect(Collectors.toList());
+
+            LocalDate returnDate = LocalDate.parse(request.getReturnDate());
+            builder.returnTrips(returnTripDTOs)
+                   .totalReturnCount((long) returnTripDTOs.size())
+                   .returnDate(request.getReturnDate())
+                   .returnDateLabel(returnDate.format(DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy")));
+        }
+
+        return builder.build();
+    }
+
+    private List<Trip> performSearchEntities(
+            String from, String to, String dateStr, TripSearchRequestDTO request, LocalDateTime now) {
+        
+        List<Trip> trips;
+        boolean hasDate = StringUtils.hasText(dateStr);
+
+        if (hasDate) {
+            LocalDate date = LocalDate.parse(dateStr);
+            LocalDateTime searchStart = date.equals(now.toLocalDate()) ? now : date.atStartOfDay();
+            LocalDateTime searchEnd = date.atTime(LocalTime.MAX);
+            trips = tripRepository.findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeBetween(
+                    from, to, searchStart, searchEnd);
+        } else {
+            trips = tripRepository.findByRoute_DepartureLocation_NameAndRoute_ArrivalLocation_NameAndDepartureTimeAfter(
+                    from, to, now);
+        }
+
+        return trips.stream()
+                .filter(t -> request.getBusType() == null || request.getBusType().isEmpty() ||
+                        t.getCoach().getCoachType().equalsIgnoreCase(request.getBusType()))
+                .filter(t -> request.getMaxPrice() == null ||
+                        t.getPriceBase().compareTo(BigDecimal.valueOf(request.getMaxPrice())) <= 0)
+                .collect(Collectors.toList());
     }
 
     // =====================================================================
@@ -576,12 +618,15 @@ public class TripServiceImpl implements TripService {
         sp26.group.busticket.modules.dto.trip.response.TripResponseDTO dto = tripMapper.toTripResponseDTO(trip);
         int booked = getBookedSeats(trip.getId());
         int total = trip.getCoach().getTotalSeats() != null ? trip.getCoach().getTotalSeats() : 0;
+        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd MMM, yyyy", LOCALE_VN);
 
         dto.setSeatsLeft(total - booked);
         dto.setImageUrl("https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400");
         dto.setPriceFormatted(NumberFormat.getCurrencyInstance(LOCALE_VN).format(trip.getPriceBase()));
         dto.setDepartureTime(trip.getDepartureTime().format(TIME_FORMATTER));
+        dto.setDepartureDateLabel(trip.getDepartureTime().format(dateFmt));
         dto.setArrivalTime(trip.getArrivalTime().format(TIME_FORMATTER));
+        dto.setArrivalDateLabel(trip.getArrivalTime().format(dateFmt));
         dto.setDuration(calculateDuration(trip.getDepartureTime(), trip.getArrivalTime()));
         dto.setDepartureAmPm(trip.getDepartureTime().getHour() < 12 ? "SA" : "CH");
         return dto;

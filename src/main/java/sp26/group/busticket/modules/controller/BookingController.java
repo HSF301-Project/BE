@@ -151,6 +151,66 @@ public class BookingController {
         return "Passenger/basic/my_trip";
     }
 
+    @GetMapping("/roundtrip")
+    public String showChooseSeatRoundtrip(@RequestParam UUID outboundId, @RequestParam UUID returnId, Model model) {
+        Trip outbound = tripRepository.findById(outboundId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+        Trip returnTrip = tripRepository.findById(returnId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("EEEE, dd/MM • HH:mm");
+        DateTimeFormatter dateLabelFormatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", new java.util.Locale("vi", "VN"));
+
+        // Outbound Info
+        TripBookingResponseDTO outboundDTO = tripMapper.toTripBookingResponseDTO(outbound);
+        outboundDTO.setDepartureDateTimeLabel(outbound.getDepartureTime().format(dateTimeFormatter));
+        outboundDTO.setArrivalDateTimeLabel(outbound.getArrivalTime().format(dateTimeFormatter));
+        var outboundStops = tripService.getTripStopEtas(outboundId);
+        outboundDTO.setStopEtas(outboundStops);
+        try {
+            outboundDTO.setStopEtasJson(objectMapper.writeValueAsString(outboundStops));
+        } catch (Exception e) {
+            log.error("Error converting outbound stops to JSON", e);
+            outboundDTO.setStopEtasJson("[]");
+        }
+        outboundDTO.setExpired(outbound.getDepartureTime().minusHours(1).isBefore(java.time.LocalDateTime.now()));
+
+        // Return Info
+        TripBookingResponseDTO returnDTO = tripMapper.toTripBookingResponseDTO(returnTrip);
+        returnDTO.setDepartureDateTimeLabel(returnTrip.getDepartureTime().format(dateTimeFormatter));
+        returnDTO.setArrivalDateTimeLabel(returnTrip.getArrivalTime().format(dateTimeFormatter));
+        var returnStops = tripService.getTripStopEtas(returnId);
+        returnDTO.setStopEtas(returnStops);
+        try {
+            returnDTO.setStopEtasJson(objectMapper.writeValueAsString(returnStops));
+        } catch (Exception e) {
+            log.error("Error converting return stops to JSON", e);
+            returnDTO.setStopEtasJson("[]");
+        }
+        returnDTO.setExpired(returnTrip.getDepartureTime().minusHours(1).isBefore(java.time.LocalDateTime.now()));
+
+        model.addAttribute("outboundTrip", outboundDTO);
+        model.addAttribute("returnTrip", returnDTO);
+        model.addAttribute("outboundLowerDeck", seatService.getSeatsByTripAndFloor(outboundId, 1));
+        model.addAttribute("outboundUpperDeck", seatService.getSeatsByTripAndFloor(outboundId, 2));
+        model.addAttribute("returnLowerDeck", seatService.getSeatsByTripAndFloor(returnId, 1));
+        model.addAttribute("returnUpperDeck", seatService.getSeatsByTripAndFloor(returnId, 2));
+        model.addAttribute("outboundUnitPrice", outbound.getPriceBase());
+        model.addAttribute("returnUnitPrice", returnTrip.getPriceBase());
+
+        BookingFormDTO form = new BookingFormDTO();
+        form.setRoundTrip(true);
+        form.setReturnTripId(returnId);
+        model.addAttribute("bookingForm", form);
+
+        try {
+            Account currentAccount = getCurrentAccount();
+            model.addAttribute("currentUser", currentAccount);
+        } catch (AppException e) {}
+
+        return "Passenger/basic/choose_seat_roundtrip";
+    }
+
     private Account getCurrentAccount() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {

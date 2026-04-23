@@ -150,124 +150,246 @@
 
         <div class="lg:col-span-9 space-y-6">
 
-            <div
-                    class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-surface-container-low rounded-2xl">
-                <p class="text-on-surface-variant font-semibold">
-                    Tìm thấy
-                    <span class="text-primary" th:text="${searchResult.totalCount}">0</span>
-                    chuyến xe phù hợp
-                </p>
-                <div class="flex items-center gap-3 overflow-x-auto hide-scrollbar">
-                    <span class="text-xs font-bold text-on-surface-variant whitespace-nowrap">SẮP XẾP:</span>
-                    <a th:href="@{/search(from=${filterForm.from},to=${filterForm.to},date=${filterForm.date},sort='price_asc')}"
-                       th:class="${filterForm.sort == 'price_asc'}
-                           ? 'px-4 py-2 bg-white text-primary border border-outline/10 rounded-lg text-sm font-bold shadow-sm whitespace-nowrap'
-                           : 'px-4 py-2 text-on-surface-variant hover:bg-white/50 rounded-lg text-sm font-medium transition-all whitespace-nowrap'">
-                        Giá thấp nhất
-                    </a>
-                    <a th:href="@{/search(from=${filterForm.from},to=${filterForm.to},date=${filterForm.date},sort='departure_asc')}"
-                       th:class="${filterForm.sort == 'departure_asc'}
-                           ? 'px-4 py-2 bg-white text-primary border border-outline/10 rounded-lg text-sm font-bold shadow-sm whitespace-nowrap'
-                           : 'px-4 py-2 text-on-surface-variant hover:bg-white/50 rounded-lg text-sm font-medium transition-all whitespace-nowrap'">
-                        Giờ sớm nhất
-                    </a>
-                    <a th:href="@{/search(from=${filterForm.from},to=${filterForm.to},date=${filterForm.date},sort='rating_desc')}"
-                       th:class="${filterForm.sort == 'rating_desc'}
-                           ? 'px-4 py-2 bg-white text-primary border border-outline/10 rounded-lg text-sm font-bold shadow-sm whitespace-nowrap'
-                           : 'px-4 py-2 text-on-surface-variant hover:bg-white/50 rounded-lg text-sm font-medium transition-all whitespace-nowrap'">
-                        Đánh giá cao
-                    </a>
+            <!-- Round Trip Tabs UI (Matching image) -->
+            <div th:if="${searchResult.roundTrip}" class="bg-white border-b border-outline-variant/30 sticky top-20 z-30 mb-8">
+                <div class="flex max-w-2xl mx-auto">
+                    <button onclick="switchTab('departure')" id="tab-departure"
+                            class="flex-1 py-4 px-6 text-center transition-all border-b-4 border-primary text-primary font-bold">
+                        <div class="uppercase text-[11px] tracking-widest opacity-70 mb-1">Chuyến đi</div>
+                        <div class="text-sm md:text-base" th:text="${searchResult.dateLabel}">Thứ 5, 23/04</div>
+                    </button>
+                    <button onclick="switchTab('return')" id="tab-return"
+                            class="flex-1 py-4 px-6 text-center transition-all border-b-4 border-transparent text-on-surface-variant font-bold hover:bg-surface-container-low">
+                        <div class="uppercase text-[11px] tracking-widest opacity-70 mb-1">Chuyến về</div>
+                        <div class="text-sm md:text-base" th:text="${searchResult.returnDateLabel}">Thứ 5, 23/04</div>
+                    </button>
                 </div>
             </div>
 
-            <div th:if="${#lists.isEmpty(searchResult.trips)}"
-                 class="text-center py-24 bg-surface-container-low rounded-3xl">
-                <span class="material-symbols-outlined text-6xl text-outline mb-4 block">search_off</span>
-                <h3 class="text-xl font-bold text-on-surface mb-2">Không tìm thấy chuyến xe</h3>
-                <p class="text-on-surface-variant">Vui lòng thử tìm kiếm với ngày hoặc điểm đến khác.</p>
+            <!-- Selection Banner (Floating for Round Trip) -->
+            <div th:if="${searchResult.roundTrip}" id="selection-banner" 
+                 class="fixed bottom-3 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[96%] md:w-[95%] max-w-[1000px] bg-[#1a1c1e]/95 backdrop-blur-2xl border border-white/10 p-3 md:p-6 rounded-2xl md:rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.5)] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 md:gap-6 transition-all translate-y-64">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 flex-1 w-full lg:w-auto overflow-hidden">
+                    <!-- Outbound Status -->
+                    <div id="outbound-selection-status" class="flex-1 lg:flex-none flex flex-col justify-center bg-white/5 p-4 px-6 rounded-2xl border border-white/5 min-w-0">
+                        <span class="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-1">Chiều đi</span>
+                        <span id="selected-outbound-info" class="font-bold text-sm text-white truncate opacity-40 italic">Chưa chọn chuyến đi</span>
+                    </div>
+                    
+                    <!-- Return Status -->
+                    <div id="return-selection-status" class="flex-1 lg:flex-none flex flex-col justify-center bg-white/5 p-4 px-6 rounded-2xl border border-white/5 min-w-0">
+                        <span class="text-[10px] font-black uppercase text-orange-500 tracking-[0.2em] mb-1">Chiều về</span>
+                        <span id="selected-return-info" class="font-bold text-sm text-white truncate opacity-40 italic">Chưa chọn chuyến về</span>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-6 w-full lg:w-auto shrink-0 justify-center">
+                    <div class="text-left sm:text-right hidden lg:block min-w-[140px]">
+                        <p class="text-[10px] font-black uppercase text-white/30 tracking-widest mb-1">Tiến độ</p>
+                        <p id="selection-summary" class="text-xs font-black text-primary uppercase">CHỌN CHIỀU ĐI</p>
+                    </div>
+                    <button id="proceed-booking-btn" disabled onclick="proceedToBooking()"
+                            class="w-full lg:w-auto px-6 md:px-12 py-4 md:py-5 bg-primary text-white rounded-2xl font-black uppercase tracking-[0.16em] md:tracking-[0.2em] text-[11px] md:text-xs shadow-xl shadow-primary/20 disabled:bg-white/5 disabled:text-white/10 disabled:cursor-not-allowed disabled:shadow-none transition-all active:scale-95 whitespace-nowrap">
+                        TIẾP TỤC ĐẶT VÉ
+                    </button>
+                </div>
             </div>
 
-            <div class="space-y-6" th:if="${!#lists.isEmpty(searchResult.trips)}">
-                <div th:each="trip : ${searchResult.trips}"
-                     class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-[0_12px_32px_rgba(26,27,33,0.06)] hover:bg-surface-bright transition-all group border border-transparent hover:border-primary/10">
-                    <div class="flex flex-col md:flex-row gap-8">
+            <div id="departure-results" class="space-y-6">
+                <div
+                        class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-surface-container-low rounded-2xl">
+                    <p class="text-on-surface-variant font-semibold">
+                        Tìm thấy
+                        <span class="text-primary" th:text="${searchResult.totalCount}">0</span>
+                        chuyến xe đi phù hợp
+                    </p>
+                    <div class="flex items-center gap-3 overflow-x-auto hide-scrollbar">
+                        <span class="text-xs font-bold text-on-surface-variant whitespace-nowrap">SẮP XẾP:</span>
+                        <a th:href="@{/search(from=${filterForm.from},to=${filterForm.to},date=${filterForm.date},sort='price_asc',roundTrip=${filterForm.roundTrip},returnDate=${filterForm.returnDate})}"
+                           th:class="${filterForm.sort == 'price_asc'}
+                               ? 'px-4 py-2 bg-white text-primary border border-outline/10 rounded-lg text-sm font-bold shadow-sm whitespace-nowrap'
+                               : 'px-4 py-2 text-on-surface-variant hover:bg-white/50 rounded-lg text-sm font-medium transition-all whitespace-nowrap'">
+                            Giá thấp nhất
+                        </a>
+                        <a th:href="@{/search(from=${filterForm.from},to=${filterForm.to},date=${filterForm.date},sort='departure_asc',roundTrip=${filterForm.roundTrip},returnDate=${filterForm.returnDate})}"
+                           th:class="${filterForm.sort == 'departure_asc'}
+                               ? 'px-4 py-2 bg-white text-primary border border-outline/10 rounded-lg text-sm font-bold shadow-sm whitespace-nowrap'
+                               : 'px-4 py-2 text-on-surface-variant hover:bg-white/50 rounded-lg text-sm font-medium transition-all whitespace-nowrap'">
+                            Giờ sớm nhất
+                        </a>
+                    </div>
+                </div>
 
-                        <div class="md:w-1/4 relative">
-                            <div
-                                    class="rounded-2xl overflow-hidden h-full min-h-[140px] bg-surface-container flex items-center justify-center">
-                                    <span
-                                            class="material-symbols-outlined text-6xl text-primary/30">directions_bus</span>
-                                <div class="absolute top-2 left-2 bg-white/90 backdrop-blur px-3 py-1 rounded-full flex items-center gap-1"
-                                     th:if="${trip.rating != null}">
-                                        <span class="material-symbols-outlined text-orange-500 text-sm"
-                                              style="font-variation-settings:'FILL' 1">star</span>
-                                    <span class="text-xs font-bold" th:text="${trip.rating}">4.9</span>
+                <div th:if="${#lists.isEmpty(searchResult.trips)}"
+                     class="text-center py-24 bg-surface-container-low rounded-3xl">
+                    <span class="material-symbols-outlined text-6xl text-outline mb-4 block">search_off</span>
+                    <h3 class="text-xl font-bold text-on-surface mb-2">Không tìm thấy chuyến đi</h3>
+                    <p class="text-on-surface-variant">Vui lòng thử tìm kiếm với ngày khác.</p>
+                </div>
+
+                <div class="space-y-6" th:if="${!#lists.isEmpty(searchResult.trips)}">
+                    <div th:each="trip : ${searchResult.trips}"
+                         class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-[0_12px_32px_rgba(26,27,33,0.06)] hover:bg-surface-bright transition-all group border border-transparent hover:border-primary/10">
+                        <div class="flex flex-col md:flex-row gap-8">
+                            <!-- Trip Card Content (Existing) -->
+                            <div class="md:w-1/4 relative">
+                                <div class="rounded-2xl overflow-hidden h-full min-h-[140px] bg-surface-container flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-6xl text-primary/30">directions_bus</span>
+                                </div>
+                            </div>
+                            <div class="flex-1 flex flex-col justify-between">
+                                <div class="flex justify-between items-center w-full">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <h3 class="text-xl font-bold text-primary">
+                                                <span>Chuyến xe</span><br/>
+                                                <span th:text="${trip.name.replaceFirst('Chuyến xe ', '')}">51B-12345</span>
+                                            </h3>
+                                        </div>
+                                        <p class="text-sm text-on-surface-variant" th:text="${trip.amenities}">WiFi • Sạc • Nước uống</p>
+                                    </div>
+                                    <div class="flex-1 flex justify-center">
+                                        <span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant text-xs font-black uppercase rounded-md tracking-wide"
+                                              th:text="${trip.busTypeLabel}">Limousine</span>
+                                    </div>
+                                    <div class="flex-1 text-right flex flex-col items-end justify-center">
+                                        <div class="text-2xl font-black text-secondary leading-none mb-1.5" th:text="${trip.priceFormatted}">450.000đ</div>
+                                        <p class="text-[11px] font-bold text-on-surface-variant uppercase">Mỗi hành khách</p>
+                                    </div>
+                                </div>
+                                <div class="mt-6 flex items-center gap-6">
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold font-headline" th:text="${trip.departureTime}">19:30</div>
+                                        <p class="text-[10px] font-bold text-primary mb-1" th:text="${trip.departureDateLabel}">24 Th10, 2024</p>
+                                        <p class="text-xs font-semibold text-on-surface-variant" th:text="${trip.departureStation}">Bến xe</p>
+                                    </div>
+                                    <div class="flex-1 flex flex-col items-center relative">
+                                        <div class="w-full h-[2px] bg-outline-variant relative">
+                                            <div class="absolute -top-1 left-0 w-2 h-2 rounded-full bg-primary"></div>
+                                            <div class="absolute -top-1 right-0 w-2 h-2 rounded-full bg-outline"></div>
+                                        </div>
+                                        <span class="material-symbols-outlined text-primary text-xl absolute -bottom-6">directions_bus</span>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold font-headline" th:text="${trip.arrivalTime}">10:15</div>
+                                        <p class="text-[10px] font-bold text-primary mb-1" th:text="${trip.arrivalDateLabel}">24 Th10, 2024</p>
+                                        <p class="text-xs font-semibold text-on-surface-variant" th:text="${trip.arrivalStation}">Bến đến</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md:w-1/5 flex flex-col items-center justify-center gap-3 border-t md:border-t-0 md:border-l border-outline-variant/30 pt-4 md:pt-0 md:pl-6">
+                                <div class="text-center w-full">
+                                    <p class="text-base font-medium text-on-surface-variant mb-2">
+                                        Còn trống <span class="text-secondary font-bold text-lg" th:text="${trip.seatsLeft}">8</span> ghế
+                                    </p>
+                                    <button th:if="${searchResult.roundTrip}"
+                                            class="trip-select-btn outbound-btn block w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-center mx-auto max-w-[200px]"
+                                            th:data-trip-id="${trip.id}"
+                                            th:data-trip-name="${trip.name}"
+                                            th:data-trip-time="${trip.departureTime}"
+                                            th:data-trip-station="${trip.departureStation}"
+                                            data-trip-type="outbound">
+                                        Chọn chiều đi
+                                    </button>
+                                    <a th:if="${!searchResult.roundTrip}" th:href="@{'/booking/' + ${trip.id}}"
+                                       class="block w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-center mx-auto max-w-[200px]">
+                                        Chọn chuyến đi
+                                    </a>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
 
-                        <div class="flex-1 flex flex-col justify-between">
+            <!-- Return Results Tab Content -->
+            <div id="return-results" class="space-y-6 hidden">
+                <div
+                        class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-surface-container-low rounded-2xl border-l-4 border-orange-500">
+                    <p class="text-on-surface-variant font-semibold">
+                        Tìm thấy
+                        <span class="text-orange-600" th:text="${searchResult.totalReturnCount}">0</span>
+                        chuyến xe về phù hợp
+                    </p>
+                    <div class="flex items-center gap-3 overflow-x-auto hide-scrollbar">
+                        <span class="text-xs font-bold text-on-surface-variant whitespace-nowrap">SẮP XẾP:</span>
+                        <a th:href="@{/search(from=${filterForm.from},to=${filterForm.to},date=${filterForm.date},sort='price_asc',roundTrip=${filterForm.roundTrip},returnDate=${filterForm.returnDate})}"
+                           class="px-4 py-2 text-on-surface-variant hover:bg-white/50 rounded-lg text-sm font-medium transition-all whitespace-nowrap">
+                            Giá thấp nhất
+                        </a>
+                    </div>
+                </div>
 
-                            <div class="flex justify-between items-center w-full">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <h3 class="text-xl font-bold text-primary">
-                                            <span>Chuyến xe</span><br/>
-                                            <span th:text="${trip.name.replaceFirst('Chuyến xe ', '')}">51B-12345</span>
-                                        </h3>
-                                    </div>
-                                    <p class="text-sm text-on-surface-variant" th:text="${trip.amenities}">WiFi • Sạc • Nước uống</p>
-                                </div>
+                <div th:if="${#lists.isEmpty(searchResult.returnTrips)}"
+                     class="text-center py-24 bg-surface-container-low rounded-3xl">
+                    <span class="material-symbols-outlined text-6xl text-outline mb-4 block">event_busy</span>
+                    <h3 class="text-xl font-bold text-on-surface mb-2">Không tìm thấy chuyến về</h3>
+                    <p class="text-on-surface-variant">Vui lòng thử chọn ngày về khác.</p>
+                </div>
 
-                                <div class="flex-1 flex justify-center">
-                                    <span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant text-xs font-black uppercase rounded-md tracking-wide"
-                                          th:text="${trip.busTypeLabel}">
-                                        Limousine
-                                    </span>
-                                </div>
-
-                                <div class="flex-1 text-right flex flex-col items-end justify-center">
-                                    <div class="text-2xl font-black text-secondary leading-none mb-1.5" th:text="${trip.priceFormatted}">
-                                        450.000đ
-                                    </div>
-                                    <p class="text-[11px] font-bold text-on-surface-variant uppercase">Mỗi hành khách</p>
+                <div class="space-y-6" th:if="${!#lists.isEmpty(searchResult.returnTrips)}">
+                    <div th:each="trip : ${searchResult.returnTrips}"
+                         class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-[0_12px_32px_rgba(26,27,33,0.06)] hover:bg-surface-bright transition-all group border border-transparent hover:border-orange-500/10">
+                        <div class="flex flex-col md:flex-row gap-8">
+                            <div class="md:w-1/4 relative">
+                                <div class="rounded-2xl overflow-hidden h-full min-h-[140px] bg-orange-50 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-6xl text-orange-500/30">directions_bus</span>
                                 </div>
                             </div>
-                            <div class="mt-6 flex items-center gap-6">
-                                <div class="text-center">
-                                    <div class="text-2xl font-bold font-headline" th:text="${trip.departureTime}">
-                                        19:30</div>
-                                    <p class="text-xs font-semibold text-on-surface-variant"
-                                       th:text="${trip.departureStation}">Bến xe</p>
-                                </div>
-                                <div class="flex-1 flex flex-col items-center relative">
-                                    <div class="w-full h-[2px] bg-outline-variant relative">
-                                        <div class="absolute -top-1 left-0 w-2 h-2 rounded-full bg-primary"></div>
-                                        <div class="absolute -top-1 right-0 w-2 h-2 rounded-full bg-outline"></div>
+                            <div class="flex-1 flex flex-col justify-between">
+                                <div class="flex justify-between items-center w-full">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <h3 class="text-xl font-bold text-orange-700">
+                                                <span>Chuyến xe về</span><br/>
+                                                <span th:text="${trip.name.replaceFirst('Chuyến xe ', '')}">51B-12345</span>
+                                            </h3>
+                                        </div>
+                                        <p class="text-sm text-on-surface-variant" th:text="${trip.amenities}">WiFi • Sạc • Nước uống</p>
                                     </div>
-                                    <span
-                                            class="material-symbols-outlined text-primary text-xl absolute -bottom-6">directions_bus</span>
+                                    <div class="flex-1 flex justify-center">
+                                        <span class="px-3 py-1 bg-orange-100 text-orange-800 text-xs font-black uppercase rounded-md tracking-wide"
+                                              th:text="${trip.busTypeLabel}">Limousine</span>
+                                    </div>
+                                    <div class="flex-1 text-right flex flex-col items-end justify-center">
+                                        <div class="text-2xl font-black text-orange-600 leading-none mb-1.5" th:text="${trip.priceFormatted}">450.000đ</div>
+                                        <p class="text-[11px] font-bold text-on-surface-variant uppercase">Mỗi hành khách</p>
+                                    </div>
                                 </div>
-                                <div class="text-center">
-                                    <div class="text-2xl font-bold font-headline" th:text="${trip.arrivalTime}">
-                                        10:15</div>
-                                    <p class="text-xs font-semibold text-on-surface-variant"
-                                       th:text="${trip.arrivalStation}">Bến đến</p>
+                                <div class="mt-6 flex items-center gap-6">
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold font-headline text-orange-900" th:text="${trip.departureTime}">19:30</div>
+                                        <p class="text-[10px] font-bold text-orange-600 mb-1" th:text="${trip.departureDateLabel}">24 Th10, 2024</p>
+                                        <p class="text-xs font-semibold text-on-surface-variant" th:text="${trip.departureStation}">Bến xe</p>
+                                    </div>
+                                    <div class="flex-1 flex flex-col items-center relative">
+                                        <div class="w-full h-[2px] bg-orange-200 relative">
+                                            <div class="absolute -top-1 left-0 w-2 h-2 rounded-full bg-orange-500"></div>
+                                            <div class="absolute -top-1 right-0 w-2 h-2 rounded-full bg-orange-200"></div>
+                                        </div>
+                                        <span class="material-symbols-outlined text-orange-500 text-xl absolute -bottom-6">directions_bus</span>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold font-headline text-orange-900" th:text="${trip.arrivalTime}">10:15</div>
+                                        <p class="text-[10px] font-bold text-orange-600 mb-1" th:text="${trip.arrivalDateLabel}">24 Th10, 2024</p>
+                                        <p class="text-xs font-semibold text-on-surface-variant" th:text="${trip.arrivalStation}">Bến đến</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="md:w-1/5 flex flex-col items-center justify-center gap-3 border-t md:border-t-0 md:border-l border-outline-variant/30 pt-4 md:pt-0 md:pl-6">
-                            <div class="text-center w-full">
-                                <p class="text-base font-medium text-on-surface-variant mb-2">
-                                    Còn trống
-                                    <span class="text-secondary font-bold text-lg" th:text="${trip.seatsLeft}">8</span>
-                                    ghế
-                                </p>
-                                <a th:href="@{'/booking/' + ${trip.id}}"
-                                   class="block w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all text-center mx-auto max-w-[200px]">
-                                    Chọn chuyến
-                                </a>
+                            <div class="md:w-1/5 flex flex-col items-center justify-center gap-3 border-t md:border-t-0 md:border-l border-orange-100 pt-4 md:pt-0 md:pl-6">
+                                <div class="text-center w-full">
+                                    <p class="text-base font-medium text-on-surface-variant mb-2">
+                                        Còn trống <span class="text-orange-600 font-bold text-lg" th:text="${trip.seatsLeft}">8</span> ghế
+                                    </p>
+                                    <button class="trip-select-btn return-btn block w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-2xl shadow-lg shadow-orange-200 active:scale-95 transition-all text-center mx-auto max-w-[200px]"
+                                            th:data-trip-id="${trip.id}"
+                                            th:data-trip-name="${trip.name}"
+                                            th:data-trip-time="${trip.departureTime}"
+                                            th:data-trip-station="${trip.departureStation}"
+                                            data-trip-type="return">
+                                        Chọn chiều về
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -275,11 +397,131 @@
             </div>
 
         </div>
+
+        </div>
     </div>
 </main>
 
 <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 <th:block th:replace="~{fragments/mobile-nav :: mobile-nav(activeTab='search')}"></th:block>
+
+<script>
+    let selectedOutbound = null;
+    let selectedReturn = null;
+
+    function switchTab(tab) {
+        const departureBtn = document.getElementById('tab-departure');
+        const returnBtn = document.getElementById('tab-return');
+        const departureResults = document.getElementById('departure-results');
+        const returnResults = document.getElementById('return-results');
+
+        if (tab === 'departure') {
+            departureBtn.classList.add('border-primary', 'text-primary');
+            departureBtn.classList.remove('border-transparent', 'text-on-surface-variant');
+            returnBtn.classList.remove('border-primary', 'text-primary');
+            returnBtn.classList.add('border-transparent', 'text-on-surface-variant');
+            departureResults.classList.remove('hidden');
+            returnResults.classList.add('hidden');
+        } else {
+            returnBtn.classList.add('border-primary', 'text-primary');
+            returnBtn.classList.remove('border-transparent', 'text-on-surface-variant');
+            departureBtn.classList.remove('border-primary', 'text-primary');
+            departureBtn.classList.add('border-transparent', 'text-on-surface-variant');
+            returnResults.classList.remove('hidden');
+            departureResults.classList.add('hidden');
+        }
+    }
+
+    function selectTrip(type, id, name, time, station, targetBtn) {
+        const info = `${time} - ${station} (${name.replace('Chuyến xe ', '')})`;
+        
+        if (type === 'outbound') {
+            selectedOutbound = { id, name, time, station };
+            const infoEl = document.getElementById('selected-outbound-info');
+            infoEl.innerText = info;
+            infoEl.classList.remove('opacity-50', 'italic');
+            
+            // Highlight selection
+            document.querySelectorAll('.outbound-btn').forEach(btn => {
+                btn.classList.remove('ring-4', 'ring-primary/30', 'scale-105');
+                btn.innerText = 'Chọn chiều đi';
+            });
+            if (targetBtn) {
+                targetBtn.classList.add('ring-4', 'ring-primary/30', 'scale-105');
+                targetBtn.innerText = 'Đã chọn chiều đi';
+            }
+            
+            // Auto switch to return tab if not selected
+            if (!selectedReturn) {
+                setTimeout(() => {
+                    switchTab('return');
+                    const summary = document.getElementById('selection-summary');
+                    summary.innerText = 'CHỌN CHIỀU VỀ';
+                    summary.className = 'text-xs font-bold text-orange-500 tracking-wide';
+                }, 400);
+            }
+        } else {
+            selectedReturn = { id, name, time, station };
+            const infoEl = document.getElementById('selected-return-info');
+            infoEl.innerText = info;
+            infoEl.classList.remove('opacity-50', 'italic');
+            
+            // Highlight selection
+            document.querySelectorAll('.return-btn').forEach(btn => {
+                btn.classList.remove('ring-4', 'ring-orange-500/30', 'scale-105');
+                btn.innerText = 'Chọn chiều về';
+            });
+            if (targetBtn) {
+                targetBtn.classList.add('ring-4', 'ring-orange-500/30', 'scale-105');
+                targetBtn.innerText = 'Đã chọn chiều về';
+            }
+        }
+
+        updateBanner();
+    }
+
+    function updateBanner() {
+        const banner = document.getElementById('selection-banner');
+        const btn = document.getElementById('proceed-booking-btn');
+        const summary = document.getElementById('selection-summary');
+
+        if (selectedOutbound || selectedReturn) {
+            banner.classList.remove('translate-y-64');
+            banner.classList.add('translate-y-0');
+        }
+
+        if (selectedOutbound && selectedReturn) {
+            btn.disabled = false;
+            summary.innerText = 'ĐÃ CHỌN ĐỦ 2 CHIỀU';
+            summary.className = 'text-xs font-bold text-green-500 tracking-wide';
+        } else if (selectedOutbound) {
+            summary.innerText = 'CHỌN CHIỀU VỀ';
+            summary.className = 'text-xs font-bold text-orange-500 tracking-wide';
+        } else if (selectedReturn) {
+            summary.innerText = 'CHỌN CHIỀU ĐI';
+            summary.className = 'text-xs font-bold text-primary tracking-wide';
+        }
+    }
+
+    function proceedToBooking() {
+        if (selectedOutbound && selectedReturn) {
+            window.location.href = `/booking/roundtrip?outboundId=${selectedOutbound.id}&returnId=${selectedReturn.id}`;
+        }
+    }
+
+    // Event delegation for trip selection buttons using data attributes
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.trip-select-btn');
+        if (btn) {
+            const tripId = btn.dataset.tripId;
+            const tripName = btn.dataset.tripName;
+            const tripTime = btn.dataset.tripTime;
+            const tripStation = btn.dataset.tripStation;
+            const tripType = btn.dataset.tripType;
+            selectTrip(tripType, tripId, tripName, tripTime, tripStation, btn);
+        }
+    });
+</script>
 
 </body>
 

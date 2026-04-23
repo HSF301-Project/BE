@@ -30,14 +30,18 @@ public class SecurityConfig {
     // Danh sách các đường dẫn không cần đăng nhập vẫn xem được
     private static final String[] PUBLIC_WHITELIST = {
             "/css/**", "/js/**", "/images/**",
-            "/", "/home", "/search", "/login", "/register", "/activate", "/forgot-password", "/reset-password"
+            "/", "/home", "/search", "/login", "/register", "/activate", "/forgot-password", "/reset-password",
+            "/booking/roundtrip/**", "/booking/*", "/error"
     };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(csrf -> csrf.disable()) // Disable CSRF for easier development and since we use mostly GET/POST with forms
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PUBLIC_WHITELIST).permitAll()
+                        .requestMatchers("/", "/home/**", "/search/**", "/login/**", "/register/**", "/activate/**", "/forgot-password/**", "/reset-password/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/error/**").permitAll()
+                        .requestMatchers("/booking/roundtrip/**", "/booking/*").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/staff/operations/**").hasAnyRole("STAFF", "DRIVER", "ASSISTANT")
                         .requestMatchers("/staff/**").hasRole("STAFF")

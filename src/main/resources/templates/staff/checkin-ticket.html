@@ -95,11 +95,11 @@
                             <p class="text-center font-black text-slate-400 uppercase tracking-widest mb-6 text-xs">Tầng dưới</p>
                             <div class="bg-slate-50 rounded-3xl p-6 grid grid-cols-3 gap-4">
                                 <th:block th:each="seat : ${lowerDeck}">
-                                    <button th:data-ticket-code="${seat.get('ticketCode')}"
+                                    <button class="seat-button"
+                                            th:data-ticket-code="${seat.get('ticketCode')}"
                                             th:data-passenger-name="${seat.get('passengerName')}"
                                             th:data-seat-number="${seat.get('number')}"
                                             th:data-is-checked="${seat.get('status') == 'CHECKED_IN'}"
-                                            th:onclick="${isTripFinished} ? '' : 'openCheckInModal(this)'"
                                             th:disabled="${seat.get('status') == 'EMPTY' || isTripFinished}"
                                             th:classappend="${seat.get('status') == 'EMPTY' ? 'seat-empty' : (seat.get('status') == 'CHECKED_IN' ? 'seat-checked' : 'seat-booked')}"
                                             class="aspect-square rounded-2xl flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-sm group relative">
@@ -115,11 +115,11 @@
                             <p class="text-center font-black text-slate-400 uppercase tracking-widest mb-6 text-xs">Tầng trên</p>
                             <div class="bg-slate-50 rounded-3xl p-6 grid grid-cols-3 gap-4">
                                 <th:block th:each="seat : ${upperDeck}">
-                                    <button th:data-ticket-code="${seat.get('ticketCode')}"
+                                    <button class="seat-button"
+                                            th:data-ticket-code="${seat.get('ticketCode')}"
                                             th:data-passenger-name="${seat.get('passengerName')}"
                                             th:data-seat-number="${seat.get('number')}"
                                             th:data-is-checked="${seat.get('status') == 'CHECKED_IN'}"
-                                            th:onclick="${isTripFinished} ? '' : 'openCheckInModal(this)'"
                                             th:disabled="${seat.get('status') == 'EMPTY' || isTripFinished}"
                                             th:classappend="${seat.get('status') == 'EMPTY' ? 'seat-empty' : (seat.get('status') == 'CHECKED_IN' ? 'seat-checked' : 'seat-booked')}"
                                             class="aspect-square rounded-2xl flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-sm group relative">
@@ -252,6 +252,7 @@
             const confirmBtn = document.getElementById('modalConfirmBtn');
             const cancelBtn = document.getElementById('modalCancelBtn');
 
+
             if (isChecked) {
                 formGroup.classList.add('hidden');
                 statusBox.classList.remove('hidden');
@@ -284,6 +285,13 @@
             toggleCheckIn(currentTicketCode, currentButton);
             closeModal();
         }
+
+        // Event delegation for seat button clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('.seat-button')) {
+                openCheckInModal(e.target);
+            }
+        });
 
         function toggleCheckIn(ticketCode, button) {
             if (!ticketCode || ticketCode === 'null') return;

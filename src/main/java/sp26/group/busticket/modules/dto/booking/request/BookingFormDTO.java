@@ -18,10 +18,16 @@ public class BookingFormDTO {
     @Builder.Default
     private List<PassengerInfoDTO> passengers = new ArrayList<>();
     @Builder.Default
+    private List<PassengerInfoDTO> returnPassengers = new ArrayList<>();
+    @Builder.Default
     private List<PriceItemDTO> priceItems = new ArrayList<>();
     private String totalFormatted;
     private UUID pickupLocationId;
     private UUID dropoffLocationId;
+    private UUID returnPickupLocationId;
+    private UUID returnDropoffLocationId;
+    private boolean roundTrip;
+    private UUID returnTripId;
 
     public List<PassengerInfoDTO> getPassengers() {
         return passengers;

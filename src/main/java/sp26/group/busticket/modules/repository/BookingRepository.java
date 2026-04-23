@@ -15,4 +15,5 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     long countByUser_Id(UUID userId);
     Optional<Booking> findByBookingCode(String bookingCode);
     long countByTrip_IdAndStatus(UUID tripId, BookingStatusEnum status);
+    List<Booking> findByParentBooking_Id(UUID parentId);
 }
