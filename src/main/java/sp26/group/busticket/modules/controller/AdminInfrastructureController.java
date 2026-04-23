@@ -179,7 +179,7 @@ public class AdminInfrastructureController {
 
         try {
             Route route = routeService.saveRoute(req);
-            if (createReturn && req.getId() == null) {
+            if (createReturn) {
                 routeService.createReturnRoute(route.getId());
             }
             redirectAttributes.addFlashAttribute("message",

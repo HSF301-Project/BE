@@ -36,6 +36,7 @@ public class DataInitializer implements CommandLineRunner {
         // 1. Initialize Accounts (Roles are handled as strings in Account)
         initAccounts();
 
+        /*
         // 2. Initialize Locations
         // Miền Nam
         Location sg1 = initLocation("Bến xe Miền Đông", "TP. Hồ Chí Minh", "TERMINAL");
@@ -174,6 +175,7 @@ public class DataInitializer implements CommandLineRunner {
                 trip16.getRoute().getDepartureLocation(), trip16.getRoute().getArrivalLocation());
         initBooking(trip17, user, List.of("B03", "B04"), "Phạm Văn P", "0912348888",
                 trip17.getRoute().getDepartureLocation(), trip17.getRoute().getArrivalLocation());
+        */
 
       
     }

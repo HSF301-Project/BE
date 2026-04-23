@@ -18,6 +18,7 @@ import sp26.group.busticket.modules.service.RouteService;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -129,12 +130,18 @@ public class RouteServiceImpl implements RouteService {
     public void createReturnRoute(UUID routeId) {
         Route forward = routeRepository.findById(routeId).orElseThrow();
         
+        // Kiểm tra xem đã có tuyến khứ hồi chưa
+        Optional<Route> existingReturn = routeRepository.findByDepartureLocationAndArrivalLocation(
+                forward.getArrivalLocation(), forward.getDepartureLocation());
+
         RouteRequestDTO backwardReq = RouteRequestDTO.builder()
+                .id(existingReturn.map(Route::getId).orElse(null)) // Nếu có rồi thì update
                 .departureLocationId(forward.getArrivalLocation().getId())
                 .arrivalLocationId(forward.getDepartureLocation().getId())
                 .distanceKm(forward.getDistance())
                 .durationMinutes(forward.getDuration())
-                .routeCode(generateRouteCode(forward.getArrivalLocation().getId(), forward.getDepartureLocation().getId()))
+                .routeCode(existingReturn.map(Route::getRouteCode).orElseGet(() -> 
+                        generateRouteCode(forward.getArrivalLocation().getId(), forward.getDepartureLocation().getId())))
                 .stops(new ArrayList<>())
                 .build();
 

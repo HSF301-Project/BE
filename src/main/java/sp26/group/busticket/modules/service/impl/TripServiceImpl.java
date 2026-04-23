@@ -201,8 +201,8 @@ public class TripServiceImpl implements TripService {
                     .routeId(req.getReturnRouteId())
                     .coachId(req.getCoachId())
                     .driverId(req.getReturnDriverId())
-                    .secondDriverId(req.getReturnSecondDriverId())
-                    .assistantId(req.getReturnAssistantId())
+                .secondDriverId(req.getReturnSecondDriverId())
+                    .assistantId(req.getAssistantId()) // Dùng chung phụ xe cho cả 2 lượt
                     .departureTime(req.getReturnDepartureTime())
                     .arrivalTime(req.getReturnArrivalTime())
                     .priceBase(req.getPriceRoundTrip() != null ? req.getPriceRoundTrip() : req.getPriceBase())
