@@ -109,18 +109,18 @@
                         <div>
                             <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2 min-h-[32px] flex items-end">Khoảng cách (km)</label>
                             <input type="number" step="0.1" min="0" th:field="*{distanceKm}" id="distanceKm" 
-                                   oninput="updateReturnPreview()"
-                                   class="w-full rounded-xl border-surface-border bg-white"/>
-                            <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('distanceKm')}" th:errors="*{distanceKm}"></p>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2 min-h-[32px]">
-                                Thời lượng (phút)
-                                <span class="block normal-case font-medium text-[10px] opacity-60">(t = S/v * 1.2, v=50km/h)</span>
-                            </label>
-                            <input type="number" step="1" min="1" th:field="*{durationMinutes}" id="durationMinutes" 
-                                   oninput="updateReturnPreview()"
-                                   class="w-full rounded-xl border-surface-border bg-white"/>
+                               oninput="updateReturnPreview(true)"
+                               class="w-full rounded-xl border-surface-border bg-white"/>
+                        <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('distanceKm')}" th:errors="*{distanceKm}"></p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2 min-h-[32px]">
+                            Thời lượng (phút)
+                            <span class="block normal-case font-medium text-[10px] opacity-60">(t = S/v * 1.2, v=50km/h)</span>
+                        </label>
+                        <input type="number" step="1" min="1" th:field="*{durationMinutes}" id="durationMinutes" 
+                               oninput="updateReturnPreview(true)"
+                               class="w-full rounded-xl border-surface-border bg-white"/>
                             <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('durationMinutes')}" th:errors="*{durationMinutes}"></p>
                         </div>
                     </div>
@@ -135,11 +135,26 @@
                         </label>
                     </div>
 
-                    <!-- Return Route Preview -->
+                    <!-- Return Route Preview / Editor -->
                     <div id="returnRoutePreview" class="hidden border-t border-dashed border-surface-border pt-6 mt-2 space-y-6">
-                        <div class="flex items-center gap-2">
-                            <span class="ms text-brand-500 text-[20px]">swap_calls</span>
-                            <span class="text-xs font-black uppercase tracking-widest text-brand-600">Thông tin tuyến khứ hồi (Dự kiến)</span>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="ms text-brand-500 text-[20px]">swap_calls</span>
+                                <span class="text-xs font-black uppercase tracking-widest text-brand-600">Thiết lập tuyến khứ hồi (Tùy chỉnh)</span>
+                            </div>
+                            <div class="flex flex-col items-end">
+                                <button type="button" onclick="addReturnWaypoint()" class="px-3 py-1.5 rounded-lg bg-surface-hover border border-surface-border text-xs font-bold text-ink hover:bg-white transition-all">
+                                    <span class="ms text-[16px] align-[-3px]">add</span> Thêm WP khứ hồi
+                                </button>
+                                <div id="returnDistanceStatus" class="mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-surface-hover border border-surface-border">
+                                    Tổng WP: <span id="returnWpSumDisplay">0</span> / <span id="returnTotalLimitDisplay">0</span> km
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="returnDistanceWarning" class="hidden p-3 rounded-xl bg-red-50 border border-red-100 flex items-center gap-3 text-red-700">
+                            <span class="ms text-[18px]">warning</span>
+                            <p class="text-[10px] font-bold text-red-600">Tổng khoảng cách các Waypoint khứ hồi đang vượt quá tổng chiều dài tuyến về!</p>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -157,7 +172,7 @@
                             <!-- Mã khứ hồi -->
                             <div>
                                 <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Mã/Tên tuyến khứ hồi</label>
-                                <input type="text" id="previewReturnCode" placeholder="Mã khứ hồi..." 
+                                <input type="text" th:field="*{returnRouteCode}" id="previewReturnCode" placeholder="Mã khứ hồi..." 
                                        class="w-full rounded-xl border-surface-border bg-white font-bold text-brand-700"/>
                             </div>
                             
@@ -165,7 +180,7 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2 min-h-[32px] flex items-end">Khoảng cách (km)</label>
-                                    <input type="number" step="0.1" id="previewReturnKm" 
+                                    <input type="number" step="0.1" th:field="*{returnDistanceKm}" id="previewReturnKm" 
                                            class="w-full rounded-xl border-surface-border bg-white"/>
                                 </div>
                                 <div>
@@ -173,12 +188,26 @@
                                          Thời lượng (phút)
                                          <span class="block normal-case font-medium text-[10px] opacity-60">(t = S/v * 1.2)</span>
                                      </label>
-                                    <input type="number" step="1" id="previewReturnDuration" 
+                                    <input type="number" step="1" th:field="*{returnDurationMinutes}" id="previewReturnDuration" 
                                            class="w-full rounded-xl border-surface-border bg-white"/>
                                 </div>
                             </div>
                         </div>
-                        <p class="text-[11px] text-ink-muted italic">* Lưu ý: Tuyến khứ hồi sẽ được tạo tự động với các waypoint được đảo ngược thứ tự.</p>
+
+                        <!-- Editable Waypoints for Return Route -->
+                        <div class="mt-4">
+                            <label class="block text-xs font-black uppercase tracking-widest text-brand-600 mb-3 flex items-center gap-2">
+                                <span class="ms text-[16px]">list_alt</span> Waypoints khứ hồi (Tùy chỉnh theo ý bạn)
+                            </label>
+                            <ul id="returnWaypointList" class="space-y-3"></ul>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-orange-50 border border-orange-100 flex items-center gap-3">
+                            <span class="ms text-orange-600 text-[20px]">lightbulb</span>
+                            <p class="text-[11px] text-orange-800 leading-relaxed">
+                                <b>Mẹo:</b> Hệ thống đã tự động đảo ngược các trạm từ tuyến đi sang. Bạn có thể <b>thay đổi vị trí</b>, <b>xóa trạm</b> hoặc <b>thêm trạm mới</b> tùy ý để phù hợp với lộ trình lượt về thực tế.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -286,25 +315,36 @@
 
 <script th:inline="javascript">
     const list = document.getElementById('waypointList');
+    const returnList = document.getElementById('returnWaypointList');
     const tpl = document.getElementById('waypointItemTpl');
 
-    function addWaypoint(initial = {}) {
+    function addWaypoint(initial = {}, isReturn = false) {
+        const targetList = isReturn ? returnList : list;
         const node = tpl.content.firstElementChild.cloneNode(true);
         const idInput = node.querySelector('.wp-location-id');
         const searchInput = node.querySelector('.wp-search');
         
         if (initial.locationId) {
             idInput.value = initial.locationId;
-            // Set initial label
+            // Set initial label from dropdown if available, else use a placeholder
             const item = node.querySelector(`.wp-option-item[data-id="${initial.locationId}"]`);
-            if (item) searchInput.value = item.getAttribute('data-label');
+            if (item) {
+                searchInput.value = item.getAttribute('data-label');
+            } else if (initial.locationLabel) {
+                searchInput.value = initial.locationLabel;
+            }
         }
         
         node.querySelector('.wp-km').value = initial.distanceFromStart ?? '';
         node.querySelector('.wp-type').value = initial.stopType || 'BOTH';
         node.querySelector('.wp-offset').value = initial.offsetMinutes ?? '';
         hookDnd(node);
-        list.appendChild(node);
+        targetList.appendChild(node);
+        recalculateTotals();
+    }
+
+    function addReturnWaypoint(initial = {}) {
+        addWaypoint(initial, true);
     }
 
     function removeWaypoint(btn) {
@@ -325,34 +365,49 @@
         const container = document.getElementById('stopsContainer');
         container.innerHTML = ''; // Clear old
 
-        const items = [...list.querySelectorAll('li')];
-        let validIndex = 0;
-        
-        items.forEach((li) => {
+        // 1. Process Forward Stops
+        const forwardItems = [...list.querySelectorAll('li')];
+        forwardItems.forEach((li, idx) => {
             const locId = li.querySelector('.wp-location-id').value.trim();
-            if (!locId) return; // Skip empty rows
+            if (!locId) return;
             
             const km = li.querySelector('.wp-km').value.trim();
             const type = li.querySelector('.wp-type').value.trim() || 'BOTH';
             const offset = li.querySelector('.wp-offset').value.trim();
 
-            const createHidden = (name, value) => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = `stops[${validIndex}].${name}`;
-                input.value = value;
-                return input;
-            };
-
-            container.appendChild(createHidden('locationId', locId));
-            container.appendChild(createHidden('stopType', type));
-            if (km) container.appendChild(createHidden('distanceFromStart', km));
-            if (offset) container.appendChild(createHidden('offsetMinutes', offset));
-            
-            validIndex++;
+            container.appendChild(createHiddenInput(`stops[${idx}].locationId`, locId));
+            container.appendChild(createHiddenInput(`stops[${idx}].stopType`, type));
+            if (km) container.appendChild(createHiddenInput(`stops[${idx}].distanceFromStart`, km));
+            if (offset) container.appendChild(createHiddenInput(`stops[${idx}].offsetMinutes`, offset));
         });
 
+        // 2. Process Return Stops (if checked)
+        if (document.getElementById('createReturnCheckbox').checked) {
+            const returnItems = [...returnList.querySelectorAll('li')];
+            returnItems.forEach((li, idx) => {
+                const locId = li.querySelector('.wp-location-id').value.trim();
+                if (!locId) return;
+                
+                const km = li.querySelector('.wp-km').value.trim();
+                const type = li.querySelector('.wp-type').value.trim() || 'BOTH';
+                const offset = li.querySelector('.wp-offset').value.trim();
+
+                container.appendChild(createHiddenInput(`returnStops[${idx}].locationId`, locId));
+                container.appendChild(createHiddenInput(`returnStops[${idx}].stopType`, type));
+                if (km) container.appendChild(createHiddenInput(`returnStops[${idx}].distanceFromStart`, km));
+                if (offset) container.appendChild(createHiddenInput(`returnStops[${idx}].offsetMinutes`, offset));
+            });
+        }
+
         return true;
+    }
+
+    function createHiddenInput(name, value) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        return input;
     }
 
     // Drag & drop
@@ -403,9 +458,11 @@
         const items = dropdown.querySelectorAll('.option-item');
         const filter = searchInput.value.toLowerCase().trim();
         
-        // Exclude: Opposite (Dep/Arr) AND any used Waypoints
+        // Exclude: Opposite (Dep/Arr)
         const oppositeId = document.getElementById(type === 'departure' ? 'arrivalLocationId' : 'departureLocationId').value;
-        const usedWpIds = [...document.querySelectorAll('.wp-location-id')]
+        
+        // Exclude: Only waypoints in the FORWARD list (since this is forward dep/arr)
+        const usedWpIds = [...list.querySelectorAll('.wp-location-id')]
             .map(el => el.value)
             .filter(id => id !== "");
         
@@ -428,7 +485,7 @@
         const noResults = dropdown.querySelector('.no-results');
         if (hasVisible) {
             noResults.classList.add('hidden');
-            dropdown.classList.remove('hidden'); // Ensure dropdown is shown if there are matches
+            dropdown.classList.remove('hidden');
         } else {
             noResults.classList.remove('hidden');
         }
@@ -460,11 +517,23 @@
         const items = dropdown.querySelectorAll('.wp-option-item');
         const filter = input.value.toLowerCase().trim();
         
-        // Get excluded IDs: Departure, Arrival, and other Waypoints
-        const depId = document.getElementById('departureLocationId').value;
-        const arrId = document.getElementById('arrivalLocationId').value;
-        const otherWpIds = [...document.querySelectorAll('.wp-location-id')]
-            .filter(el => el !== container.querySelector('.wp-location-id')) // Don't exclude current WP's own value
+        // Identify which list we are in (forward or return)
+        const currentList = input.closest('#waypointList') || input.closest('#returnWaypointList');
+        const isReturnList = currentList && currentList.id === 'returnWaypointList';
+
+        // Get excluded IDs: Departure, Arrival, and other Waypoints in the SAME list
+        let depId, arrId;
+        if (isReturnList) {
+            // For return list, we conceptually swap Dep/Arr for exclusion
+            depId = document.getElementById('arrivalLocationId').value;
+            arrId = document.getElementById('departureLocationId').value;
+        } else {
+            depId = document.getElementById('departureLocationId').value;
+            arrId = document.getElementById('arrivalLocationId').value;
+        }
+
+        const otherWpIds = [...currentList.querySelectorAll('.wp-location-id')]
+            .filter(el => el !== container.querySelector('.wp-location-id')) 
             .map(el => el.value)
             .filter(id => id !== "");
 
@@ -542,13 +611,13 @@
 
     // --- AUTO CALCULATION & VALIDATION LOGIC ---
     function recalculateTotals() {
+        // 1. Recalculate Forward
         const waypointKms = [...list.querySelectorAll('.wp-km')];
         const currentWpSum = waypointKms.reduce((s, i) => s + (parseFloat(i.value.replace(',', '.')) || 0), 0);
         
         const totalInput = document.getElementById('distanceKm');
         const totalLimit = parseFloat(totalInput.value.replace(',', '.')) || 0;
         
-        // Update status displays
         document.getElementById('wpSumDisplay').innerText = currentWpSum.toFixed(1).replace('.', ',');
         document.getElementById('totalLimitDisplay').innerText = totalLimit.toFixed(1).replace('.', ',');
         
@@ -556,29 +625,57 @@
         const warningBox = document.getElementById('distanceWarning');
         const saveBtn = document.getElementById('saveRouteBtn');
 
+        let isForwardValid = true;
         if (currentWpSum > totalLimit && totalLimit > 0) {
-            isDistanceValid = false;
+            isForwardValid = false;
             statusBox.classList.add('bg-red-100', 'border-red-300', 'text-red-700');
             statusBox.classList.remove('bg-surface-hover', 'border-surface-border');
             warningBox.classList.remove('hidden');
+        } else {
+            statusBox.classList.remove('bg-red-100', 'border-red-300', 'text-red-700');
+            statusBox.classList.add('bg-surface-hover', 'border-surface-border');
+            warningBox.classList.add('hidden');
+        }
+
+        // 2. Recalculate Return (if visible)
+        let isReturnValid = true;
+        const returnPreview = document.getElementById('returnRoutePreview');
+        if (!returnPreview.classList.contains('hidden')) {
+            const returnWpKms = [...returnList.querySelectorAll('.wp-km')];
+            const currentReturnWpSum = returnWpKms.reduce((s, i) => s + (parseFloat(i.value.replace(',', '.')) || 0), 0);
             
-            // Lock and style button as disabled
+            const returnTotalInput = document.getElementById('previewReturnKm');
+            const returnTotalLimit = parseFloat(returnTotalInput.value.replace(',', '.')) || 0;
+            
+            document.getElementById('returnWpSumDisplay').innerText = currentReturnWpSum.toFixed(1).replace('.', ',');
+            document.getElementById('returnTotalLimitDisplay').innerText = returnTotalLimit.toFixed(1).replace('.', ',');
+            
+            const returnStatusBox = document.getElementById('returnDistanceStatus');
+            const returnWarningBox = document.getElementById('returnDistanceWarning');
+
+            if (currentReturnWpSum > returnTotalLimit && returnTotalLimit > 0) {
+                isReturnValid = false;
+                returnStatusBox.classList.add('bg-red-100', 'border-red-300', 'text-red-700');
+                returnStatusBox.classList.remove('bg-surface-hover', 'border-surface-border');
+                returnWarningBox.classList.remove('hidden');
+            } else {
+                returnStatusBox.classList.remove('bg-red-100', 'border-red-300', 'text-red-700');
+                returnStatusBox.classList.add('bg-surface-hover', 'border-surface-border');
+                returnWarningBox.classList.add('hidden');
+            }
+        }
+
+        isDistanceValid = isForwardValid && isReturnValid;
+
+        if (!isDistanceValid) {
             saveBtn.disabled = true;
             saveBtn.classList.remove('bg-brand-700', 'hover:opacity-95');
             saveBtn.classList.add('bg-surface-border', 'text-ink-faint', 'cursor-not-allowed', 'opacity-60');
         } else {
-            isDistanceValid = true;
-            statusBox.classList.remove('bg-red-100', 'border-red-300', 'text-red-700');
-            statusBox.classList.add('bg-surface-hover', 'border-surface-border');
-            warningBox.classList.add('hidden');
-            
-            // Unlock and restore original style
             saveBtn.disabled = false;
             saveBtn.classList.add('bg-brand-700', 'hover:opacity-95');
             saveBtn.classList.remove('bg-surface-border', 'text-ink-faint', 'cursor-not-allowed', 'opacity-60');
         }
-
-        updateReturnPreview();
     }
 
     function autoCalcDuration(input) {
@@ -589,7 +686,11 @@
         const duration = Math.round(km * 1.44);
         if (input.id === 'distanceKm') {
             document.getElementById('durationMinutes').value = duration;
-            recalculateTotals(); // Re-validate when total limit changes
+            updateReturnPreview(true); // Sync to return route if forward changes
+            recalculateTotals();
+        } else if (input.id === 'previewReturnKm') {
+            document.getElementById('previewReturnDuration').value = duration;
+            recalculateTotals();
         } else if (input.classList.contains('wp-km')) {
             const li = input.closest('li');
             li.querySelector('.wp-offset').value = duration;
@@ -611,10 +712,7 @@
 
     // Attach listener to preview distance input
     document.getElementById('previewReturnKm').addEventListener('input', function() {
-        const km = parseFloat(this.value.replace(',', '.'));
-        if (!isNaN(km)) {
-            document.getElementById('previewReturnDuration').value = Math.round(km * 1.44);
-        }
+        autoCalcDuration(this);
     });
 
     // --- SMART FEATURES ---
@@ -622,30 +720,86 @@
         const checkbox = document.getElementById('createReturnCheckbox');
         const preview = document.getElementById('returnRoutePreview');
         preview.classList.toggle('hidden', !checkbox.checked);
-        if (checkbox.checked) updateReturnPreview();
+        if (checkbox.checked) updateReturnPreview(true); // Force sync when opening
     }
 
-    function updateReturnPreview() {
+    function updateReturnPreview(isForwardChanging = false) {
         const depSearch = document.getElementById('departureSearch').value;
         const arrSearch = document.getElementById('arrivalSearch').value;
         const code = document.getElementById('routeCode').value;
-        const km = document.getElementById('distanceKm').value;
+        const kmStr = document.getElementById('distanceKm').value;
         const duration = document.getElementById('durationMinutes').value;
+
+        const totalKm = parseFloat(kmStr.replace(',', '.')) || 0;
 
         document.getElementById('previewReturnDep').innerText = arrSearch || '— Chọn điểm đến —';
         document.getElementById('previewReturnArr').innerText = depSearch || '— Chọn điểm đi —';
-        document.getElementById('previewReturnKm').value = km || '';
-        document.getElementById('previewReturnDuration').value = duration || '';
+        
+        const returnKmInput = document.getElementById('previewReturnKm');
+        const returnDurationInput = document.getElementById('previewReturnDuration');
+        const returnCodeInput = document.getElementById('previewReturnCode');
+
+        // Logic đồng bộ: Nếu lượt đi thay đổi, ta cập nhật lượt về NẾU lượt về đang trống hoặc được yêu cầu đồng bộ
+        if (isForwardChanging || !returnKmInput.value) returnKmInput.value = kmStr || '';
+        if (isForwardChanging || !returnDurationInput.value) returnDurationInput.value = duration || '';
         
         // Reverse code logic: SG-DL-01 -> DL-SG-01
-        if (code && code.includes('-')) {
+        if ((isForwardChanging || !returnCodeInput.value) && code && code.includes('-')) {
             const parts = code.split('-');
             if (parts.length >= 2) {
-                document.getElementById('previewReturnCode').value = parts[1] + '-' + parts[0] + (parts[2] ? '-' + parts[2] : '');
+                returnCodeInput.value = parts[1] + '-' + parts[0] + (parts[2] ? '-' + parts[2] : '');
             }
-        } else {
-            document.getElementById('previewReturnCode').value = '';
         }
+
+        // --- Waypoints Reversal Logic ---
+        // Nếu danh sách khứ hồi đang trống, ta mới tự động đổ dữ liệu đảo ngược từ lượt đi sang
+        if (returnList.children.length === 0) {
+            const forwardWaypoints = [...list.querySelectorAll('li')].map(li => {
+                return {
+                    locationId: li.querySelector('.wp-location-id').value,
+                    locationLabel: li.querySelector('.wp-search').value,
+                    distanceFromStart: parseFloat(li.querySelector('.wp-km').value.replace(',', '.')) || 0,
+                    stopType: li.querySelector('.wp-type').value
+                };
+            }).filter(wp => wp.locationId); // Chỉ lấy các waypoint đã chọn địa điểm
+
+            if (forwardWaypoints.length > 0) {
+                // Tính toán các phân đoạn (segments) từ khoảng cách cộng dồn của lượt đi
+                // Lượt đi: Start --(S1)-- W1 --(S2)-- W2 --(S3)-- End
+                const segments = [];
+                let prevDist = 0;
+                forwardWaypoints.forEach(wp => {
+                    segments.push(wp.distanceFromStart - prevDist);
+                    prevDist = wp.distanceFromStart;
+                });
+                const lastSegmentToEnd = Math.max(0, totalKm - prevDist);
+                segments.push(lastSegmentToEnd);
+
+                // Đảo ngược các phân đoạn và các waypoint
+                // Lượt về: NewStart (OldEnd) --(lastSegmentToEnd)-- W2' --(S2)-- W1' --(S1)-- NewEnd (OldStart)
+                const revSegments = [...segments].reverse();
+                const revWaypoints = [...forwardWaypoints].reverse();
+
+                let cumulativeDist = 0;
+                revWaypoints.forEach((wp, idx) => {
+                    cumulativeDist += revSegments[idx];
+                    
+                    let revType = wp.stopType;
+                    if (wp.stopType === 'PICKUP') revType = 'DROPOFF';
+                    else if (wp.stopType === 'DROPOFF') revType = 'PICKUP';
+
+                    addReturnWaypoint({
+                        locationId: wp.locationId,
+                        locationLabel: wp.locationLabel,
+                        distanceFromStart: parseFloat(cumulativeDist.toFixed(1)),
+                        stopType: revType,
+                        offsetMinutes: Math.round(cumulativeDist * 1.44)
+                    });
+                });
+            }
+        }
+        
+        recalculateTotals();
     }
 
     async function onLocationChange(forceUpdateCode = false) {
@@ -655,7 +809,7 @@
         if (!depId || !arrId) return;
 
         // Update preview if active
-        updateReturnPreview();
+        updateReturnPreview(true);
 
         // 1. Gợi ý mã tuyến
         try {
@@ -663,12 +817,9 @@
             const data = await resp.json();
             if (data.code && (forceUpdateCode || !document.getElementById('routeCode').value)) {
                 document.getElementById('routeCode').value = data.code;
-                updateReturnPreview();
+                updateReturnPreview(true);
             }
         } catch (e) { console.error("Lỗi generate code", e); }
-
-        // 2. Cập nhật preview khứ hồi
-        updateReturnPreview();
     }
 
     // Seed 1 empty item for UX if new, else render existing

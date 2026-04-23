@@ -113,7 +113,9 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private Location initLocation(String name, String city, String address, String type) {
-        return locationRepository.findByName(name)
+        return locationRepository.findAll().stream()
+                .filter(l -> l.getName().equalsIgnoreCase(name))
+                .findFirst()
                 .orElseGet(() -> locationRepository.save(Location.builder()
                         .name(name)
                         .city(city)
@@ -123,7 +125,9 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private CoachType initCoachType(String name, String desc) {
-        return coachTypeRepository.findByName(name)
+        return coachTypeRepository.findAll().stream()
+                .filter(ct -> ct.getName().equalsIgnoreCase(name))
+                .findFirst()
                 .orElseGet(() -> {
                     CoachType ct = new CoachType();
                     ct.setName(name);
@@ -133,7 +137,9 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private Coach initCoach(String plate, CoachType type, int seats) {
-        return coachRepository.findByPlateNumber(plate)
+        return coachRepository.findAll().stream()
+                .filter(c -> c.getPlateNumber().equalsIgnoreCase(plate))
+                .findFirst()
                 .orElseGet(() -> {
                     Coach coach = coachRepository.save(Coach.builder()
                             .plateNumber(plate)
@@ -158,7 +164,10 @@ public class DataInitializer implements CommandLineRunner {
 
     private Route initRoute(String code, Location dep, Location arr, float dist) {
         int duration = Math.round((dist / 50.0f) * 1.2f * 60.0f);
-        return routeRepository.findByDepartureLocationAndArrivalLocation(dep, arr)
+        return routeRepository.findAll().stream()
+                .filter(r -> r.getDepartureLocation().getId().equals(dep.getId()) 
+                        && r.getArrivalLocation().getId().equals(arr.getId()))
+                .findFirst()
                 .orElseGet(() -> routeRepository.save(Route.builder()
                         .routeCode(code)
                         .departureLocation(dep)
@@ -169,14 +178,20 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initRouteStop(Route route, Location location, int order, StopTypeEnum stopType, int offsetMinutes, float distanceFromStart) {
-        routeStopRepository.save(RouteStop.builder()
-                .route(route)
-                .location(location)
-                .stopOrder(order)
-                .stopType(stopType)
-                .offsetMinutes(offsetMinutes)
-                .distanceFromStart(distanceFromStart)
-                .build());
+        boolean exists = routeStopRepository.findByRouteIdOrderByStopOrderAsc(route.getId()).stream()
+                .anyMatch(rs -> rs.getLocation().getId().equals(location.getId()) 
+                        && rs.getStopOrder() == order);
+        
+        if (!exists) {
+            routeStopRepository.save(RouteStop.builder()
+                    .route(route)
+                    .location(location)
+                    .stopOrder(order)
+                    .stopType(stopType)
+                    .offsetMinutes(offsetMinutes)
+                    .distanceFromStart(distanceFromStart)
+                    .build());
+        }
     }
 
     private void initTrip(Route route, Coach coach, Account driver, Account assistant, LocalDateTime departure, BigDecimal price, String phone) {

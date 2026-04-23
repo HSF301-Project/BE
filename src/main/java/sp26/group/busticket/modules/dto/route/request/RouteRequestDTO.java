@@ -46,4 +46,16 @@ public class RouteRequestDTO {
     @Valid
     @Builder.Default
     private List<RouteStopRequestDTO> stops = new ArrayList<>();
+
+    /**
+     * Danh sách điểm dừng đón/trả trung gian cho tuyến khứ hồi (nếu createReturn = true).
+     */
+    @Valid
+    @Builder.Default
+    private List<RouteStopRequestDTO> returnStops = new ArrayList<>();
+
+    private boolean createReturn; // Checkbox tích chọn tạo khứ hồi
+    private String returnRouteCode;
+    private Float returnDistanceKm;
+    private Integer returnDurationMinutes;
 }

@@ -51,6 +51,30 @@ public class RouteServiceImpl implements RouteService {
         Location arr = locationRepository.findById(req.getArrivalLocationId())
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Điểm đến không hợp lệ."));
 
+        Route route = internalSaveRoute(req, dep, arr);
+
+        // Xử lý tạo tuyến khứ hồi nếu được tích chọn
+        if (req.isCreateReturn()) {
+            RouteRequestDTO returnReq = RouteRequestDTO.builder()
+                    .routeCode(req.getReturnRouteCode())
+                    .departureLocationId(req.getArrivalLocationId())
+                    .arrivalLocationId(req.getDepartureLocationId())
+                    .distanceKm(req.getReturnDistanceKm() != null ? req.getReturnDistanceKm() : req.getDistanceKm())
+                    .durationMinutes(req.getReturnDurationMinutes() != null ? req.getReturnDurationMinutes() : req.getDurationMinutes())
+                    .stops(req.getReturnStops())
+                    .build();
+            
+            // Tìm tuyến khứ hồi cũ nếu có để update
+            routeRepository.findByDepartureLocationAndArrivalLocation(arr, dep)
+                    .ifPresent(existing -> returnReq.setId(existing.getId()));
+            
+            internalSaveRoute(returnReq, arr, dep);
+        }
+
+        return route;
+    }
+
+    private Route internalSaveRoute(RouteRequestDTO req, Location dep, Location arr) {
         Route route;
         if (req.getId() != null) {
             route = routeRepository.findById(req.getId())
@@ -60,8 +84,12 @@ public class RouteServiceImpl implements RouteService {
             route.setArrivalLocation(arr);
             route.setDistance(req.getDistanceKm());
             route.setDuration(req.getDurationMinutes());
-            routeStopRepository.deleteAll(route.getStops());
-            route.getStops().clear();
+            
+            if (route.getStops() != null) {
+                route.getStops().clear();
+            } else {
+                route.setStops(new ArrayList<>());
+            }
         } else {
             route = Route.builder()
                     .routeCode(req.getRouteCode() != null ? req.getRouteCode().trim() : generateRouteCode(dep.getId(), arr.getId()))
@@ -91,10 +119,10 @@ public class RouteServiceImpl implements RouteService {
                         .notes(stopDto.getNotes())
                         .build());
             }
-            routeStopRepository.saveAll(stops);
+            List<RouteStop> savedStops = routeStopRepository.saveAll(stops);
+            route.getStops().addAll(savedStops);
         }
-
-        return route;
+        return routeRepository.save(route);
     }
 
     @Override
@@ -130,8 +158,15 @@ public class RouteServiceImpl implements RouteService {
     @Override
     @Transactional
     public void createReturnRoute(UUID routeId) {
-        Route forward = routeRepository.findById(routeId).orElseThrow();
+        // Fetch and force load stops
+        Route forward = routeRepository.findById(routeId)
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy tuyến đường gốc."));
         
+        // Đảm bảo stops được load
+        if (forward.getStops() != null) {
+            forward.getStops().size(); 
+        }
+
         // Kiểm tra xem đã có tuyến khứ hồi chưa
         Optional<Route> existingReturn = routeRepository.findByDepartureLocationAndArrivalLocation(
                 forward.getArrivalLocation(), forward.getDepartureLocation());
@@ -150,13 +185,39 @@ public class RouteServiceImpl implements RouteService {
         // Đảo ngược danh sách stops và tính toán lại thông số
         List<RouteStop> forwardStops = new ArrayList<>(forward.getStops());
         forwardStops.sort(Comparator.comparing(RouteStop::getStopOrder));
-        Collections.reverse(forwardStops);
 
         float totalDist = forward.getDistance();
         int totalDuration = forward.getDuration();
 
+        // 1. Tính toán các chặng (Segments) của tuyến đi
+        List<Float> distSegments = new ArrayList<>();
+        List<Integer> durationSegments = new ArrayList<>();
+        
+        float lastDist = 0;
+        int lastDuration = 0;
+        
         for (RouteStop fs : forwardStops) {
-            // Đảo ngược StopType: PICKUP <-> DROPOFF, BOTH giữ nguyên
+            distSegments.add(fs.getDistanceFromStart() - lastDist);
+            durationSegments.add(fs.getOffsetMinutes() - lastDuration);
+            lastDist = fs.getDistanceFromStart();
+            lastDuration = fs.getOffsetMinutes();
+        }
+        // Chặng cuối cùng từ stop cuối đến bến đích
+        distSegments.add(totalDist - lastDist);
+        durationSegments.add(totalDuration - lastDuration);
+
+        // 2. Đảo ngược các chặng và danh sách stops
+        Collections.reverse(distSegments);
+        Collections.reverse(durationSegments);
+        Collections.reverse(forwardStops);
+
+        for (int i = 0; i < forwardStops.size(); i++) {
+            RouteStop fs = forwardStops.get(i);
+            
+            // Lấy khoảng cách chặng (Segment) từ danh sách đã đảo ngược
+            float segmentDist = distSegments.get(i);
+            int segmentDuration = durationSegments.get(i);
+
             StopTypeEnum reverseStopType = fs.getStopType();
             if (fs.getStopType() == StopTypeEnum.PICKUP) {
                 reverseStopType = StopTypeEnum.DROPOFF;
@@ -164,19 +225,11 @@ public class RouteServiceImpl implements RouteService {
                 reverseStopType = StopTypeEnum.PICKUP;
             }
 
-            // Tính toán lại khoảng cách và thời gian đảo ngược
-            Float reverseDist = fs.getDistanceFromStart() != null ? totalDist - fs.getDistanceFromStart() : null;
-            Integer reverseOffset = fs.getOffsetMinutes() != null ? totalDuration - fs.getOffsetMinutes() : null;
-
-            // Đảm bảo không âm do sai số
-            if (reverseDist != null && reverseDist < 0) reverseDist = 0f;
-            if (reverseOffset != null && reverseOffset < 0) reverseOffset = 0;
-
             backwardReq.getStops().add(RouteStopRequestDTO.builder()
                     .locationId(fs.getLocation().getId())
                     .stopType(reverseStopType)
-                    .distanceFromStart(reverseDist)
-                    .offsetMinutes(reverseOffset)
+                    .distanceFromStart(segmentDist) // Lưu khoảng cách chặng
+                    .offsetMinutes(segmentDuration) // Lưu thời gian chặng
                     .notes(fs.getNotes())
                     .build());
         }
