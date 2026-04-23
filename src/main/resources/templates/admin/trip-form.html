@@ -100,9 +100,14 @@
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Giá vé (VNĐ)</label>
-                                <input type="number" th:field="*{priceBase}" required id="priceBase"
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="block text-xs font-bold uppercase text-slate-500">Giá vé (VNĐ)</label>
+                                    <span id="pricePerKm" class="text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full hidden">0 VNĐ/km</span>
+                                </div>
+                                <input type="number" th:field="*{priceBase}" required id="priceBase" min="0"
+                                       onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 13"
                                        class="w-full rounded-xl border-slate-200 text-sm font-bold text-brand-700"/>
+                                <p th:if="${#fields.hasErrors('priceBase')}" th:errors="*{priceBase}" class="text-red-500 text-xs mt-1"></p>
                             </div>
                         </div>
                     </section>
@@ -149,9 +154,14 @@
                             </div>
 
                                 <div>
-                                    <label class="block text-xs font-bold uppercase text-brand-600 mb-2">Giá vé lượt về (VNĐ)</label>
-                                    <input type="number" th:field="*{priceRoundTrip}" id="priceRoundTrip"
+                                    <div class="flex items-center justify-between mb-2">
+                                        <label class="block text-xs font-bold uppercase text-brand-600">Giá vé lượt về (VNĐ)</label>
+                                        <span id="returnPricePerKm" class="text-[10px] font-medium text-brand-400 bg-brand-50 px-2 py-0.5 rounded-full hidden">0 VNĐ/km</span>
+                                    </div>
+                                    <input type="number" th:field="*{priceRoundTrip}" id="priceRoundTrip" min="0"
+                                           onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 13"
                                            class="w-full rounded-xl border-brand-200 text-sm font-bold text-brand-700"/>
+                                    <p th:if="${#fields.hasErrors('priceRoundTrip')}" th:errors="*{priceRoundTrip}" class="text-red-500 text-xs mt-1"></p>
                                 </div>
                         </div>
                     </section>
@@ -176,7 +186,7 @@
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Phụ xe (tuỳ chọn)</label>
                         <select th:field="*{assistantId}" id="assistantId" class="ts-select">
                             <option value="">— Không có —</option>
-                            <option th:each="a : ${assistants}" th:value="${a.id}" th:text="${a.fullName}"></option>
+                            <option th:each="a : ${assistants}" th:value="${a.id}" th:text="${a.fullName + ' | ' + a.phone}"></option>
                         </select>
                     </div>
                     <div>
@@ -252,7 +262,21 @@
             return `${y}-${m}-${d}T${h}:${min}`;
         }
 
-        async function checkReturnRoute(routeId) {
+        function updatePricePerKm(type) {
+            const price = type === 'forward' ? parseFloat(priceInput.value) : parseFloat(priceRoundTripInput.value);
+            const distance = type === 'forward' ? currentDistance : returnDistance;
+            const displayEl = type === 'forward' ? document.getElementById('pricePerKm') : document.getElementById('returnPricePerKm');
+
+            if (price > 0 && distance > 0) {
+                const perKm = Math.round(price / distance);
+                displayEl.innerText = `${perKm.toLocaleString('vi-VN')} VNĐ/km`;
+                displayEl.classList.remove('hidden');
+            } else {
+                displayEl.classList.add('hidden');
+            }
+        }
+
+        async function checkReturnRoute(routeId, isInit = false) {
             if (!routeId) {
                 roundTripInput.value = 'false';
                 roundTripInfo.classList.add('hidden');
@@ -279,7 +303,10 @@
                     
                     // Cập nhật giá vé lượt về mặc định
                     if (returnDistance > 0) {
-                        priceRoundTripInput.value = Math.round(returnDistance * 4000);
+                        if (!priceRoundTripInput.value) {
+                            priceRoundTripInput.value = Math.round(returnDistance * 4000);
+                        }
+                        updatePricePerKm('return');
                     }
                 } else {
                     roundTripInfo.classList.add('hidden');
@@ -288,7 +315,7 @@
                     returnDistance = 0;
                 }
                 updateReturnTripVisibility();
-                updateReturnArrival(); // Cập nhật lại giờ đến của chuyến về
+                updateReturnArrival(isInit); // Cập nhật lại giờ đến của chuyến về
             } catch (e) { console.error(e); }
         }
 
@@ -296,6 +323,23 @@
             if (roundTripInput.value === 'true') {
                 returnTripSection.classList.remove('hidden');
                 
+                // --- Sync drivers when switching to roundtrip mode ---
+                ['driverId', 'secondDriverId'].forEach(id => {
+                    let targetId;
+                    if (id === 'driverId') targetId = 'returnDriverId';
+                    else if (id === 'secondDriverId') targetId = 'returnSecondDriverId';
+                    
+                    if (tsInstances[id] && tsInstances[targetId]) {
+                        const forwardVal = tsInstances[id].getValue();
+                        const returnVal = tsInstances[targetId].getValue();
+                        
+                        // Auto-fill return driver if it's currently empty
+                        if (forwardVal && !returnVal) {
+                            tsInstances[targetId].setValue(forwardVal);
+                        }
+                    }
+                });
+
                 // Set min for return trip: must be after forward arrival
                 if (arrivalInput.value) {
                     returnDepartureInput.min = arrivalInput.value;
@@ -317,6 +361,7 @@
                 
                 if (priceInput.value && !priceRoundTripInput.value) {
                     priceRoundTripInput.value = priceInput.value;
+                    updatePricePerKm('return');
                 }
             } else {
                 returnTripSection.classList.add('hidden');
@@ -327,7 +372,7 @@
         // --- Event Listeners ---
         // roundTripInput change listener removed since it's now hidden and automatic
 
-        function updateArrival() {
+        function updateArrival(isInit = false) {
             if (departureInput.value && currentDuration > 0) {
                 const depDate = new Date(departureInput.value);
                 const arrDate = new Date(depDate.getTime() + currentDuration * 60000);
@@ -346,7 +391,7 @@
                             // Gợi ý nghỉ 2 tiếng cho thoải mái
                             const suggestRetDep = new Date(arrDate.getTime() + 120 * 60000);
                             returnDepartureInput.value = formatDateTime(suggestRetDep);
-                            updateReturnArrival();
+                            updateReturnArrival(isInit);
                         }
                     }
                 }
@@ -357,15 +402,17 @@
                     secondDriverContainer.classList.remove('hidden');
                 } else {
                     secondDriverContainer.classList.add('hidden');
-                    tsInstances['secondDriverId'].setValue('');
+                    if (!isInit) {
+                        tsInstances['secondDriverId'].setValue('');
+                    }
                 }
 
-                if (roundTripInput.value === 'true') updateReturnArrival();
+                if (roundTripInput.value === 'true') updateReturnArrival(isInit);
                 refreshAllAvailability();
             }
         }
 
-        function updateReturnArrival() {
+        function updateReturnArrival(isInit = false) {
             if (returnDepartureInput.value && returnDuration > 0) {
                 const depDate = new Date(returnDepartureInput.value);
                 const arrDate = new Date(depDate.getTime() + returnDuration * 60000);
@@ -376,7 +423,9 @@
                     returnSecondDriverContainer.classList.remove('hidden');
                 } else {
                     returnSecondDriverContainer.classList.add('hidden');
-                    tsInstances['returnSecondDriverId'].setValue('');
+                    if (!isInit) {
+                        tsInstances['returnSecondDriverId'].setValue('');
+                    }
                 }
                 refreshAllAvailability();
             }
@@ -399,20 +448,25 @@
                 }
             });
 
+            let forwardDrivers = [];
+            let returnDrivers = [];
+            let forwardCoaches = [];
+            let returnCoaches = [];
+
+            // 1. Fetch forward availability
             if (forwardStart && forwardEnd && routeId) {
                 try {
                     const staffRes = await fetch(`/admin/trips/available-staff?start=${forwardStart}&end=${forwardEnd}${tripId ? '&excludeId=' + tripId : ''}`);
                     const staffData = await staffRes.json();
+                    forwardDrivers = staffData.availableDriverIds || [];
                     
                     const coachRes = await fetch(`/admin/trips/available-coaches?start=${forwardStart}&end=${forwardEnd}&routeId=${routeId}${tripId ? '&excludeId=' + tripId : ''}`);
                     const coachData = await coachRes.json();
-
-                    updateSelectOptions('driverId', staffData.availableDriverIds);
-                    updateSelectOptions('secondDriverId', staffData.availableDriverIds);
-                    updateSelectOptions('coachId', coachData.availableCoachIds);
+                    forwardCoaches = coachData.availableCoachIds || [];
                 } catch (e) { console.error("Error fetching forward availability:", e); }
             }
 
+            // 2. Fetch return availability if round trip
             if (roundTripInput.value === 'true') {
                 const returnStart = returnDepartureInput.value;
                 const returnEnd = returnArrivalInput.value;
@@ -421,11 +475,31 @@
                     try {
                         const staffRes = await fetch(`/admin/trips/available-staff?start=${returnStart}&end=${returnEnd}`);
                         const staffData = await staffRes.json();
-                        updateSelectOptions('returnDriverId', staffData.availableDriverIds);
-                        updateSelectOptions('returnSecondDriverId', staffData.availableDriverIds);
-                        // Xe dùng chung nên coachId đã được check ở lượt đi
+                        returnDrivers = staffData.availableDriverIds || [];
+
+                        const coachRes = await fetch(`/admin/trips/available-coaches?start=${returnStart}&end=${returnEnd}&routeId=${returnRouteId}`);
+                        const coachData = await coachRes.json();
+                        returnCoaches = coachData.availableCoachIds || [];
                     } catch (e) { console.error("Error fetching return availability:", e); }
                 }
+            }
+
+            // 3. Apply filtering logic
+            if (roundTripInput.value === 'true') {
+                // For round trip, drivers and coaches must be available for BOTH trips
+                const commonDrivers = forwardDrivers.filter(id => returnDrivers.includes(id));
+                const commonCoaches = forwardCoaches.filter(id => returnCoaches.includes(id));
+
+                updateSelectOptions('driverId', commonDrivers);
+                updateSelectOptions('secondDriverId', commonDrivers);
+                updateSelectOptions('returnDriverId', commonDrivers);
+                updateSelectOptions('returnSecondDriverId', commonDrivers);
+                updateSelectOptions('coachId', commonCoaches);
+            } else {
+                // For one-way trip, only use forward availability
+                updateSelectOptions('driverId', forwardDrivers);
+                updateSelectOptions('secondDriverId', forwardDrivers);
+                updateSelectOptions('coachId', forwardCoaches);
             }
             
             filterDuplicateDrivers();
@@ -447,42 +521,33 @@
         }
 
         function filterDuplicateDrivers() {
-            const driverFields = ['driverId', 'secondDriverId', 'returnDriverId', 'returnSecondDriverId'];
-            const selections = {};
-            
-            // Lấy tất cả giá trị đang chọn
-            driverFields.forEach(id => {
-                if (tsInstances[id]) {
-                    selections[id] = tsInstances[id].getValue();
-                }
-            });
+            const forwardFields = ['driverId', 'secondDriverId'];
+            const returnFields = ['returnDriverId', 'returnSecondDriverId'];
 
-            // Duyệt từng ô và ẩn các tài xế đã được chọn ở các ô KHÁC
-            driverFields.forEach(targetId => {
-                const ts = tsInstances[targetId];
-                if (!ts) return;
-
-                driverFields.forEach(sourceId => {
-                    const selectedId = selections[sourceId];
-                    if (targetId !== sourceId && selectedId) {
-                        // Ẩn option này khỏi danh sách chọn của ô hiện tại
-                        ts.removeOption(selectedId);
-                    }
+            function processGroup(fields) {
+                const selections = {};
+                fields.forEach(id => {
+                    if (tsInstances[id]) selections[id] = tsInstances[id].getValue();
                 });
 
-                // Kiểm tra nếu lỡ trùng (do race condition), xóa giá trị
-                const currentVal = selections[targetId];
-                if (currentVal) {
-                    const otherSelected = Object.entries(selections)
-                        .find(([id, val]) => id !== targetId && val === currentVal);
-                    if (otherSelected) {
-                        ts.setValue('', true);
-                        selections[targetId] = '';
-                    }
-                }
-                
-                ts.refreshOptions(false);
-            });
+                fields.forEach(targetId => {
+                    const ts = tsInstances[targetId];
+                    if (!ts) return;
+
+                    fields.forEach(sourceId => {
+                        const selectedId = selections[sourceId];
+                        if (targetId !== sourceId && selectedId) {
+                            ts.removeOption(selectedId);
+                        }
+                    });
+                    ts.refreshOptions(false);
+                });
+            }
+
+            processGroup(forwardFields);
+            if (roundTripInput.value === 'true') {
+                processGroup(returnFields);
+            }
         }
 
         // --- Event Listeners ---
@@ -492,18 +557,45 @@
                 currentDuration = parseInt(opt.getAttribute('data-duration') || '0');
                 currentDistance = parseFloat(opt.getAttribute('data-distance') || '0');
                 priceInput.value = Math.round(currentDistance * 4000);
+                updatePricePerKm('forward');
                 checkReturnRoute(opt.value);
                 updateArrival();
             }
         });
+
+        priceInput.addEventListener('input', () => updatePricePerKm('forward'));
+        priceRoundTripInput.addEventListener('input', () => updatePricePerKm('return'));
 
         departureInput.addEventListener('change', updateArrival);
         returnDepartureInput.addEventListener('change', updateReturnArrival);
 
         ['driverId', 'secondDriverId', 'returnDriverId', 'returnSecondDriverId'].forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.addEventListener('change', refreshAllAvailability);
+            if (el) {
+                el.addEventListener('change', () => {
+                    // Sync logic: forward -> return
+                    if (roundTripInput.value === 'true' && (id === 'driverId' || id === 'secondDriverId')) {
+                        let targetId;
+                        if (id === 'driverId') targetId = 'returnDriverId';
+                        else if (id === 'secondDriverId') targetId = 'returnSecondDriverId';
+
+                        if (tsInstances[targetId]) {
+                            // Only sync if values are different to avoid potential loops
+                            if (tsInstances[targetId].getValue() !== el.value) {
+                                tsInstances[targetId].setValue(el.value);
+                            }
+                        }
+                    }
+                    refreshAllAvailability();
+                });
+            }
         });
+
+        // Assistant change listener (no sync, but refresh availability)
+        const assistantEl = document.getElementById('assistantId');
+        if (assistantEl) {
+            assistantEl.addEventListener('change', refreshAllAvailability);
+        }
 
         // Initialize min date
         departureInput.min = formatDateTime(new Date());
@@ -513,7 +605,9 @@
             const opt = routeSelect.options[routeSelect.selectedIndex];
             currentDuration = parseInt(opt.getAttribute('data-duration') || '0');
             currentDistance = parseFloat(opt.getAttribute('data-distance') || '0');
-            checkReturnRoute(routeSelect.value);
+            updatePricePerKm('forward');
+            updateArrival(true);
+            checkReturnRoute(routeSelect.value, true);
             // Wait a bit for TS to initialize
             setTimeout(refreshAllAvailability, 500);
         }

@@ -1,27 +1,18 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title th:text="${title}">Quản lý xe</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" />
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
-    <link rel="stylesheet" th:href="@{/css/common.css}" />
-    <link rel="stylesheet" th:href="@{/css/admin.css}" />
-</head>
+<head th:replace="~{Admin/fragments/layout :: admin-head(${title})}"></head>
 
-<body class="admin-main text-on-surface antialiased overflow-x-hidden">
+<body class="bg-surface min-h-screen text-ink antialiased">
+    <aside th:replace="~{Admin/fragments/layout :: admin-sidebar('coaches')}"></aside>
+    <header th:replace="~{Admin/fragments/layout :: admin-topnav(${title})}"></header>
 
-    <main class="pt-20 pb-20">
-        <div class="max-w-xl mx-auto">
+    <main class="ml-60 pt-14 min-h-screen">
+        <div class="px-8 py-7 max-w-xl mx-auto">
             <div class="mb-10 text-center">
                 <a th:href="@{/admin/coaches}"
                     class="inline-flex items-center gap-2 text-xs font-black text-slate-400 hover:text-blue-700 transition-colors mb-6 uppercase tracking-widest">
-                    <span class="material-symbols-outlined text-sm">arrow_back</span> Quay lại danh sách
+                    <span class="ms text-sm">arrow_back</span> Quay lại danh sách
                 </a>
                 <h1 class="text-5xl font-black tracking-tight text-blue-900" th:text="${title}">Thiết lập phương tiện
                 </h1>
@@ -49,14 +40,14 @@
                     <div>
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-2">Phân hạng xe</label>
                         <div class="relative">
-                            <select th:field="*{coachType}" required
+                            <select th:field="*{coachTypeId}" required
                                 class="appearance-none w-full px-6 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-brand-600 focus:bg-white focus:ring-0 font-black text-ink transition-all cursor-pointer">
-                                <option value="" disabled selected>-- Chọn phân loại xe --</option>
-                                <option th:each="type : ${coachTypes}" th:value="${type.name}" th:text="${type.name}"></option>
+                                <option value="" th:selected="${coachDTO.coachTypeId == null}">-- Chọn phân loại xe --</option>
+                                <option th:each="type : ${coachTypes}" th:value="${type.id}" th:text="${type.name}"></option>
                             </select>
-                            <span class="ms absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_content</span>
+                            <span class="ms absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
                         </div>
-                        <p th:if="${#fields.hasErrors('coachType')}" th:errors="*{coachType}" class="mt-2 text-xs text-red-500 font-bold ml-2"></p>
+                        <p th:if="${#fields.hasErrors('coachTypeId')}" th:errors="*{coachTypeId}" class="mt-2 text-xs text-red-500 font-bold ml-2"></p>
                     </div>
 
                     <div>

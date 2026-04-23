@@ -82,8 +82,20 @@ public class AdminController {
     @PostMapping("/users/status/{id}")
     public String changeUserStatus(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
         accountService.changeStatus(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái người dùng thành công!");
-        return "redirect:/admin/users";
+        
+        // Fetch the account to determine where to redirect
+        var account = accountRepository.findById(id).orElse(null);
+        String redirectUrl = "/admin/users";
+        if (account != null && "USER".equals(account.getRole())) {
+            redirectUrl = "/admin/customers";
+        }
+        String message = "Cập nhật Trạng thái nhân viên thành công!";
+        if (account != null && "USER".equals(account.getRole())) {
+            message = "Cập nhật Trạng thái khách hàng thành công!";
+        }
+        
+        redirectAttributes.addFlashAttribute("successMessage", message);
+        return "redirect:" + redirectUrl;
     }
 
     @GetMapping("/dashboard")
@@ -180,7 +192,7 @@ public class AdminController {
         model.addAttribute("routes", routeRepository.findAll());
         model.addAttribute("coaches", coachService.getAllCoaches());
         model.addAttribute("drivers", tripService.listAssignableDrivers());
-        model.addAttribute("assistants", accountRepository.findByRoleAndStatusOrderByFullNameAsc("STAFF", StatusEnum.ACTIVE));
+        model.addAttribute("assistants", accountRepository.findByRoleAndStatusOrderByFullNameAsc("ASSISTANT", StatusEnum.ACTIVE));
         model.addAttribute("tripStatuses", TripStatusEnum.values());
     }
 

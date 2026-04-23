@@ -66,14 +66,14 @@ public class TripServiceImpl implements TripService {
     @Override
     public TripSearchResultDTO searchTrips(TripSearchRequestDTO request) {
         LocalDateTime now = LocalDateTime.now();
-        
+
         // 1. Tìm chuyến đi (Departure Trips)
         List<Trip> departureTrips = performSearchEntities(request.getFrom(), request.getTo(), request.getDate(), request, now);
         List<sp26.group.busticket.modules.dto.trip.response.TripResponseDTO> departureTripDTOs = departureTrips.stream()
                 .map(this::mapToClientResponseDTO)
                 .filter(dto -> dto.getSeatsLeft() != null && dto.getSeatsLeft() > 0)
                 .collect(Collectors.toList());
-        
+
         String dateLabel = "";
         String dateValue = "";
         if (request.getDate() != null && !request.getDate().isBlank()) {
@@ -96,14 +96,14 @@ public class TripServiceImpl implements TripService {
         // 2. Tìm chuyến về (Return Trips) nếu là khứ hồi
         if (request.isRoundTrip() && StringUtils.hasText(request.getReturnDate())) {
             List<Trip> returnTrips = performSearchEntities(request.getTo(), request.getFrom(), request.getReturnDate(), request, now);
-            
+
             // Áp dụng ràng buộc: (departureTime về > arrivalTime đi)
             if (!departureTrips.isEmpty() && !returnTrips.isEmpty()) {
                 LocalDateTime minArrivalOfDeparture = departureTrips.stream()
                         .map(Trip::getArrivalTime)
                         .min(LocalDateTime::compareTo)
                         .orElse(now);
-                
+
                 returnTrips = returnTrips.stream()
                         .filter(rt -> rt.getDepartureTime().isAfter(minArrivalOfDeparture))
                         .collect(Collectors.toList());
@@ -126,7 +126,7 @@ public class TripServiceImpl implements TripService {
 
     private List<Trip> performSearchEntities(
             String from, String to, String dateStr, TripSearchRequestDTO request, LocalDateTime now) {
-        
+
         List<Trip> trips;
         boolean hasDate = StringUtils.hasText(dateStr);
 
@@ -143,7 +143,7 @@ public class TripServiceImpl implements TripService {
 
         return trips.stream()
                 .filter(t -> request.getBusType() == null || request.getBusType().isEmpty() ||
-                        t.getCoach().getCoachType().equalsIgnoreCase(request.getBusType()))
+                        t.getCoach().getCoachType().getName().equalsIgnoreCase(request.getBusType()))
                 .filter(t -> request.getMaxPrice() == null ||
                         t.getPriceBase().compareTo(BigDecimal.valueOf(request.getMaxPrice())) <= 0)
                 .collect(Collectors.toList());
@@ -243,8 +243,8 @@ public class TripServiceImpl implements TripService {
                     .routeId(req.getReturnRouteId())
                     .coachId(req.getCoachId())
                     .driverId(req.getReturnDriverId())
-                    .secondDriverId(req.getReturnSecondDriverId())
-                    .assistantId(req.getReturnAssistantId())
+                .secondDriverId(req.getReturnSecondDriverId())
+                    .assistantId(req.getAssistantId()) // Dùng chung phụ xe cho cả 2 lượt
                     .departureTime(req.getReturnDepartureTime())
                     .arrivalTime(req.getReturnArrivalTime())
                     .priceBase(req.getPriceRoundTrip() != null ? req.getPriceRoundTrip() : req.getPriceBase())
@@ -660,8 +660,8 @@ public class TripServiceImpl implements TripService {
                 .toStation(trip.getRoute().getArrivalLocation().getName())
                 .fromCity(trip.getRoute().getDepartureLocation().getCity())
                 .toCity(trip.getRoute().getArrivalLocation().getCity())
-                .busType(trip.getCoach().getCoachType())
-                .busTypeLabel("Hạng " + trip.getCoach().getCoachType())
+                .busType(trip.getCoach().getCoachType().getName())
+                .busTypeLabel("Hạng " + trip.getCoach().getCoachType().getName())
                 .departureTime(trip.getDepartureTime().format(timeFmt))
                 .departureAmPm(trip.getDepartureTime().getHour() < 12 ? "SA" : "CH")
                 .bookedSeats(booked)

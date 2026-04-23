@@ -131,7 +131,7 @@ public class BookingServiceImpl implements BookingService {
                     .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
 
             BigDecimal returnTotal = returnTrip.getPriceBase().multiply(BigDecimal.valueOf(form.getReturnPassengers().size()));
-            
+
             Location returnPickup = locationRepository.findById(form.getReturnPickupLocationId())
                     .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Điểm đón chiều về không hợp lệ."));
             Location returnDropoff = locationRepository.findById(form.getReturnDropoffLocationId())
@@ -144,7 +144,7 @@ public class BookingServiceImpl implements BookingService {
             if (form.getReturnPickupLocationId().equals(form.getReturnDropoffLocationId())) {
                 throw new AppException(ErrorCode.INVALID_INPUT, "Điểm đón và điểm trả chiều về không được trùng nhau.");
             }
-            
+
             totalAmount = totalAmount.add(returnTotal); // Sum for single payment
 
             Booking returnBooking = Booking.builder()
@@ -355,7 +355,7 @@ public class BookingServiceImpl implements BookingService {
                 .departureTime(trip.getDepartureTime().format(timeFormatter))
                 .arrivalTime(trip.getArrivalTime().format(timeFormatter))
                 .dateLabel(trip.getDepartureTime().format(dateFormatter))
-                .busTypeLabel(trip.getCoach().getCoachType())
+                .busTypeLabel(trip.getCoach().getCoachType().getName())
                 .ticketCount((int) ticketRepository.findAll().stream().filter(t -> t.getBooking().getId().equals(bookingId)).count())
                 .totalFormatted(vnFormat.format(booking.getTotalAmount()))
                 .build();
@@ -426,14 +426,14 @@ public class BookingServiceImpl implements BookingService {
     private TicketConfirmationDTO buildTicketConfirmationDTO(Booking booking) {
         UUID bookingId = booking.getId();
         TicketConfirmationDTO outboundDTO = buildSingleTicketDTO(booking);
-        
+
         // Find return trip if exists
         List<Booking> children = bookingRepository.findByParentBooking_Id(bookingId);
         if (!children.isEmpty()) {
             outboundDTO.setRoundTrip(true);
             outboundDTO.setReturnTicket(buildSingleTicketDTO(children.get(0)));
         }
-        
+
         return outboundDTO;
     }
 
@@ -459,7 +459,7 @@ public class BookingServiceImpl implements BookingService {
         List<String> seatTicketLines = tickets.stream()
                 .map(t -> "[" + t.getSeat().getSeatNumber() + " | " + t.getTicketCode() + "]")
                 .toList();
-        
+
         String allSeats = tickets.stream()
                 .map(t -> t.getSeat().getSeatNumber())
                 .collect(Collectors.joining(", "));
@@ -506,7 +506,7 @@ public class BookingServiceImpl implements BookingService {
                 .seatLabel(allSeats)
                 .seatTicketLines(seatTicketLines)
                 .licensePlate(trip.getCoach().getPlateNumber())
-                .serviceType(trip.getCoach().getCoachType())
+                .serviceType(trip.getCoach().getCoachType().getName())
                 .passengerName(firstTicket.getPassengerName())
                 .totalFormatted(vnFormat.format(booking.getTotalAmount()))
                 .bookingDate(bookingDate)
@@ -516,7 +516,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<MyTripResponseDTO> getMyTrips(UUID accountId, String tab) {
         List<Booking> allBookings = bookingRepository.findByUser_IdOrderByCreatedAtDesc(accountId);
-        
+
         // Chỉ lấy booking cha hoặc booking đơn lẻ
         List<Booking> parentOrSingleBookings = allBookings.stream()
                 .filter(b -> b.getParentBooking() == null)
@@ -530,17 +530,17 @@ public class BookingServiceImpl implements BookingService {
         return parentOrSingleBookings.stream()
                 .map(b -> {
                     MyTripResponseDTO dto = buildMyTripResponseDTO(b, now, timeFormatter, fullDateTimeFormatter, dateFormatter);
-                    
+
                     // Tìm chuyến về nếu có
                     List<Booking> children = allBookings.stream()
                             .filter(child -> child.getParentBooking() != null && child.getParentBooking().getId().equals(b.getId()))
                             .toList();
-                    
+
                     if (!children.isEmpty()) {
                         dto.setRoundTrip(true);
                         dto.setReturnTrip(buildMyTripResponseDTO(children.get(0), now, timeFormatter, fullDateTimeFormatter, dateFormatter));
                     }
-                    
+
                     return dto;
                 })
                 .filter(dto -> {
@@ -607,6 +607,35 @@ public class BookingServiceImpl implements BookingService {
                 .bookingDate(bookingDate)
                 .isCancellable(status == BookingStatusEnum.CONFIRMED && trip.getDepartureTime().minusHours(2).isAfter(now))
                 .build();
+                    return MyTripResponseDTO.builder()
+                            .id(b.getId())
+                            .bookingCode(b.getBookingCode())
+                            .status(status)
+                            .busTypeLabel(trip.getCoach().getCoachType().getName())
+                            .daysUntilDeparture(java.time.Duration.between(now, trip.getDepartureTime()).toDays())
+                            .fromCity(trip.getRoute().getDepartureLocation().getCity())
+                            .departureStation(b.getPickupLocation().getName())
+                            .departureTime(trip.getDepartureTime().format(timeFormatter))
+                            .toCity(trip.getRoute().getArrivalLocation().getCity())
+                            .arrivalStation(b.getDropoffLocation().getName())
+                            .arrivalTime(trip.getArrivalTime().format(timeFormatter))
+                            .pickupLocationName(b.getPickupLocation().getName())
+                            .dropoffLocationName(b.getDropoffLocation().getName())
+                            .pickupTime(actualPickupTime.format(timeFormatter))
+                            .dropoffTime(actualDropoffTime.format(timeFormatter))
+                            .bookingDate(bookingDate)
+                            .isCancellable(status == BookingStatusEnum.CONFIRMED && trip.getDepartureTime().minusHours(2).isAfter(now))
+                            .build();
+                })
+                .filter(dto -> {
+                    if (tab == null || tab.equalsIgnoreCase("all")) return true;
+                    if (tab.equalsIgnoreCase("upcoming")) {
+                        return dto.getStatus() == BookingStatusEnum.CONFIRMED ||
+                               dto.getStatus() == BookingStatusEnum.PENDING;
+                    }
+                    return dto.getStatus().name().equalsIgnoreCase(tab);
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -704,7 +733,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         TicketDetailResponseDTO outboundDTO = buildSingleTicketDetailDTO(booking);
-        
+
         // Handle roundtrip if this is a parent or child
         Booking parent = booking.getParentBooking();
         if (parent != null) {
@@ -738,7 +767,7 @@ public class BookingServiceImpl implements BookingService {
         Locale localeVN = new Locale("vi", "VN");
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", localeVN);
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        
+
         return TicketDetailResponseDTO.builder()
                 .bookingCode(booking.getBookingCode())
                 .status(booking.getStatus())
@@ -766,6 +795,7 @@ public class BookingServiceImpl implements BookingService {
                 .licensePlate(trip.getCoach().getPlateNumber())
                 .coachType(trip.getCoach().getCoachType())
                 .serviceType(trip.getCoach().getCoachType())
+                .coachType(trip.getCoach().getCoachType().getName())
                 .basePrice(trip.getPriceBase().doubleValue())
                 .seatCount(tickets.size())
                 .totalAmount(booking.getTotalAmount().doubleValue())
