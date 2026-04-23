@@ -51,4 +51,9 @@ public class LocationServiceImpl implements LocationService {
     public Location saveLocation(Location location) {
         return locationRepository.save(location);
     }
+
+    @Override
+    public List<Location> getLocationsByType(String type) {
+        return locationRepository.findByLocationType(type);
+    }
 }

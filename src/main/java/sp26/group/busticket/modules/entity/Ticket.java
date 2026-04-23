@@ -7,6 +7,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -41,4 +42,11 @@ public class Ticket extends BaseEntity {
 
     @Column(name = "ticket_code", nullable = false, unique = true)
     private String ticketCode;
+
+    /**
+     * Trạng thái vé: PENDING (Chưa lên xe), CHECKED_IN (Đã lên xe), CANCELLED (Đã hủy)
+     */
+    @Builder.Default
+    @Column(name = "status", nullable = false, columnDefinition = "NVARCHAR(20) DEFAULT 'PENDING'")
+    private String status = "PENDING";
 }

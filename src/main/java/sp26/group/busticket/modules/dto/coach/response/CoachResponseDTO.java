@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import sp26.group.busticket.modules.enumType.CoachStatusEnum;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -20,6 +22,8 @@ public class CoachResponseDTO {
     String plateNumber;
     String coachType;
     Integer totalSeats;
+    CoachStatusEnum status;
+    String statusLabel;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 }

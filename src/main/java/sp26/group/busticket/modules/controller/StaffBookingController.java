@@ -1,6 +1,7 @@
 package sp26.group.busticket.modules.controller;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Collections;
@@ -22,14 +23,19 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import sp26.group.busticket.common.exception.AppException;
+import sp26.group.busticket.common.exception.ErrorCode;
 import sp26.group.busticket.modules.dto.booking.request.StaffBookingRequestDTO;
 import sp26.group.busticket.modules.dto.trip.request.TripSearchRequestDTO;
 import sp26.group.busticket.modules.entity.Account;
+import sp26.group.busticket.modules.entity.Trip;
 import sp26.group.busticket.modules.repository.AccountRepository;
+import sp26.group.busticket.modules.repository.TripRepository;
 import sp26.group.busticket.modules.service.BookingService;
 import sp26.group.busticket.modules.service.LocationService;
 import sp26.group.busticket.modules.service.SeatService;
 import sp26.group.busticket.modules.service.TripService;
+import sp26.group.busticket.modules.mapper.TripMapper;
+import sp26.group.busticket.modules.dto.trip.response.TripBookingResponseDTO;
 
 @Controller
 @RequestMapping("/staff/booking")
@@ -42,6 +48,8 @@ public class StaffBookingController {
     private final SeatService seatService;
     private final LocationService locationService;
     private final AccountRepository accountRepository;
+    private final TripRepository tripRepository;
+    private final TripMapper tripMapper;
 
     // 1. Xem danh sách chuyến đi (Staff Dashboard)
     @GetMapping("/trips")
@@ -50,7 +58,8 @@ public class StaffBookingController {
             searchDTO.setDate(LocalDate.now().toString());
         }
         
-        model.addAttribute("locations", locationService.getAllLocations());
+        model.addAttribute("locations", locationService.getLocationsByType("TERMINAL"));
+        // model.addAttribute("locations", locationService.getAllLocations());
         
         if (searchDTO.getFrom() == null || searchDTO.getTo() == null || searchDTO.getFrom().isBlank() || searchDTO.getTo().isBlank()) {
             model.addAttribute("trips", Collections.emptyList());
@@ -95,10 +104,21 @@ public class StaffBookingController {
     }
 
     private void populateCreateFormModel(UUID tripId, Model model) {
-        BigDecimal unitPrice = tripService.getBasePriceByTripId(tripId);
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
+
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("EEEE, dd/MM • HH:mm");
+        TripBookingResponseDTO tripDTO = tripMapper.toTripBookingResponseDTO(trip);
+        tripDTO.setDepartureDateTimeLabel(trip.getDepartureTime().format(dateTimeFormatter));
+        tripDTO.setArrivalDateTimeLabel(trip.getArrivalTime().format(dateTimeFormatter));
+        tripDTO.setStopEtas(tripService.getTripStopEtas(tripId));
+        tripDTO.setExpired(false);
+
+        BigDecimal unitPrice = trip.getPriceBase();
         NumberFormat vnCurrency = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
 
         model.addAttribute("tripId", tripId);
+        model.addAttribute("trip", tripDTO);
         model.addAttribute("lowerDeckSeats", seatService.getSeatsByTripAndFloor(tripId, 1));
         model.addAttribute("upperDeckSeats", seatService.getSeatsByTripAndFloor(tripId, 2));
         model.addAttribute("unitPrice", unitPrice);
@@ -107,8 +127,11 @@ public class StaffBookingController {
 
     // 4. Màn hình thành công
     @GetMapping("/success/{bookingId}")
-    public String showSuccess(@PathVariable UUID bookingId, Model model) {
-        model.addAttribute("ticket", bookingService.getBookingSuccessInfo(bookingId));
+    public String showSuccess(@PathVariable UUID bookingId, 
+                             @AuthenticationPrincipal UserDetails userDetails,
+                             Model model) {
+        Account staff = accountRepository.findByEmail(userDetails.getUsername()).orElseThrow();
+        model.addAttribute("ticket", bookingService.getStaffBookingSuccessInfo(bookingId, staff.getId()));
         return "staff/booking-success";
     }
 }

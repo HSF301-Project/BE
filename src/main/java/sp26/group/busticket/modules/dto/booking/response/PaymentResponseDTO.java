@@ -20,6 +20,10 @@ public class PaymentResponseDTO {
     private String toCity;
     private String departureTime;
     private String arrivalTime;
+    private String pickupLocationName;
+    private String dropoffLocationName;
+    private String pickupTime;
+    private String dropoffTime;
     private String dateLabel;
     private String busTypeLabel;
     private Integer ticketCount;

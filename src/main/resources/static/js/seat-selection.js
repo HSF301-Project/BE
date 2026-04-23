@@ -230,6 +230,32 @@
 
     // ── Init ──────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function () {
+        // Check for pre-filled data (e.g., from Flash Attributes after cancel)
+        const prefilledEl = $('#prefilled-booking-data');
+        if (prefilledEl && prefilledEl.dataset.passengers) {
+            try {
+                const passengers = JSON.parse(prefilledEl.dataset.passengers);
+                if (passengers && passengers.length > 0) {
+                    // Mark seats as selected
+                    passengers.forEach(p => {
+                        const seatBtn = $(`.seat-btn[data-seat-id="${p.seatId}"]`);
+                        if (seatBtn) {
+                            selectedSeats.push({ seatId: p.seatId, deck: p.deck });
+                            seatBtn.classList.add('bg-secondary', 'text-white');
+                            seatBtn.classList.remove('bg-[#AACDDC]');
+                        }
+                    });
+
+                    // We'll let refreshPassengerForms use the first passenger's info
+                    // We need to temporarily "mock" the inputs so refreshPassengerForms picks them up
+                    const firstP = passengers[0];
+                    // Instead of mocking, we can just modify refreshPassengerForms to check prefilled data
+                }
+            } catch (e) {
+                console.error('Error parsing prefilled passengers', e);
+            }
+        }
+
         // Wire up seat buttons
         $$('.seat-btn').forEach(btn => {
             btn.addEventListener('click', () => handleSeatClick(btn));
@@ -237,6 +263,25 @@
 
         // Initial state
         refreshPassengerForms();
+        
+        // If we had prefilled data, we need to set the values after the first render
+        if (prefilledEl && prefilledEl.dataset.passengers) {
+            const passengers = JSON.parse(prefilledEl.dataset.passengers);
+            const firstP = passengers[0];
+            const nameInput = $('#primary-passenger-name');
+            const phoneInput = $('#primary-passenger-phone');
+            const emailInput = $('#primary-passenger-email');
+            
+            if (nameInput) nameInput.value = firstP.fullName || '';
+            if (phoneInput) phoneInput.value = firstP.phoneNumber || '';
+            if (emailInput) emailInput.value = firstP.email || '';
+            
+            // Sync to copies
+            syncPassengerNameCopies(firstP.fullName || '');
+            syncPassengerPhoneCopies(firstP.phoneNumber || '');
+            syncPassengerEmailCopies(firstP.email || '');
+        }
+
         refreshSummary();
     });
 })();

@@ -14,6 +14,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import sp26.group.busticket.common.exception.AppException;
 import sp26.group.busticket.modules.dto.coach.request.CoachRequestDTO;
 import sp26.group.busticket.modules.service.CoachService;
+import sp26.group.busticket.modules.repository.CoachTypeRepository;
+import sp26.group.busticket.modules.entity.CoachType;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.UUID;
 
@@ -23,6 +26,7 @@ import java.util.UUID;
 public class CoachController {
 
     private final CoachService coachService;
+    private final CoachTypeRepository coachTypeRepository;
 
     @GetMapping
     public String listCoaches(Model model) {
@@ -33,6 +37,7 @@ public class CoachController {
     @GetMapping("/create")
     public String showCreateForm(Model model) {
         model.addAttribute("coachDTO", new CoachRequestDTO());
+        model.addAttribute("coachTypes", coachTypeRepository.findAll());
         model.addAttribute("title", "Thêm xe mới");
         return "Admin/coach-form";
     }
@@ -40,6 +45,7 @@ public class CoachController {
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable UUID id, Model model) {
         model.addAttribute("coachDTO", coachService.getCoachById(id));
+        model.addAttribute("coachTypes", coachTypeRepository.findAll());
         model.addAttribute("title", "Cập nhật thông tin xe");
         model.addAttribute("isEdit", true);
         model.addAttribute("coachId", id);
@@ -107,5 +113,51 @@ public class CoachController {
         model.addAttribute("coachDetail", coachService.getCoachDetail(id));
         model.addAttribute("title", "Chi tiết phương tiện");
         return "Admin/coach-detail";
+    }
+
+    @GetMapping("/types")
+    public String listCoachTypes(Model model) {
+        model.addAttribute("coachTypes", coachTypeRepository.findAll());
+        model.addAttribute("title", "Danh sách phân loại xe");
+        return "Admin/coach-type";
+    }
+
+    @PostMapping("/add-type")
+    public String addCoachType(@RequestParam String name, @RequestParam(required = false) String description, RedirectAttributes redirectAttributes) {
+        try {
+            CoachType type = new CoachType();
+            type.setName(name);
+            type.setDescription(description != null ? description : "Người dùng thêm");
+            coachTypeRepository.save(type);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã thêm dòng xe mới: " + name);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Dòng xe này đã tồn tại hoặc có lỗi xảy ra!");
+        }
+        return "redirect:/admin/coaches/types";
+    }
+
+    @PostMapping("/update-type/{id}")
+    public String updateCoachType(@PathVariable UUID id, @RequestParam String name, @RequestParam(required = false) String description, RedirectAttributes redirectAttributes) {
+        try {
+            CoachType type = coachTypeRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy dữ liệu"));
+            type.setName(name);
+            type.setDescription(description);
+            coachTypeRepository.save(type);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật phân loại xe thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Tên phân loại này đã tồn tại hoặc có lỗi xảy ra!");
+        }
+        return "redirect:/admin/coaches/types";
+    }
+
+    @PostMapping("/delete-type/{id}")
+    public String deleteCoachType(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+        try {
+            coachTypeRepository.deleteById(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Xóa phân loại xe thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa phân loại xe này!");
+        }
+        return "redirect:/admin/coaches/types";
     }
 }

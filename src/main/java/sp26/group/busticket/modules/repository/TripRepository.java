@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import sp26.group.busticket.modules.entity.Trip;
+import sp26.group.busticket.modules.enumType.TripStatusEnum;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,6 +46,10 @@ public interface TripRepository extends JpaRepository<Trip, UUID> {
     Page<Trip> findByRoute_DepartureLocation_NameContainingOrRoute_ArrivalLocation_NameContainingAndTripStatus(String query1, String query2, sp26.group.busticket.modules.enumType.TripStatusEnum status, Pageable pageable);
 
     Page<Trip> findByTripStatus(sp26.group.busticket.modules.enumType.TripStatusEnum status, Pageable pageable);
+
+    List<Trip> findByDriver_IdAndTripStatusInOrAssistant_IdAndTripStatusInOrderByDepartureTimeAsc(
+            UUID driverId, Collection<TripStatusEnum> statuses1,
+            UUID assistantId, Collection<TripStatusEnum> statuses2);
 
     long countByTripStatus(sp26.group.busticket.modules.enumType.TripStatusEnum status);
 }

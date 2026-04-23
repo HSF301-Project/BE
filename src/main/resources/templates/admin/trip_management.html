@@ -128,9 +128,10 @@
                             <div class="flex items-center gap-1.5">
                                 <span th:if="${trip.hasIssue}" class="ms ms-fill text-red-500 text-[16px] animate-pulse" title="Có vấn đề">warning</span>
                                 <div class="relative group/code flex items-center">
-                                    <span class="font-mono text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded cursor-default"
-                                          th:title="${trip.tripCode}"
-                                          th:text="${#strings.length(trip.tripCode) > 10 ? #strings.substring(trip.tripCode,0,10) + '…' : trip.tripCode}">TRP-0d38…</span>
+                                    <a th:href="@{/admin/trips/detail/{id}(id=${trip.id})}"
+                                       class="font-mono text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded hover:bg-brand-100 transition-colors"
+                                       th:title="'Xem chi tiết: ' + ${trip.tripCode}"
+                                       th:text="${#strings.length(trip.tripCode) > 10 ? #strings.substring(trip.tripCode,0,10) + '…' : trip.tripCode}">TRP-0d38…</a>
                                     <button class="copy-btn" title="Copy"><span class="ms text-[14px]">content_copy</span></button>
                                 </div>
                             </div>
@@ -257,9 +258,12 @@
                         <!-- Thao tác -->
                         <td class="td text-right">
                             <div class="flex items-center justify-end gap-0.5">
-                                <button class="quick-action" title="Gọi điện tài xế"><span class="ms text-[18px]">call</span></button>
-                                <button class="quick-action" title="Danh sách khách"><span class="ms text-[18px]">group</span></button>
-                                <button class="quick-action" title="In lệnh xuất bến"><span class="ms text-[18px]">print</span></button>
+                                <button class="btn-icon" title="Gọi điện tài xế"><span class="ms text-[18px]">call</span></button>
+                                <a th:href="@{/admin/trips/detail/{id}(id=${trip.id})}"
+                                   class="btn-icon text-brand-600 bg-brand-50/50 hover:bg-brand-100" title="Sơ đồ & Khách">
+                                    <span class="ms text-[18px]">airline_seat_recline_extra</span>
+                                </a>
+                                <button class="btn-icon" title="In lệnh xuất bến"><span class="ms text-[18px]">print</span></button>
                                 <a th:href="@{/admin/trips/{id}/edit(id=${trip.id})}"
                                    class="btn-icon opacity-100 text-brand-600 hover:bg-brand-50" title="Chỉnh sửa">
                                     <span class="ms text-[18px]">edit</span>

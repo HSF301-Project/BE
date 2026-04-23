@@ -12,4 +12,5 @@ public interface LocationService {
     List<Location> getLocationsSortedByCity();
     Optional<Location> findById(UUID id);
     Location saveLocation(Location location);
+    List<Location> getLocationsByType(String type);
 }

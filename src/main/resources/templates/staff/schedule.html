@@ -22,8 +22,20 @@
         </div>
     </header>
 
+    <!-- Messages -->
+    <div th:if="${successMessage}"
+         class="mb-6 p-4 bg-emerald-50 text-emerald-700 rounded-2xl flex items-center gap-3 border border-emerald-100">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">check_circle</span>
+        <p class="font-semibold" th:text="${successMessage}"></p>
+    </div>
+    <div th:if="${errorMessage}"
+         class="mb-6 p-4 bg-red-50 text-red-700 rounded-2xl flex items-center gap-3 border border-red-100">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">error</span>
+        <p class="font-semibold" th:text="${errorMessage}"></p>
+    </div>
+
     <!-- Current trip card + stats grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10" th:if="${currentBus != null}">
 
         <!-- Current bus card -->
         <div class="lg:col-span-2 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
@@ -37,7 +49,8 @@
                         <h2 class="text-2xl font-black text-slate-800" th:text="${currentBus.plateNumber}">29B-124.56</h2>
                     </div>
                 </div>
-                <span class="bg-blue-50 text-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider">Sắp chạy</span>
+                <span th:if="${currentTrip.tripStatus.name() == 'SCHEDULED'}" class="bg-blue-50 text-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider">Sắp chạy</span>
+                <span th:if="${currentTrip.tripStatus.name() == 'DEPARTED'}" class="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider">Đang chạy</span>
             </div>
 
             <!-- Route -->
@@ -65,6 +78,10 @@
                         <p class="text-[10px] font-bold text-slate-400 mb-1">Giờ khởi hành</p>
                         <p class="text-2xl font-black text-primary" th:text="${currentBus.departureTime}">08:30</p>
                     </div>
+                    <div th:if="${currentBus.actualDepartureTime != null}">
+                        <p class="text-[10px] font-bold text-emerald-500 mb-1">Giờ chạy thực tế</p>
+                        <p class="text-2xl font-black text-emerald-600" th:text="${currentBus.actualDepartureTime}">08:45</p>
+                    </div>
                     <div>
                         <p class="text-[10px] font-bold text-slate-400 mb-1">Ngày xuất phát</p>
                         <p class="font-bold text-slate-700" th:text="${currentBus.date}">Hôm nay</p>
@@ -72,48 +89,59 @@
                 </div>
             </div>
 
-            <button class="w-full py-4 bg-primary hover:bg-primary/90 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all active:scale-95">
-                <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">play_arrow</span>
-                Bắt đầu hành trình
-            </button>
+            <div class="flex gap-4">
+                <form th:if="${currentTrip.tripStatus.name() == 'SCHEDULED'}" th:action="@{/staff/operations/trips/{id}/start(id=${currentTrip.id})}" method="post" class="flex-1">
+                    <button type="submit" 
+                            th:disabled="${!currentBus.canStart}"
+                            th:classappend="${!currentBus.canStart ? 'opacity-50 cursor-not-allowed grayscale' : ''}"
+                            class="w-full py-4 bg-primary hover:bg-primary/90 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all active:scale-95">
+                        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">play_arrow</span>
+                        Bắt đầu hành trình
+                    </button>
+                    <p th:if="${!currentBus.canStart}" class="text-[10px] text-center text-slate-400 mt-2 font-bold uppercase tracking-wider">
+                        Vui lòng đợi đến giờ khởi hành
+                    </p>
+                </form>
+                
+                <th:block th:if="${currentTrip.tripStatus.name() == 'DEPARTED'}">
+                    <a th:href="@{/staff/operations/trips/{id}/checkin(id=${currentTrip.id})}"
+                       class="flex-[2] py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 transition-all active:scale-95">
+                        <span class="material-symbols-outlined">qr_code_scanner</span>
+                        Tiếp tục kiểm vé
+                    </a>
+                    <form th:action="@{/staff/operations/trips/{id}/finish(id=${currentTrip.id})}" method="post" class="flex-1"
+                          onsubmit="return confirm('Bạn có chắc chắn muốn kết thúc chuyến đi này? Thao tác này sẽ đóng chuyến đi và ghi nhận giờ về bến.')">
+                        <button type="submit" class="w-full py-4 bg-slate-800 hover:bg-black text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95">
+                            <span class="material-symbols-outlined">flag</span>
+                            Kết thúc
+                        </button>
+                    </form>
+                </th:block>
+            </div>
         </div>
 
         <!-- Stats column -->
         <div class="space-y-6">
-            <!-- Total passengers -->
-            <div class="bg-primary rounded-3xl p-6 text-white relative overflow-hidden shadow-lg">
-                <p class="text-sm font-medium opacity-80">Tổng số khách</p>
-                <h3 class="text-5xl font-black my-2" th:text="${totalPassengers}">—</h3>
-                <p class="text-xs font-bold opacity-70">Công suất xe đầy</p>
-                <span class="material-symbols-outlined absolute right-[-10px] bottom-[-10px] text-8xl opacity-10 pointer-events-none">groups</span>
-            </div>
-
-            <!-- Check-in progress -->
-            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-                <div class="flex justify-between items-end mb-4">
-                    <p class="text-sm font-bold text-slate-500">Đã check-in</p>
-                    <p class="font-black text-xl text-slate-800">
-                        <span th:text="${checkedInCount}">—</span>/<span th:text="${totalPassengers}">—</span>
-                    </p>
+            <div class="bg-primary-container text-white rounded-3xl p-8 shadow-sm">
+                <p class="text-[10px] font-black uppercase tracking-wider opacity-60 mb-2">Tổng số khách</p>
+                <div class="flex items-end gap-3 mb-6">
+                    <h3 class="text-5xl font-black" th:text="${totalPassengers}">32</h3>
+                    <span class="text-sm font-bold opacity-60 mb-1">Công suất xe đầy</span>
                 </div>
-                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                    <div class="bg-secondary h-full rounded-full transition-all"
-                         th:style="${totalPassengers != null and totalPassengers > 0}
-                             ? ('width: ' + (${checkedInCount}*100/${totalPassengers}) + '%')
-                             : 'width: 0%'"></div>
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/10 p-2 rounded-xl">
+                        <span class="material-symbols-outlined">groups</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Map placeholder -->
-            <div class="rounded-3xl h-40 bg-slate-200 relative overflow-hidden group cursor-pointer">
-                <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=500"
-                     class="w-full h-full object-cover grayscale opacity-70 group-hover:opacity-80 transition-opacity"
-                     alt="Route map"/>
-                <div class="absolute inset-0 bg-black/20 flex items-center justify-center">
-                    <button class="bg-white/90 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xl hover:bg-white transition-colors">
-                        <span class="material-symbols-outlined text-sm text-primary">map</span>
-                        Xem lộ trình chi tiết
-                    </button>
+            <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Đã check-in</p>
+                    <p class="text-xl font-black text-slate-800"><span th:text="${checkedInCount}">18</span>/<span th:text="${totalPassengers}">32</span></p>
+                </div>
+                <div class="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary rounded-full transition-all" th:style="'width: ' + (${totalPassengers} > 0 ? (${checkedInCount} * 100 / ${totalPassengers}) : 0) + '%'"></div>
                 </div>
             </div>
         </div>
@@ -144,20 +172,105 @@
                     </div>
                 </div>
                 <div class="flex gap-3">
-                    <button class="text-sm font-bold text-primary hover:underline">Chi tiết</button>
-                    <button th:if="${trip.status == 'SẮP CHẠY'}"
-                            class="bg-primary text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-primary/90 transition-all active:scale-95">
-                        Bắt đầu
-                    </button>
-                    <button th:unless="${trip.status == 'SẮP CHẠY'}"
-                            class="bg-slate-100 text-slate-500 px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all">
+                    <button th:onclick="openTripDetail([[${trip}]])"
+                       class="text-sm font-bold text-primary hover:underline">Chi tiết</button>
+                    <form th:if="${trip.status == 'SẮP CHẠY'}" th:action="@{/staff/operations/trips/{id}/start(id=${trip.id})}" method="post">
+                        <button type="submit"
+                                class="bg-primary text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-primary/90 transition-all active:scale-95">
+                            Bắt đầu
+                        </button>
+                    </form>
+                    <a th:unless="${trip.status == 'SCHEDULED'}" th:href="@{/staff/operations/trips/{id}/checkin(id=${trip.id})}"
+                            class="bg-slate-100 text-slate-500 px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all text-center">
                         Quản lý
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
 </main>
+
+<!-- Trip Detail Modal -->
+<div id="tripDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+        <div class="bg-primary p-8 text-white relative">
+            <button onclick="closeTripModal()" class="absolute top-6 right-6 text-white/60 hover:text-white transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <div class="flex items-center gap-4">
+                <div class="bg-white/20 p-3 rounded-2xl">
+                    <span class="material-symbols-outlined">info</span>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-widest opacity-60">Chi tiết chuyến xe</p>
+                    <h3 id="modalTripRoute" class="text-2xl font-black">Hành trình</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-8 grid grid-cols-2 gap-8">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Trạng thái</p>
+                    <span id="modalTripStatus" class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider"></span>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Thông tin xe</p>
+                    <p id="modalTripCoach" class="font-bold text-slate-800"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nhân sự</p>
+                    <p id="modalTripStaff" class="font-bold text-slate-800"></p>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Thời gian khởi hành (Thực tế)</p>
+                    <p id="modalTripDeparture" class="text-lg font-black text-primary"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Thời gian về bến (Thực tế)</p>
+                    <p id="modalTripArrival" class="text-lg font-black text-emerald-600"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Thống kê khách</p>
+                    <p id="modalTripPassenger" class="font-bold text-slate-800"></p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-8 pt-0 flex justify-end">
+            <button onclick="closeTripModal()" class="px-8 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-all">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    function openTripDetail(trip) {
+        document.getElementById('modalTripRoute').innerText = trip.origin + ' → ' + trip.destination;
+        
+        const statusEl = document.getElementById('modalTripStatus');
+        statusEl.innerText = trip.status;
+        statusEl.className = 'px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ';
+        if (trip.status === 'SẮP CHẠY') statusEl.classList.add('bg-blue-50', 'text-blue-600');
+        else if (trip.status === 'ĐANG CHẠY') statusEl.classList.add('bg-amber-50', 'text-amber-600');
+        else statusEl.classList.add('bg-emerald-50', 'text-emerald-600');
+
+        document.getElementById('modalTripCoach').innerHTML = `<span class="text-primary">${trip.plate}</span> (${trip.coachType})`;
+        document.getElementById('modalTripStaff').innerHTML = `TX: ${trip.driverName}<br>PX: ${trip.assistantName}`;
+        document.getElementById('modalTripDeparture').innerText = trip.actualDeparture;
+        document.getElementById('modalTripArrival').innerText = trip.actualArrival;
+        document.getElementById('modalTripPassenger').innerText = `${trip.checkedInCount} / ${trip.passengerCount} khách đã lên xe`;
+
+        document.getElementById('tripDetailModal').classList.remove('hidden');
+    }
+
+    function closeTripModal() {
+        document.getElementById('tripDetailModal').classList.add('hidden');
+    }
+</script>
+
 </body>
 </html>
