@@ -8,10 +8,10 @@ import sp26.group.busticket.infrastructure.persistence.BaseEntity;
 @Table(name = "coach_types")
 public class CoachType extends BaseEntity {
 
-    @Column(unique = true, nullable = false, length = 100)
+    @Column(unique = true, nullable = false, columnDefinition = "NVARCHAR(100)")
     private String name;
     
-    @Column(length = 255)
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String description;
 
     public String getName() {

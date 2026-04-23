@@ -107,16 +107,16 @@
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Khoảng cách (km)</label>
+                            <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2 min-h-[32px] flex items-end">Khoảng cách (km)</label>
                             <input type="number" step="0.1" min="0" th:field="*{distanceKm}" id="distanceKm" 
                                    oninput="updateReturnPreview()"
                                    class="w-full rounded-xl border-surface-border bg-white"/>
                             <p class="text-red-600 text-xs mt-1" th:if="${#fields.hasErrors('distanceKm')}" th:errors="*{distanceKm}"></p>
                         </div>
                         <div>
-                            <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">
+                            <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2 min-h-[32px]">
                                 Thời lượng (phút)
-                                <span class="normal-case font-medium text-[10px] opacity-60 ml-1">(t = S/v * 1.2, v=50km/h)</span>
+                                <span class="block normal-case font-medium text-[10px] opacity-60">(t = S/v * 1.2, v=50km/h)</span>
                             </label>
                             <input type="number" step="1" min="1" th:field="*{durationMinutes}" id="durationMinutes" 
                                    oninput="updateReturnPreview()"
@@ -164,14 +164,14 @@
                             <!-- KM & Thời gian khứ hồi -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">Khoảng cách (km)</label>
+                                    <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2 min-h-[32px] flex items-end">Khoảng cách (km)</label>
                                     <input type="number" step="0.1" id="previewReturnKm" 
                                            class="w-full rounded-xl border-surface-border bg-white"/>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2">
+                                    <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2 min-h-[32px]">
                                          Thời lượng (phút)
-                                         <span class="normal-case font-medium text-[10px] opacity-60 ml-1">(t = S/v * 1.2)</span>
+                                         <span class="block normal-case font-medium text-[10px] opacity-60">(t = S/v * 1.2)</span>
                                      </label>
                                     <input type="number" step="1" id="previewReturnDuration" 
                                            class="w-full rounded-xl border-surface-border bg-white"/>
@@ -260,9 +260,9 @@
                                 </select>
                             </div>
                             <div class="md:col-span-2">
-                                <label class="block text-[11px] font-extrabold uppercase tracking-wider text-ink-faint mb-1">
+                                <label class="block text-[11px] font-extrabold uppercase tracking-wider text-ink-faint mb-1 min-h-[28px]">
                                      +Phút
-                                     <span class="normal-case font-medium text-[9px] opacity-60">(t = S/v * 1.2)</span>
+                                     <span class="block normal-case font-medium text-[9px] opacity-60">(t = S/v * 1.2)</span>
                                  </label>
                                 <input type="number" step="1" min="0" class="wp-offset w-full rounded-xl border-surface-border bg-white" placeholder="45"/>
                             </div>
