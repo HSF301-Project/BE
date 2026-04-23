@@ -22,10 +22,8 @@ import sp26.group.busticket.modules.entity.Account;
 import sp26.group.busticket.modules.entity.Location;
 import sp26.group.busticket.modules.entity.Route;
 import sp26.group.busticket.modules.entity.RouteStop;
-import sp26.group.busticket.modules.repository.AccountRepository;
-import sp26.group.busticket.modules.repository.LocationRepository;
-import sp26.group.busticket.modules.repository.RouteRepository;
-import sp26.group.busticket.modules.repository.RouteStopRepository;
+import sp26.group.busticket.modules.service.LocationService;
+import sp26.group.busticket.modules.service.RouteService;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -38,10 +36,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminInfrastructureController {
 
-    private final AccountRepository accountRepository;
-    private final LocationRepository locationRepository;
-    private final RouteRepository routeRepository;
-    private final RouteStopRepository routeStopRepository;
+    private final LocationService locationService;
+    private final RouteService routeService;
 
     @GetMapping
     public String infrastructure(@RequestParam(name = "tab", defaultValue = "stations") String tab, 
@@ -49,9 +45,8 @@ public class AdminInfrastructureController {
         model.addAttribute("activeTab", tab);
 
         // Thống kê thực tế từ DB
-        long totalLocations = locationRepository.count();
-        long totalCities = locationRepository.findAll().stream()
-                .map(Location::getCity).distinct().count();
+        long totalLocations = locationService.countTotalStations();
+        long totalCities = locationService.countTotalCities();
 
         Map<String, Object> infraMap = new HashMap<>();
         infraMap.put("priorityRoutes", List.of());
@@ -67,8 +62,8 @@ public class AdminInfrastructureController {
         model.addAttribute("infra", infraMap);
 
         // Danh sách địa điểm và tuyến đường cho tab
-        model.addAttribute("stations", listLocations());
-        model.addAttribute("routes", routeRepository.findAll());
+        model.addAttribute("stations", locationService.getLocationsSortedByCity());
+        model.addAttribute("routes", routeService.getAllRoutes());
         model.addAttribute("activePage", "infrastructure");
         return "Admin/infrastructure_setup";
     }
@@ -84,7 +79,7 @@ public class AdminInfrastructureController {
 
     @GetMapping("/stations/{id}/edit")
     public String editStation(@PathVariable java.util.UUID id, Model model) {
-        Location location = locationRepository.findById(id)
+        Location location = locationService.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy địa điểm."));
         model.addAttribute("location", location);
         model.addAttribute("activePage", "infrastructure");
@@ -95,18 +90,7 @@ public class AdminInfrastructureController {
     public String saveStation(@ModelAttribute("location") Location location,
                               Model model,
                               RedirectAttributes redirectAttributes) {
-        if (location.getId() != null) {
-            Location existing = locationRepository.findById(location.getId())
-                    .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy địa điểm."));
-            existing.setName(location.getName());
-            existing.setCity(location.getCity());
-            existing.setAddress(location.getAddress());
-            existing.setLocationType(location.getLocationType());
-            existing.setNotes(location.getNotes());
-            locationRepository.save(existing);
-        } else {
-            locationRepository.save(location);
-        }
+        locationService.saveLocation(location);
         redirectAttributes.addFlashAttribute("message", "Địa điểm '" + location.getName() + "' đã được lưu thành công!");
         return "redirect:/admin/infrastructure?tab=stations";
     }
@@ -116,14 +100,14 @@ public class AdminInfrastructureController {
     @GetMapping("/routes/new")
     public String newRoute(Model model) {
         model.addAttribute("routeRequest", RouteRequestDTO.builder().build());
-        model.addAttribute("locations", listLocations());
+        model.addAttribute("locations", locationService.getLocationsSortedByCity());
         model.addAttribute("activePage", "infrastructure");
         return "Admin/route-form";
     }
 
     @GetMapping("/routes/{id}/edit")
     public String editRoute(@PathVariable java.util.UUID id, Model model) {
-        Route route = routeRepository.findById(id)
+        Route route = routeService.getRouteById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy tuyến đường."));
         
         List<RouteStopRequestDTO> stopDTOs = route.getStops().stream()
@@ -148,7 +132,7 @@ public class AdminInfrastructureController {
                 .build();
 
         model.addAttribute("routeRequest", req);
-        model.addAttribute("locations", listLocations());
+        model.addAttribute("locations", locationService.getLocationsSortedByCity());
         model.addAttribute("activePage", "infrastructure");
         return "Admin/route-form";
     }
@@ -159,57 +143,14 @@ public class AdminInfrastructureController {
                             Model model,
                             RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            model.addAttribute("locations", listLocations());
+            model.addAttribute("locations", locationService.getLocationsSortedByCity());
             return "Admin/route-form";
         }
 
-        Location dep = locationRepository.findById(req.getDepartureLocationId())
-                .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Điểm khởi hành không hợp lệ."));
-        Location arr = locationRepository.findById(req.getArrivalLocationId())
-                .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Điểm đến không hợp lệ."));
-
-        Route route;
-        if (req.getId() != null) {
-            route = routeRepository.findById(req.getId())
-                    .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy tuyến đường."));
-            route.setRouteCode(req.getRouteCode().trim());
-            route.setDepartureLocation(dep);
-            route.setArrivalLocation(arr);
-            route.setDistance(req.getDistanceKm());
-            route.setDuration(req.getDurationMinutes());
-            routeStopRepository.deleteAll(route.getStops());
-            route.getStops().clear();
-        } else {
-            route = Route.builder()
-                    .routeCode(req.getRouteCode().trim())
-                    .departureLocation(dep)
-                    .arrivalLocation(arr)
-                    .distance(req.getDistanceKm())
-                    .duration(req.getDurationMinutes())
-                    .stops(new ArrayList<>())
-                    .build();
-        }
-        route = routeRepository.save(route);
-
-        if (req.getStops() != null && !req.getStops().isEmpty()) {
-            List<RouteStop> stops = new ArrayList<>();
-            int order = 1;
-            for (RouteStopRequestDTO stopDto : req.getStops()) {
-                Location stopLoc = locationRepository.findById(stopDto.getLocationId())
-                        .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT,
-                                "Địa điểm dừng không hợp lệ: " + stopDto.getLocationId()));
-                stops.add(RouteStop.builder()
-                        .route(route)
-                        .location(stopLoc)
-                        .stopOrder(order++)
-                        .stopType(stopDto.getStopType())
-                        .offsetMinutes(stopDto.getOffsetMinutes())
-                        .distanceFromStart(stopDto.getDistanceFromStart())
-                        .notes(stopDto.getNotes())
-                        .build());
-            }
-            routeStopRepository.saveAll(stops);
-        }
+        // Use RouteService to save route logic (Simplified for now, but RouteService.saveRoute is available)
+        // I'll call routeService.saveRoute(req) eventually, but for now let's just use the repo if needed 
+        // OR better, move all logic to routeService.
+        routeService.saveRoute(req);
 
         redirectAttributes.addFlashAttribute("message",
                 "Tuyến đường '" + req.getRouteCode() + "' đã được lưu thành công!");
@@ -221,9 +162,4 @@ public class AdminInfrastructureController {
     // =====================================================================
 
 
-    private List<Location> listLocations() {
-        return locationRepository.findAll().stream()
-                .sorted(Comparator.comparing(Location::getCity).thenComparing(Location::getName))
-                .toList();
-    }
 }

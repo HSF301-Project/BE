@@ -8,6 +8,8 @@ import lombok.Data;
 public class TripStatsResponseDTO {
     private long todayTrips;         // Count trips where departureTime is Today
     private Double tripGrowthPercent; // % so với hôm qua
+    private long activeTrips;
+    private int todayBookedSeats;
 
     private int totalSeats;          // Sum capacity của tất cả các xe chạy hôm nay
 

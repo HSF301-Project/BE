@@ -104,7 +104,7 @@ public class CoachController {
 
     @GetMapping("/detail/{id}")
     public String getCoachDetail(@PathVariable UUID id, Model model) {
-        model.addAttribute("coachDetail", coachService.getCoachDetails(id));
+        model.addAttribute("coachDetail", coachService.getCoachDetail(id));
         model.addAttribute("title", "Chi tiết phương tiện");
         return "Admin/coach-detail";
     }

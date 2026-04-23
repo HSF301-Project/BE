@@ -2,11 +2,12 @@ package sp26.group.busticket.modules.service;
 
 import jakarta.validation.Valid;
 import sp26.group.busticket.modules.dto.trip.TripPageResponse;
-import sp26.group.busticket.modules.dto.trip.TripResponseDTO;
+import sp26.group.busticket.modules.dto.trip.TripAdminResponseDTO;
 import sp26.group.busticket.modules.dto.trip.request.TripRequestDTO;
 import sp26.group.busticket.modules.dto.trip.request.TripSearchRequestDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripDriverOptionDTO;
 import sp26.group.busticket.modules.dto.trip.response.TripSearchResultDTO;
+import sp26.group.busticket.modules.entity.Trip;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,7 +21,7 @@ public interface TripService {
 
     // Admin Side
     TripPageResponse getAdminDashboardData(String query, String status, int page, int size);
-    TripResponseDTO getTripById(UUID id);
+    TripAdminResponseDTO getTripById(UUID id);
     TripRequestDTO getTripForEdit(UUID id);
 
     List<TripDriverOptionDTO> listAssignableDrivers();
@@ -31,4 +32,9 @@ public interface TripService {
     Optional<UUID> updateTrip(UUID id, TripRequestDTO request);
 
     void deleteTrip(UUID id);
+    
+    boolean existsByCoachId(UUID coachId);
+    List<Trip> findAllTripsByCoach(UUID coachId);
+    Trip findTripEntityById(UUID id);
+    long countActiveTrips();
 }

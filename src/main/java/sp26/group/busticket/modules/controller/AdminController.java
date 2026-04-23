@@ -22,12 +22,7 @@ import sp26.group.busticket.modules.dto.trip.request.TripRequestDTO;
 import sp26.group.busticket.modules.entity.Account;
 import sp26.group.busticket.modules.enumType.StatusEnum;
 import sp26.group.busticket.modules.enumType.TripStatusEnum;
-import sp26.group.busticket.modules.repository.AccountRepository;
-import sp26.group.busticket.modules.repository.RouteRepository;
-import sp26.group.busticket.modules.service.AccountService;
-import sp26.group.busticket.modules.service.CoachService;
-import sp26.group.busticket.modules.service.FinanceService;
-import sp26.group.busticket.modules.service.TripService;
+import sp26.group.busticket.modules.service.*;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -58,12 +53,11 @@ public class AdminController {
         }
     }
 
-    private final AccountRepository accountRepository;
-    private final RouteRepository routeRepository;
     private final CoachService coachService;
     private final TripService tripService;
     private final AccountService accountService;
     private final FinanceService financeService;
+    private final RouteService routeService;
 
     @GetMapping("/users")
     public String listUsers(@org.springframework.web.bind.annotation.RequestParam(required = false) String search,
@@ -193,10 +187,10 @@ public class AdminController {
 
 
     private void enrichTripFormModel(Model model) {
-        model.addAttribute("routes", routeRepository.findAll());
+        model.addAttribute("routes", routeService.getAllRoutes());
         model.addAttribute("coaches", coachService.getAllCoaches());
         model.addAttribute("drivers", tripService.listAssignableDrivers());
-        model.addAttribute("assistants", accountRepository.findByRoleAndStatusOrderByFullNameAsc("STAFF", StatusEnum.ACTIVE));
+        model.addAttribute("assistants", accountService.getAssistants());
         model.addAttribute("tripStatuses", TripStatusEnum.values());
     }
 }

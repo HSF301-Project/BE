@@ -9,7 +9,7 @@ import java.util.List;
 @Builder
 public class TripPageResponse {
     private TripStatsResponseDTO stats;
-    private List<TripResponseDTO> trips;
+    private List<TripAdminResponseDTO> trips;
 
     // Thông tin phân trang
     private int currentPage;

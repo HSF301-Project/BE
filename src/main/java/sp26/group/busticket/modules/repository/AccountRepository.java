@@ -25,6 +25,12 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
     List<Account> findByRoleAndStatusOrderByFullNameAsc(String role, StatusEnum status);
 
+    List<Account> findByRole(String role);
+
+    List<Account> findByRoleAndFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String role, String name, String email);
+
+    List<Account> findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String name, String email);
+
     List<Account> findAllByRoleOrderByCreatedAtDesc(String role);
 
     Optional<Account> findByIdAndRole(UUID id, String role);

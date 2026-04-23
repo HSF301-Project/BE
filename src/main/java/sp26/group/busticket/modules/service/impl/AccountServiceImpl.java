@@ -11,6 +11,7 @@ import sp26.group.busticket.modules.repository.AccountRepository;
 import sp26.group.busticket.modules.service.AccountService;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -22,40 +23,23 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public List<AccountResponseDTO> getAllAccounts(String search, String role) {
-        return accountRepository.findAll().stream()
-                .filter(account -> {
-                    String r = account.getRole();
-                    // 1. Role Filter
-                    if ("USER".equals(role)) {
-                        if (!"USER".equalsIgnoreCase(r)) return false;
-                    } else if (role == null || role.trim().isEmpty() || "ALL".equals(role)) {
-                        // Default staff list: exclude USER and ADMIN
-                        if ("USER".equalsIgnoreCase(r) || "ADMIN".equalsIgnoreCase(r)) return false;
-                    } else {
-                        // Specific staff role selected (STAFF, DRIVER, etc.)
-                        if (!role.equalsIgnoreCase(r)) return false;
-                    }
+        List<Account> accounts;
+        if (role != null && !role.isBlank()) {
+            if (search != null && !search.isBlank()) {
+                accounts = accountRepository.findByRoleAndFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(role, search, search);
+            } else {
+                accounts = accountRepository.findByRole(role);
+            }
+        } else {
+            if (search != null && !search.isBlank()) {
+                accounts = accountRepository.findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(search, search);
+            } else {
+                accounts = accountRepository.findAll();
+            }
+        }
 
-                    // 2. Search Filter
-                    if (search == null || search.trim().isEmpty()) return true;
-                    String s = search.trim().toLowerCase();
-                    
-                    String name = (account.getFullName() != null) ? account.getFullName().toLowerCase() : "";
-                    String email = (account.getEmail() != null) ? account.getEmail().toLowerCase() : "";
-                    String phone = (account.getPhone() != null) ? account.getPhone() : "";
-                    
-                    return name.contains(s) || email.contains(s) || phone.contains(s);
-                })
-                .map(account -> AccountResponseDTO.builder()
-                        .id(account.getId())
-                        .email(account.getEmail())
-                        .fullName(account.getFullName())
-                        .phone(account.getPhone())
-                        .role(account.getRole())
-                        .status(account.getStatus())
-                        .createdAt(account.getCreatedAt())
-                        .updatedAt(account.getUpdatedAt())
-                        .build())
+        return accounts.stream()
+                .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
 
@@ -63,13 +47,48 @@ public class AccountServiceImpl implements AccountService {
     public void changeStatus(UUID id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        
-        if (account.getStatus().equals(StatusEnum.ACTIVE)) {
-            account.setStatus(StatusEnum.BLOCKED);
-        } else {
-            account.setStatus(StatusEnum.ACTIVE);
-        }
-        
+        account.setStatus(account.getStatus() == StatusEnum.ACTIVE ? StatusEnum.INACTIVE : StatusEnum.ACTIVE);
         accountRepository.save(account);
+    }
+
+    @Override
+    public Account getAccountByEmail(String email) {
+        return accountRepository.findByEmail(email).orElse(null);
+    }
+
+    @Override
+    public List<Account> getAssistants() {
+        return accountRepository.findByRoleAndStatusOrderByFullNameAsc("STAFF", StatusEnum.ACTIVE);
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return accountRepository.existsByEmail(email);
+    }
+
+    @Override
+    public boolean existsByPhone(String phone) {
+        return accountRepository.existsByPhone(phone);
+    }
+
+    @Override
+    public Account saveAccount(Account account) {
+        return accountRepository.save(account);
+    }
+
+    @Override
+    public Optional<Account> findById(UUID id) {
+        return accountRepository.findById(id);
+    }
+
+    private AccountResponseDTO mapToResponseDTO(Account account) {
+        return AccountResponseDTO.builder()
+                .id(account.getId())
+                .fullName(account.getFullName())
+                .email(account.getEmail())
+                .phone(account.getPhone())
+                .role(account.getRole())
+                .status(account.getStatus())
+                .build();
     }
 }

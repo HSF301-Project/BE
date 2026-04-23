@@ -39,5 +39,11 @@ public interface TripRepository extends JpaRepository<Trip, UUID> {
     @Query("SELECT t FROM Trip t WHERE t.departureTime BETWEEN :start AND :end")
     List<Trip> findAllTripsToday(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
+    Page<Trip> findByRoute_DepartureLocation_NameContainingOrRoute_ArrivalLocation_NameContaining(String query1, String query2, Pageable pageable);
+
+    Page<Trip> findByRoute_DepartureLocation_NameContainingOrRoute_ArrivalLocation_NameContainingAndTripStatus(String query1, String query2, sp26.group.busticket.modules.enumType.TripStatusEnum status, Pageable pageable);
+
+    Page<Trip> findByTripStatus(sp26.group.busticket.modules.enumType.TripStatusEnum status, Pageable pageable);
+
     long countByTripStatus(sp26.group.busticket.modules.enumType.TripStatusEnum status);
 }

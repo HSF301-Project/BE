@@ -6,6 +6,7 @@ import sp26.group.busticket.modules.dto.booking.request.StaffBookingRequestDTO;
 import sp26.group.busticket.modules.dto.booking.response.MyTripResponseDTO;
 import sp26.group.busticket.modules.dto.booking.response.PaymentResponseDTO;
 import sp26.group.busticket.modules.dto.booking.response.TicketConfirmationDTO;
+import sp26.group.busticket.modules.dto.trip.response.AdminSeatStatusDTO;
 import sp26.group.busticket.modules.entity.Account;
 
 import java.util.List;
@@ -20,4 +21,9 @@ public interface BookingService {
     TicketConfirmationDTO getBookingSuccessInfo(UUID bookingId);
     List<MyTripResponseDTO> getMyTrips(UUID accountId, String tab);
     UserProfileDTO getUserProfile(Account account);
+    int countBookedSeats(UUID tripId);
+    boolean existsByCoachId(UUID coachId);
+    List<AdminSeatStatusDTO> getSeatStatuses(UUID tripId);
+    long countTotalBookings();
+    List<Object[]> getTopRoutes();
 }

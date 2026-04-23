@@ -19,6 +19,7 @@ public enum ErrorCode {
     // Lỗi nghiệp vụ Xe (Coach)
     COACH_NOT_FOUND(404, "Không tìm thấy xe trong hệ thống!"),
     PLATE_NUMBER_ALREADY_EXISTS(409, "Biển số xe này đã tồn tại!"),
+    LOCATION_NOT_FOUND(404, "Không tìm thấy địa điểm này!"),
 
     // Lỗi nghiệp vụ Chuyến đi & Đặt vé
     TRIP_NOT_FOUND(404, "Chuyến xe không tồn tại hoặc đã bị hủy!"),

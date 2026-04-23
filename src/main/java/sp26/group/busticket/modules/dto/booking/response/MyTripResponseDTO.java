@@ -31,11 +31,12 @@ public class MyTripResponseDTO {
             return "Không xác định";
         }
 
-        return switch (status) {
-            case CONFIRMED -> "Đã xác nhận";
-            case COMPLETED -> "Đã hoàn thành";
-            case CANCELLED -> "Đã hủy";
-            case PENDING -> "Chờ thanh toán";
-        };
+        switch (status) {
+            case CONFIRMED: return "Đã xác nhận";
+            case COMPLETED: return "Đã hoàn thành";
+            case CANCELLED: return "Đã hủy";
+            case PENDING: return "Chờ thanh toán";
+            default: return status.name();
+        }
     }
 }
