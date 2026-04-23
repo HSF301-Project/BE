@@ -104,8 +104,10 @@
                                     <label class="block text-xs font-bold uppercase text-slate-500">Giá vé (VNĐ)</label>
                                     <span id="pricePerKm" class="text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full hidden">0 VNĐ/km</span>
                                 </div>
-                                <input type="number" th:field="*{priceBase}" required id="priceBase"
+                                <input type="number" th:field="*{priceBase}" required id="priceBase" min="0"
+                                       onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 13"
                                        class="w-full rounded-xl border-slate-200 text-sm font-bold text-brand-700"/>
+                                <p th:if="${#fields.hasErrors('priceBase')}" th:errors="*{priceBase}" class="text-red-500 text-xs mt-1"></p>
                             </div>
                         </div>
                     </section>
@@ -156,8 +158,10 @@
                                         <label class="block text-xs font-bold uppercase text-brand-600">Giá vé lượt về (VNĐ)</label>
                                         <span id="returnPricePerKm" class="text-[10px] font-medium text-brand-400 bg-brand-50 px-2 py-0.5 rounded-full hidden">0 VNĐ/km</span>
                                     </div>
-                                    <input type="number" th:field="*{priceRoundTrip}" id="priceRoundTrip"
+                                    <input type="number" th:field="*{priceRoundTrip}" id="priceRoundTrip" min="0"
+                                           onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 13"
                                            class="w-full rounded-xl border-brand-200 text-sm font-bold text-brand-700"/>
+                                    <p th:if="${#fields.hasErrors('priceRoundTrip')}" th:errors="*{priceRoundTrip}" class="text-red-500 text-xs mt-1"></p>
                                 </div>
                         </div>
                     </section>
@@ -182,7 +186,7 @@
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Phụ xe (tuỳ chọn)</label>
                         <select th:field="*{assistantId}" id="assistantId" class="ts-select">
                             <option value="">— Không có —</option>
-                            <option th:each="a : ${assistants}" th:value="${a.id}" th:text="${a.fullName}"></option>
+                            <option th:each="a : ${assistants}" th:value="${a.id}" th:text="${a.fullName + ' | ' + a.phone}"></option>
                         </select>
                     </div>
                     <div>

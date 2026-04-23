@@ -70,5 +70,6 @@ public class TripRequestDTO {
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime returnArrivalTime;
 
+    @Positive(message = "Giá vé lượt về phải lớn hơn 0")
     private BigDecimal priceRoundTrip;
 }

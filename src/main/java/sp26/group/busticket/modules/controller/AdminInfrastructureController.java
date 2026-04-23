@@ -103,9 +103,27 @@ public class AdminInfrastructureController {
     }
 
     @PostMapping("/stations/save")
-    public String saveStation(@ModelAttribute("location") Location location,
+    public String saveStation(@Valid @ModelAttribute("location") Location location,
+                              BindingResult bindingResult,
                               Model model,
                               RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("activePage", "infrastructure");
+            return "Admin/station-form";
+        }
+
+        // Kiểm tra trùng địa chỉ
+        locationRepository.findByAddress(location.getAddress()).ifPresent(existing -> {
+            if (location.getId() == null || !existing.getId().equals(location.getId())) {
+                bindingResult.rejectValue("address", "duplicate", "Địa chỉ này đã tồn tại trong hệ thống.");
+            }
+        });
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("activePage", "infrastructure");
+            return "Admin/station-form";
+        }
+
         if (location.getId() != null) {
             Location existing = locationRepository.findById(location.getId())
                     .orElseThrow(() -> new AppException(ErrorCode.INVALID_INPUT, "Không tìm thấy địa điểm."));

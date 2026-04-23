@@ -3,6 +3,7 @@ package sp26.group.busticket.modules.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,14 +27,17 @@ import sp26.group.busticket.infrastructure.persistence.BaseEntity;
 public class Location extends BaseEntity {
 
     /** Tên hiển thị (ví dụ: "Bến xe Miền Đông", "Trạm An Sương"). */
+    @NotBlank(message = "Tên địa điểm không được để trống")
     @Column(nullable = false, columnDefinition = "NVARCHAR(255)")
     private String name;
 
     /** Tỉnh / thành phố trực thuộc TW. */
+    @NotBlank(message = "Thành phố/Tỉnh không được để trống")
     @Column(nullable = false, columnDefinition = "NVARCHAR(100)")
     private String city;
 
     /** Địa chỉ chi tiết (số nhà, đường, phường/xã, quận/huyện). */
+    @NotBlank(message = "Địa chỉ chi tiết không được để trống")
     @Column(columnDefinition = "NVARCHAR(500)")
     private String address;
 

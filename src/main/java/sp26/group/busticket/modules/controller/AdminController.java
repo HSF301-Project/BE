@@ -192,7 +192,7 @@ public class AdminController {
         model.addAttribute("routes", routeRepository.findAll());
         model.addAttribute("coaches", coachService.getAllCoaches());
         model.addAttribute("drivers", tripService.listAssignableDrivers());
-        model.addAttribute("assistants", accountRepository.findByRoleAndStatusOrderByFullNameAsc("STAFF", StatusEnum.ACTIVE));
+        model.addAttribute("assistants", accountRepository.findByRoleAndStatusOrderByFullNameAsc("ASSISTANT", StatusEnum.ACTIVE));
         model.addAttribute("tripStatuses", TripStatusEnum.values());
     }
 
