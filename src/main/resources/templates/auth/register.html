@@ -124,15 +124,16 @@
                         <input id="register-password" type="password" th:field="*{password}" required autocomplete="new-password"
                                placeholder="Ít nhất 8 ký tự"
                                th:class="${#fields.hasErrors('password')}
-                                   ? 'w-full pl-11 pr-11 py-3.5 bg-error-container/30 rounded-xl border border-error focus:ring-2 focus:ring-error/20 text-on-surface font-medium outline-none transition-all placeholder:text-on-surface-variant/50'
-                                   : 'w-full pl-11 pr-11 py-3.5 bg-surface-container-low rounded-xl border border-outline-variant/40 focus:border-primary focus:ring-2 focus:ring-primary/20 text-on-surface font-medium outline-none transition-all placeholder:text-on-surface-variant/50'"/>
+                                   ? 'w-full pl-11 pr-14 py-3.5 bg-error-container/30 rounded-xl border border-error focus:ring-2 focus:ring-error/20 text-on-surface font-medium outline-none transition-all placeholder:text-on-surface-variant/50'
+                                   : 'w-full pl-11 pr-14 py-3.5 bg-surface-container-low rounded-xl border border-outline-variant/40 focus:border-primary focus:ring-2 focus:ring-primary/20 text-on-surface font-medium outline-none transition-all placeholder:text-on-surface-variant/50'"/>
                         <button type="button"
                                 data-password-toggle
                                 data-target="register-password"
                                 aria-label="Hiển thị mật khẩu"
                                 title="Hiển thị mật khẩu"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors">
-                            <span class="material-symbols-outlined text-[20px]">visibility</span>
+                                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                                style="border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; width: auto; height: auto;">
+                            <span class="material-symbols-outlined text-[20px]" style="pointer-events: none; display: block;">visibility</span>
                         </button>
                     </div>
                     <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}"
@@ -146,15 +147,16 @@
                         <input id="register-confirm-password" type="password" th:field="*{confirmPassword}" required autocomplete="new-password"
                                placeholder="Nhập lại mật khẩu"
                                th:class="${#fields.hasErrors('confirmPassword')}
-                                   ? 'w-full pl-11 pr-11 py-3.5 bg-error-container/30 rounded-xl border border-error focus:ring-2 focus:ring-error/20 text-on-surface font-medium outline-none transition-all placeholder:text-on-surface-variant/50'
-                                   : 'w-full pl-11 pr-11 py-3.5 bg-surface-container-low rounded-xl border border-outline-variant/40 focus:border-primary focus:ring-2 focus:ring-primary/20 text-on-surface font-medium outline-none transition-all placeholder:text-on-surface-variant/50'"/>
+                                   ? 'w-full pl-11 pr-14 py-3.5 bg-error-container/30 rounded-xl border border-error focus:ring-2 focus:ring-error/20 text-on-surface font-medium outline-none transition-all placeholder:text-on-surface-variant/50'
+                                   : 'w-full pl-11 pr-14 py-3.5 bg-surface-container-low rounded-xl border border-outline-variant/40 focus:border-primary focus:ring-2 focus:ring-primary/20 text-on-surface font-medium outline-none transition-all placeholder:text-on-surface-variant/50'"/>
                         <button type="button"
                                 data-password-toggle
                                 data-target="register-confirm-password"
                                 aria-label="Hiển thị mật khẩu"
                                 title="Hiển thị mật khẩu"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors">
-                            <span class="material-symbols-outlined text-[20px]">visibility</span>
+                                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                                style="border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; width: auto; height: auto;">
+                            <span class="material-symbols-outlined text-[20px]" style="pointer-events: none; display: block;">visibility</span>
                         </button>
                     </div>
                     <p th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"

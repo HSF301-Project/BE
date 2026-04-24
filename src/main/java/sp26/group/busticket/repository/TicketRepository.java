@@ -14,12 +14,6 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
 
     List<Ticket> findByPassengerPhone(String passengerPhone);
 
-    List<Ticket> findByBooking_Trip_Coach_Id(UUID coachId);
-
-    boolean existsByBooking_Trip_Coach_Id(UUID coachId);
-
-    List<Ticket> findBySeat_Coach_Id(UUID coachId);
-
     boolean existsBySeat_Coach_Id(UUID coachId);
 
     long countByBooking_Trip_Id(UUID tripId);
