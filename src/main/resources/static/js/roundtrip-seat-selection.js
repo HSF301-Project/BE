@@ -10,12 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const outboundStopEtas = window.PremiumTransitData?.outboundStopEtas || [];
     const returnStopEtas = window.PremiumTransitData?.returnStopEtas || [];
 
-    // Mở ra Window để button HTML có thể gọi
+    // 1. Tab Switching Logic
     window.switchSeatTab = function(tab) {
         const outboundBtn = document.getElementById('tab-btn-outbound');
         const returnBtn = document.getElementById('tab-btn-return');
-        const outboundSeats = document.getElementById('seat-tab-outbound');
-        const returnSeats = document.getElementById('seat-tab-return');
+        const outboundSeatsTab = document.getElementById('seat-tab-outbound');
+        const returnSeatsTab = document.getElementById('seat-tab-return');
         const outboundDetail = document.getElementById('trip-detail-outbound');
         const returnDetail = document.getElementById('trip-detail-return');
 
@@ -24,8 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
             outboundBtn.classList.remove('border-transparent', 'text-on-surface-variant');
             returnBtn.classList.remove('border-primary', 'text-primary');
             returnBtn.classList.add('border-transparent', 'text-on-surface-variant');
-            outboundSeats.classList.remove('hidden');
-            returnSeats.classList.add('hidden');
+            outboundSeatsTab.classList.remove('hidden');
+            returnSeatsTab.classList.add('hidden');
             outboundDetail.classList.remove('hidden');
             returnDetail.classList.add('hidden');
         } else {
@@ -33,14 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
             returnBtn.classList.remove('border-transparent', 'text-on-surface-variant');
             outboundBtn.classList.remove('border-primary', 'text-primary');
             outboundBtn.classList.add('border-transparent', 'text-on-surface-variant');
-            returnSeats.classList.remove('hidden');
-            outboundSeats.classList.add('hidden');
+            returnSeatsTab.classList.remove('hidden');
+            outboundSeatsTab.classList.add('hidden');
             returnDetail.classList.remove('hidden');
             outboundDetail.classList.add('hidden');
         }
     };
 
-    // Xử lý Click chọn ghế
+    // 2. Seat Selection Logic
     document.querySelectorAll('.seat-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const seatId = this.dataset.seatId;
@@ -62,16 +62,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // 3. Update Summary, Formula & Combined Seats
     function updateSummary() {
-        document.getElementById('outbound-seats').innerText = outSeats.length ? outSeats.map(s => s.seatId).join(', ') : 'Chưa chọn';
-        document.getElementById('return-seats').innerText = retSeats.length ? retSeats.map(s => s.seatId).join(', ') : 'Chưa chọn';
-
-        const total = (outSeats.length * priceOut) + (retSeats.length * priceRet);
-        document.getElementById('summary-total').innerText = total.toLocaleString('vi-VN') + 'đ';
-
+        const combinedSeatsEl = document.getElementById('combined-seats');
+        const formulaEl = document.getElementById('price-formula');
+        const totalEl = document.getElementById('summary-total');
         const btn = document.getElementById('btn-submit-form');
 
-        // Đã cập nhật logic: Không ép số ghế bằng nhau, chỉ cần mỗi chiều có >= 1 ghế
+        // Hiển thị danh sách ghế gộp (Outbound + Return)
+        const allSeatIds = [...outSeats.map(s => s.seatId), ...retSeats.map(s => s.seatId)];
+        if (combinedSeatsEl) {
+            combinedSeatsEl.innerText = allSeatIds.length > 0 ? allSeatIds.join(', ') : 'Chưa chọn';
+        }
+
+        // Cập nhật text phụ ở các tab chi tiết (giữ lại để tránh lỗi null)
+        const outSeatsSub = document.getElementById('outbound-seats');
+        const retSeatsSub = document.getElementById('return-seats');
+        if(outSeatsSub) outSeatsSub.innerText = outSeats.length ? outSeats.map(s => s.seatId).join(', ') : 'Chưa chọn';
+        if(retSeatsSub) retSeatsSub.innerText = retSeats.length ? retSeats.map(s => s.seatId).join(', ') : 'Chưa chọn';
+
+        // Tính tổng tiền
+        const total = (outSeats.length * priceOut) + (retSeats.length * priceRet);
+        totalEl.innerText = total.toLocaleString('vi-VN') + 'đ';
+
+        // Hiển thị công thức tính tiền
+        if (formulaEl) {
+            if (outSeats.length > 0 || retSeats.length > 0) {
+                if (priceOut === priceRet) {
+                    // Nếu giá vé 2 chiều bằng nhau -> hiển thị gộp (VD: 250.000đ x 2)
+                    const totalCount = outSeats.length + retSeats.length;
+                    formulaEl.innerText = `${priceOut.toLocaleString('vi-VN')}đ x ${totalCount}`;
+                } else {
+                    // Nếu giá vé khác nhau -> hiển thị tách biệt (VD: 200k x 1 + 250k x 1)
+                    let parts = [];
+                    if (outSeats.length > 0) parts.push(`${priceOut.toLocaleString('vi-VN')}đ x ${outSeats.length}`);
+                    if (retSeats.length > 0) parts.push(`${priceRet.toLocaleString('vi-VN')}đ x ${retSeats.length}`);
+                    formulaEl.innerText = parts.join(' + ');
+                }
+            } else {
+                formulaEl.innerText = '';
+            }
+        }
+
+        // Trạng thái nút Submit
         if(outSeats.length > 0 && retSeats.length > 0) {
             btn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
         } else {
@@ -79,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Logic xử lý Dropoff sau Pickup
+    // 4. Dropoff filtering based on Pickup (giữ nguyên logic cũ của bạn)
     function updateDropoffOptions(isReturn) {
         const prefix = isReturn ? 'return' : '';
         const pickupSelect = document.querySelector(`select[name="${prefix ? 'returnPickupLocationId' : 'pickupLocationId'}"]`);
@@ -88,28 +121,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!pickupSelect || !dropoffSelect || etas.length === 0) return;
 
-        // CHUẨN HÓA ID: trim() để tránh các ký tự xuống dòng hoặc khoảng trắng từ HTML
         const selectedPickupId = String(pickupSelect.value).trim();
         const selectedPickupStop = etas.find(stop => String(stop.stopId).trim() === selectedPickupId);
         const currentDropoffId = String(dropoffSelect.value).trim();
 
-        // Xóa trắng để render lại từ đầu
         dropoffSelect.innerHTML = '';
-
         let addedCount = 0;
         const pickupOffset = selectedPickupStop ? Number(selectedPickupStop.offsetMinutes) : -1;
-
-        // Debug nhanh nếu vẫn lỗi (Mở F12 để xem)
-        console.log(`Checking leg ${isReturn?'Return':'Out'}: Pickup ID = ${selectedPickupId}, Offset = ${pickupOffset}`);
 
         etas.forEach(stop => {
             const stopIdStr = String(stop.stopId).trim();
             const isDropType = (stop.pointType === 'DROPOFF' || stop.pointType === 'BOTH');
-
-            // Điều kiện 1: Phải nằm sau điểm đón về mặt lộ trình
             const isAfterPickup = Number(stop.offsetMinutes) > pickupOffset;
-
-            // Điều kiện 2: Tuyệt đối không trùng ID với điểm đã chọn ở Pickup
             const isNotSameId = stopIdStr !== selectedPickupId;
 
             if (isDropType && isAfterPickup && isNotSameId) {
@@ -121,28 +144,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // FALLBACK: Nếu lộ trình offset bị lỗi (ví dụ tất cả đều = 0)
-        // Thì hiện các điểm DROPOFF/BOTH nhưng BẮT BUỘC bỏ qua điểm đã chọn ở Pickup
         if (addedCount === 0) {
             etas.forEach(stop => {
                 const stopIdStr = String(stop.stopId).trim();
                 const isDropType = (stop.pointType === 'DROPOFF' || stop.pointType === 'BOTH');
-                const isNotSameId = stopIdStr !== selectedPickupId;
-
-                if (isDropType && isNotSameId) {
+                if (isDropType && stopIdStr !== selectedPickupId) {
                     const option = document.createElement('option');
                     option.value = stop.stopId;
                     option.textContent = stop.stopName + ' (' + stop.etaTime + ')';
                     dropoffSelect.appendChild(option);
-                    addedCount++;
                 }
             });
         }
 
-        // Tự động chọn phần tử đầu tiên nếu giá trị cũ không còn hợp lệ
         const options = Array.from(dropoffSelect.options);
         const stillValid = options.some(opt => String(opt.value).trim() === currentDropoffId);
-
         if (!stillValid && options.length > 0) {
             dropoffSelect.value = options[0].value;
         } else {
@@ -150,13 +166,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Init and Events for Dropoff
     updateDropoffOptions(false);
     updateDropoffOptions(true);
-
     document.querySelector('select[name="pickupLocationId"]')?.addEventListener('change', () => updateDropoffOptions(false));
     document.querySelector('select[name="returnPickupLocationId"]')?.addEventListener('change', () => updateDropoffOptions(true));
 
-    // Submit Form
+    // 5. Submit Form Logic
     window.submitRoundTrip = function() {
         const name = document.getElementById('p-name').value;
         const phone = document.getElementById('p-phone').value;
@@ -172,7 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
             hiddenHtml += `
                 <input type="hidden" name="passengers[${i}].seatId" value="${s.seatId}"/>
                 <input type="hidden" name="passengers[${i}].deck" value="${s.deck}"/>
-                <input type="hidden" name="passengers[${i}].seatLabel" value="${s.seatId}"/>
                 <input type="hidden" name="passengers[${i}].fullName" value="${name}"/>
                 <input type="hidden" name="passengers[${i}].phoneNumber" value="${phone}"/>
                 <input type="hidden" name="passengers[${i}].email" value="${email}"/>
@@ -183,7 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
             hiddenHtml += `
                 <input type="hidden" name="returnPassengers[${i}].seatId" value="${s.seatId}"/>
                 <input type="hidden" name="returnPassengers[${i}].deck" value="${s.deck}"/>
-                <input type="hidden" name="returnPassengers[${i}].seatLabel" value="${s.seatId}"/>
                 <input type="hidden" name="returnPassengers[${i}].fullName" value="${name}"/>
                 <input type="hidden" name="returnPassengers[${i}].phoneNumber" value="${phone}"/>
                 <input type="hidden" name="returnPassengers[${i}].email" value="${email}"/>
