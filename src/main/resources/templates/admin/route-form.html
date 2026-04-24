@@ -116,7 +116,7 @@
                     <div>
                         <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2 min-h-[32px]">
                             Thời lượng (phút)
-                            <span class="block normal-case font-medium text-[10px] opacity-60">(t = S/v * 1.2, v=50km/h)</span>
+                            <span class="block normal-case font-medium text-[10px] opacity-60">(t = S/v, v=50km/h)</span>
                         </label>
                         <input type="number" step="1" min="1" th:field="*{durationMinutes}" id="durationMinutes" 
                                oninput="updateReturnPreview(true)"
@@ -186,7 +186,7 @@
                                 <div>
                                     <label class="block text-xs font-black uppercase tracking-widest text-ink-faint mb-2 min-h-[32px]">
                                          Thời lượng (phút)
-                                         <span class="block normal-case font-medium text-[10px] opacity-60">(t = S/v * 1.2)</span>
+                                         <span class="block normal-case font-medium text-[10px] opacity-60">(t = S/v)</span>
                                      </label>
                                     <input type="number" step="1" th:field="*{returnDurationMinutes}" id="previewReturnDuration" 
                                            class="w-full rounded-xl border-surface-border bg-white"/>
@@ -291,7 +291,7 @@
                             <div class="md:col-span-2">
                                 <label class="block text-[11px] font-extrabold uppercase tracking-wider text-ink-faint mb-1 min-h-[28px]">
                                      +Phút
-                                     <span class="block normal-case font-medium text-[9px] opacity-60">(t = S/v * 1.2)</span>
+                                     <span class="block normal-case font-medium text-[9px] opacity-60">(t = S/v, v=50km/h)</span>
                                  </label>
                                 <input type="number" step="1" min="0" class="wp-offset w-full rounded-xl border-surface-border bg-white" placeholder="45"/>
                             </div>
@@ -683,7 +683,7 @@
         const km = parseFloat(valStr);
         if (isNaN(km)) return;
 
-        const duration = Math.round(km * 1.44);
+        const duration = Math.round((km / 50) * 60);
         if (input.id === 'distanceKm') {
             document.getElementById('durationMinutes').value = duration;
             updateReturnPreview(true); // Sync to return route if forward changes
@@ -793,7 +793,7 @@
                         locationLabel: wp.locationLabel,
                         distanceFromStart: parseFloat(cumulativeDist.toFixed(1)),
                         stopType: revType,
-                        offsetMinutes: Math.round(cumulativeDist * 1.44)
+                        offsetMinutes: Math.round((cumulativeDist / 50) * 60)
                     });
                 });
             }

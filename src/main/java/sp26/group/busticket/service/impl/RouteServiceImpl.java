@@ -75,6 +75,13 @@ public class RouteServiceImpl implements RouteService {
     }
 
     private Route internalSaveRoute(RouteRequestDTO req, Location dep, Location arr) {
+        // Fallback calculation if duration is missing
+        if (req.getDurationMinutes() == null || req.getDurationMinutes() <= 0) {
+            if (req.getDistanceKm() != null && req.getDistanceKm() > 0) {
+                req.setDurationMinutes(Math.round((req.getDistanceKm() / 50.0f) * 60.0f));
+            }
+        }
+
         Route route;
         if (req.getId() != null) {
             route = routeRepository.findById(req.getId())
@@ -139,7 +146,11 @@ public class RouteServiceImpl implements RouteService {
 
     @Override
     public RouteRequestDTO calculateMetrics(RouteRequestDTO req) {
-        // Không còn tọa độ để tự động tính toán metrics
+        if (req.getDistanceKm() != null && req.getDistanceKm() > 0) {
+            // t (phút) = (S / v) * 60 với v = 50km/h
+            int duration = Math.round((req.getDistanceKm() / 50.0f) * 60.0f);
+            req.setDurationMinutes(duration);
+        }
         return req;
     }
 

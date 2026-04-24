@@ -165,7 +165,7 @@ public class DataInitializer implements CommandLineRunner {
 //    }
 
 //    private Route initRoute(String code, Location dep, Location arr, float dist) {
-//        int duration = Math.round((dist / 50.0f) * 1.2f * 60.0f);
+//        int duration = Math.round((dist / 50.0f) * 60.0f);
 //        return routeRepository.findAll().stream()
 //                .filter(r -> r.getDepartureLocation().getId().equals(dep.getId())
 //                        && r.getArrivalLocation().getId().equals(arr.getId()))
