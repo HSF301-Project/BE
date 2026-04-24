@@ -52,4 +52,7 @@ public interface TripRepository extends JpaRepository<Trip, UUID> {
             UUID assistantId, Collection<TripStatusEnum> statuses2);
 
     long countByTripStatus(sp26.group.busticket.modules.enumType.TripStatusEnum status);
+
+    @Query("SELECT SUM(t.coach.totalSeats) FROM Trip t")
+    Long sumTotalCapacity();
 }

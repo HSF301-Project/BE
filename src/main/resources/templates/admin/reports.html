@@ -32,59 +32,92 @@
             <div class="stat-card">
                 <p class="text-[10px] font-bold text-ink-faint uppercase tracking-widest mb-3">Tổng doanh thu</p>
                 <h3 class="text-2xl font-bold text-ink" th:text="${reports.totalRevenue}">0đ</h3>
-                <div class="mt-2 flex items-center gap-1 text-emerald-600 text-xs font-bold">
-                    <span class="ms text-sm">trending_up</span>
-                    +12.5%
-                </div>
             </div>
             <div class="stat-card">
                 <p class="text-[10px] font-bold text-ink-faint uppercase tracking-widest mb-3">Lượt đặt vé</p>
                 <h3 class="text-2xl font-bold text-ink" th:text="${reports.totalBookings}">0</h3>
-                <div class="mt-2 flex items-center gap-1 text-emerald-600 text-xs font-bold">
-                    <span class="ms text-sm">trending_up</span>
-                    +8.2%
-                </div>
             </div>
             <div class="stat-card">
                 <p class="text-[10px] font-bold text-ink-faint uppercase tracking-widest mb-3">Chuyến đi hoạt động</p>
                 <h3 class="text-2xl font-bold text-ink" th:text="${reports.activeTrips}">0</h3>
-                <div class="mt-2 flex items-center gap-1 text-ink-faint text-xs font-bold">
-                    <span class="ms text-sm">horizontal_rule</span>
-                    Ổn định
-                </div>
             </div>
             <div class="stat-card">
                 <p class="text-[10px] font-bold text-ink-faint uppercase tracking-widest mb-3">Tỉ lệ lấp đầy TB</p>
-                <h3 class="text-2xl font-bold text-ink">78.4%</h3>
-                <div class="mt-2 flex items-center gap-1 text-amber-600 text-xs font-bold">
-                    <span class="ms text-sm">trending_down</span>
-                    -2.1%
-                </div>
+                <h3 class="text-2xl font-bold text-ink" th:text="${reports.occupancyRate}">78.4%</h3>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Revenue Chart Area -->
+            <!-- Revenue Tables -->
             <div class="lg:col-span-2 bg-surface-card border border-surface-border rounded-2xl p-6 shadow-sm">
-                <div class="flex justify-between items-center mb-8">
-                    <h4 class="font-bold text-ink">Doanh thu theo tháng</h4>
-                    <select class="text-xs font-bold border-surface-border rounded-lg bg-surface py-1.5 pl-3 pr-8 focus:ring-brand-500/20">
-                        <option>Năm 2024</option>
-                        <option>Năm 2023</option>
-                    </select>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <div>
+                        <h4 class="font-bold text-ink">Báo cáo doanh thu</h4>
+                        <p class="text-xs text-ink-faint mt-1">Chỉ tính các thanh toán trạng thái PAID.</p>
+                    </div>
+
+                    <form action="/admin/reports" method="get" id="reportFilterForm" class="flex gap-2">
+                        <select name="month" onchange="document.getElementById('reportFilterForm').submit();"
+                                class="text-xs font-bold border-surface-border rounded-lg bg-surface py-1.5 pl-3 pr-8 focus:ring-brand-500/20">
+                            <option value="1" th:selected="${selectedMonth == 1}">Tháng 1</option>
+                            <option value="2" th:selected="${selectedMonth == 2}">Tháng 2</option>
+                            <option value="3" th:selected="${selectedMonth == 3}">Tháng 3</option>
+                            <option value="4" th:selected="${selectedMonth == 4}">Tháng 4</option>
+                            <option value="5" th:selected="${selectedMonth == 5}">Tháng 5</option>
+                            <option value="6" th:selected="${selectedMonth == 6}">Tháng 6</option>
+                            <option value="7" th:selected="${selectedMonth == 7}">Tháng 7</option>
+                            <option value="8" th:selected="${selectedMonth == 8}">Tháng 8</option>
+                            <option value="9" th:selected="${selectedMonth == 9}">Tháng 9</option>
+                            <option value="10" th:selected="${selectedMonth == 10}">Tháng 10</option>
+                            <option value="11" th:selected="${selectedMonth == 11}">Tháng 11</option>
+                            <option value="12" th:selected="${selectedMonth == 12}">Tháng 12</option>
+                        </select>
+
+                        <select name="year" onchange="document.getElementById('reportFilterForm').submit();"
+                                class="text-xs font-bold border-surface-border rounded-lg bg-surface py-1.5 pl-3 pr-8 focus:ring-brand-500/20">
+                            <option value="2026" th:selected="${selectedYear == 2026}">Năm 2026</option>
+                            <option value="2025" th:selected="${selectedYear == 2025}">Năm 2025</option>
+                            <option value="2024" th:selected="${selectedYear == 2024}">Năm 2024</option>
+                            <option value="2023" th:selected="${selectedYear == 2023}">Năm 2023</option>
+                        </select>
+                    </form>
                 </div>
-                
-                <!-- Simple CSS Chart Representation -->
-                <div class="flex items-end justify-between gap-4 h-64 mt-4 px-4">
-                    <div th:each="stat : ${reports.monthlyStats}" class="flex-1 flex flex-col items-center gap-3 group">
-                        <div class="relative w-full bg-brand-50 rounded-t-lg transition-all duration-500 group-hover:bg-brand-100" 
-                             th:style="'height: ' + (${stat.revenue} * 100 / 700) + '%'">
-                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-ink text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
-                                 th:text="${stat.revenue} + 'M'">
-                                0M
-                            </div>
+
+                <!-- Daily revenue table -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <h5 class="text-sm font-bold text-ink">Doanh thu theo ngày</h5>
+                        <p class="text-xs text-ink-faint" th:text="'Tháng ' + ${selectedMonth} + '/' + ${selectedYear}">Tháng</p>
+                    </div>
+
+                    <div class="border border-surface-border rounded-xl overflow-hidden">
+                        <div class="grid grid-cols-12 bg-surface px-4 py-2 text-[10px] font-bold text-ink-faint uppercase tracking-widest">
+                            <div class="col-span-3">Ngày</div>
+                            <div class="col-span-9 text-right">Doanh thu</div>
                         </div>
-                        <span class="text-[10px] font-bold text-ink-faint uppercase" th:text="${stat.month}">Th 1</span>
+                        <div th:each="d : ${reports.dailyStats}" class="grid grid-cols-12 px-4 py-2 border-t border-surface-border text-sm">
+                            <div class="col-span-3 font-semibold text-ink" th:text="${d.day}">1</div>
+                            <div class="col-span-9 text-right font-semibold text-ink" th:text="${d.revenueFormatted}">0đ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly revenue table -->
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h5 class="text-sm font-bold text-ink">Doanh thu theo tháng</h5>
+                        <p class="text-xs text-ink-faint" th:text="'Năm ' + ${selectedYear}">Năm</p>
+                    </div>
+
+                    <div class="border border-surface-border rounded-xl overflow-hidden">
+                        <div class="grid grid-cols-12 bg-surface px-4 py-2 text-[10px] font-bold text-ink-faint uppercase tracking-widest">
+                            <div class="col-span-3">Tháng</div>
+                            <div class="col-span-9 text-right">Doanh thu (triệu)</div>
+                        </div>
+                        <div th:each="m : ${reports.monthlyStats}" class="grid grid-cols-12 px-4 py-2 border-t border-surface-border text-sm">
+                            <div class="col-span-3 font-semibold text-ink" th:text="${m.month}">Th 1</div>
+                            <div class="col-span-9 text-right font-semibold text-ink" th:text="${m.revenue} + 'M'">0M</div>
+                        </div>
                     </div>
                 </div>
             </div>

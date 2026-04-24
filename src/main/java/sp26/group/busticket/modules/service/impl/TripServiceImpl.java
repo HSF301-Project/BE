@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class TripServiceImpl implements TripService {
+public  class TripServiceImpl implements TripService {
 
     private final TripRepository tripRepository;
     private final TicketRepository ticketRepository;
@@ -270,22 +270,24 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public boolean existsByCoachId(UUID coachId) {
-        return false;
+        return tripRepository.existsByCoach_Id(coachId);
     }
 
     @Override
     public List<Trip> findAllTripsByCoach(UUID coachId) {
-        return List.of();
+        return tripRepository.findAllTripsByCoach(coachId);
     }
 
     @Override
     public Trip findTripEntityById(UUID id) {
-        return null;
+        return tripRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.TRIP_NOT_FOUND));
     }
 
     @Override
     public long countActiveTrips() {
-        return 0;
+        // "Hoạt động" trên trang báo cáo: chuyến đang chạy (DEPARTED).
+        return tripRepository.countByTripStatus(TripStatusEnum.DEPARTED);
     }
 
     @Override

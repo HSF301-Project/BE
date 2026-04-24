@@ -19,9 +19,16 @@ public class AdminReportController {
     private final AccountService accountService;
 
     @GetMapping
-    public String showReports(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+    public String showReports(@org.springframework.web.bind.annotation.RequestParam(name = "year", required = false) Integer year,
+                              @org.springframework.web.bind.annotation.RequestParam(name = "month", required = false) Integer month,
+                              @AuthenticationPrincipal UserDetails userDetails, Model model) {
+        java.time.LocalDate now = java.time.LocalDate.now();
+        if (year == null) year = now.getYear();
+        if (month == null) month = now.getMonthValue();
         model.addAttribute("adminUser", accountService.getAccountByEmail(userDetails.getUsername()));
-        model.addAttribute("reports", reportService.getGeneralReport());
+        model.addAttribute("reports", reportService.getGeneralReport(year, month));
+        model.addAttribute("selectedYear", year);
+        model.addAttribute("selectedMonth", month);
         model.addAttribute("title", "Báo cáo thống kê");
         model.addAttribute("activePage", "reports");
         return "Admin/reports";

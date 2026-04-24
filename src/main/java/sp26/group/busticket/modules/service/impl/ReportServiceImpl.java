@@ -22,11 +22,13 @@ public class ReportServiceImpl implements ReportService {
     private final BookingService bookingService;
     private final TripService tripService;
     private final FinanceService financeService;
+    private final sp26.group.busticket.modules.repository.TicketRepository ticketRepository;
+    private final sp26.group.busticket.modules.repository.TripRepository tripRepository;
     
     private final NumberFormat vnCurrency = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
 
     @Override
-    public Map<String, Object> getGeneralReport() {
+    public Map<String, Object> getGeneralReport(Integer year, Integer month) {
         long totalBookings = bookingService.countTotalBookings();
         long activeTrips = tripService.countActiveTrips();
         
@@ -34,7 +36,10 @@ public class ReportServiceImpl implements ReportService {
         if (totalRevenue == null) totalRevenue = BigDecimal.ZERO;
 
         LocalDate now = LocalDate.now();
-        BigDecimal monthlyRevenue = financeService.sumMonthlyRevenue(now.getMonthValue(), now.getYear());
+        int targetYear = (year != null) ? year : now.getYear();
+        int targetMonth = (month != null) ? month : now.getMonthValue();
+        
+        BigDecimal monthlyRevenue = financeService.sumMonthlyRevenue(targetMonth, targetYear);
         if (monthlyRevenue == null) monthlyRevenue = BigDecimal.ZERO;
         
         List<Map<String, Object>> topRoutes = bookingService.getTopRoutes().stream()
@@ -48,8 +53,15 @@ public class ReportServiceImpl implements ReportService {
             })
             .collect(Collectors.toList());
 
-        // Note: Monthly stats might still need direct repository access or a specialized service method
-        // For now, I'll keep it simple or assume FinanceService can provide it if needed.
+        List<Map<String, Object>> monthlyStats = financeService.getMonthlyRevenueStats(targetYear);
+        List<Map<String, Object>> dailyStats = financeService.getDailyRevenueStats(targetMonth, targetYear);
+        
+        long totalTickets = ticketRepository.count();
+        Long totalCapacity = tripRepository.sumTotalCapacity();
+        double occupancyRate = 0.0;
+        if (totalCapacity != null && totalCapacity > 0) {
+            occupancyRate = (double) totalTickets / totalCapacity * 100.0;
+        }
         
         Map<String, Object> result = new java.util.HashMap<>();
         result.put("totalRevenue", vnCurrency.format(totalRevenue));
@@ -57,6 +69,9 @@ public class ReportServiceImpl implements ReportService {
         result.put("totalBookings", totalBookings);
         result.put("activeTrips", activeTrips);
         result.put("topRoutes", topRoutes);
+        result.put("monthlyStats", monthlyStats);
+        result.put("dailyStats", dailyStats);
+        result.put("occupancyRate", String.format("%.1f", occupancyRate) + "%");
         
         return result;
     }

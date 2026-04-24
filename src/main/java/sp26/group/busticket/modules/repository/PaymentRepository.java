@@ -43,4 +43,9 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
            "WHERE p.status = 'PAID' AND p.paidAt >= :since " +
            "GROUP BY DAY(p.paidAt) ORDER BY DAY(p.paidAt) ASC")
     List<Object[]> getDailyRevenueStats(@Param("since") LocalDateTime since);
+
+    @Query("SELECT DAY(p.paidAt) as day, SUM(p.amount) as revenue FROM Payment p " +
+            "WHERE p.status = 'PAID' AND MONTH(p.paidAt) = :month AND YEAR(p.paidAt) = :year " +
+            "GROUP BY DAY(p.paidAt) ORDER BY DAY(p.paidAt) ASC")
+    List<Object[]> getDailyRevenueStatsByMonth(@Param("month") int month, @Param("year") int year);
 }

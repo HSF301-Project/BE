@@ -686,14 +686,6 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Object[]> getTopRoutes() {
-        return bookingRepository.findAll().stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                        b -> b.getTrip().getRoute().getId(),
-                        java.util.stream.Collectors.counting()))
-                .entrySet().stream()
-                .sorted(java.util.Map.Entry.<UUID, Long>comparingByValue().reversed())
-                .limit(5)
-                .map(e -> new Object[]{e.getKey(), e.getValue()})
-                .collect(Collectors.toList());
+        return bookingRepository.getTopRoutesByBookingCount();
     }
 }

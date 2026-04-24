@@ -15,8 +15,11 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     long countByUser_Id(UUID userId);
     Optional<Booking> findByBookingCode(String bookingCode);
 
-    @Query("SELECT b.trip.route.routeCode, COUNT(b), SUM(b.totalAmount) FROM Booking b " +
+    @Query("SELECT CONCAT(b.trip.route.departureLocation.name, ' → ', b.trip.route.arrivalLocation.name), " +
+           "COUNT(b), SUM(b.totalAmount) " +
+           "FROM Booking b " +
            "WHERE b.status = 'CONFIRMED' OR b.status = 'COMPLETED' " +
-           "GROUP BY b.trip.route.routeCode ORDER BY COUNT(b) DESC")
+           "GROUP BY b.trip.route.departureLocation.name, b.trip.route.arrivalLocation.name " +
+           "ORDER BY COUNT(b) DESC")
     List<Object[]> getTopRoutesByBookingCount();
 }

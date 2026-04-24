@@ -12,4 +12,6 @@ public interface FinanceService {
     Page<TransactionResponseDTO> getTransactions(String query, int page, int size);
     BigDecimal sumTotalRevenue();
     BigDecimal sumMonthlyRevenue(int month, int year);
+    java.util.List<java.util.Map<String, Object>> getMonthlyRevenueStats(int year);
+    java.util.List<java.util.Map<String, Object>> getDailyRevenueStats(int month, int year);
 }
